@@ -158,7 +158,8 @@ const VT = (() => {
     autorizacion:{ t: "Esperando tu autorización", c: "amarillo" },
     produccion: { t: "En producción", c: "naranja" },
     listo:      { t: "Listo para entregar", c: "verde" },
-    entregado:  { t: "Entregado", c: "verde2" }
+    entregado:  { t: "Entregado", c: "verde2" },
+    cancelada:  { t: "Cancelada", c: "rojo" }
   };
   const FORMAS = ["Transferencia", "Efectivo", "Tarjeta de débito", "Tarjeta de crédito"];
 
@@ -207,6 +208,7 @@ const VT = (() => {
     const porValidar = pagos.filter(p => p.estado === "por_validar").reduce((a,p)=>a+p.monto, 0);
     const saldo = Math.max(0, Math.round((v.total - pagado) * 100) / 100);
     let pago;
+    if (v.estado === "cancelada") return { pagado, porValidar: 0, saldo: 0, pago: { k:"cancelada", t:"Cancelada", c:"gris" }, piezas: (v.items||[]).reduce((a,i)=>a+i.cant, 0) };
     if (porValidar > 0) pago = { k:"validar", t:"Comprobante por validar", c:"amarillo" };
     else if (pagado <= 0) pago = { k:"sin", t:"Sin anticipo", c:"rojo" };
     else if (pagado + 0.009 < v.anticipoReq) pago = { k:"incompleto", t:"Anticipo incompleto", c:"rojo" };
@@ -345,136 +347,255 @@ const badge = (t, c) => `<span class="badge ${c}">${t}</span>`;
 const suc = s => VT.SUCURSALES[s].nombre;
 const dias = iso => Math.floor((Date.now() - new Date(iso).getTime()) / 864e5);
 
-/* ---------- sesión (en la versión final se valida en el servidor) ---------- */
-function entrar(){
-  if ($("#lu").value.trim() === "admin" && $("#lp").value === "vituma"){ try { sessionStorage.setItem("vituma_ses", "admin"); } catch(e){} iniciar(); }
-  else $("#lerr").textContent = "Usuario o contraseña incorrectos.";
+/* ---------- usuarios, roles y permisos ----------
+   MUESTRA: en la versión final las contraseñas y permisos se validan en el servidor. */
+const PERMISOS = [
+  ["ver_ventas","Ver ventas"],["ver_montos","Ver montos y pagos"],["validar_pagos","Validar o rechazar pagos"],
+  ["registrar_pagos","Registrar anticipos, abonos y liquidaciones"],["cambiar_estado","Cambiar estado del pedido"],
+  ["modificar_ventas","Modificar ventas"],["cancelar_ventas","Cancelar ventas"],["ver_clientes","Ver clientes"],
+  ["bodega","Pedido a bodega"],["gastos","Registrar gastos"],["reportes","Ver reportes"],["usuarios","Administrar usuarios"]
+];
+const ROLES = {
+  "Administrador": PERMISOS.map(p => p[0]),
+  "Encargado": ["ver_ventas","ver_montos","validar_pagos","registrar_pagos","cambiar_estado","modificar_ventas","cancelar_ventas","ver_clientes","bodega","gastos","reportes"],
+  "Cajera": ["ver_ventas","ver_montos","registrar_pagos","ver_clientes","gastos"],
+  "Vendedor": ["ver_ventas","ver_montos","ver_clientes"],
+  "Diseño": ["ver_ventas","cambiar_estado"]
+};
+const AJUSTADOR = "https://ajustador-tallas.vercel.app";
+let SES = null;
+const can = k => !!SES && (SES.rol === "Administrador" || (SES.permisos || []).includes(k));
+async function hash(t){
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("vituma::" + t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+async function asegurarAdmin(){
+  DB = VT.cargar(); DB.usuarios = DB.usuarios || [];
+  if (!DB.usuarios.length){
+    DB.usuarios.push({ id:"U1", nombre:"Administrador", usuario:"admin", rol:"Administrador", sucursal:"", permisos:[...ROLES.Administrador], activo:true, pass: await hash("vituma"), alta:new Date().toISOString() });
+    save();
+  }
+}
+function log(v, accion, detalle){ v.historial = v.historial || []; v.historial.unshift({ fecha:new Date().toISOString(), usuario: SES ? SES.nombre : "", accion, detalle: detalle || "" }); }
+
+async function entrar(){
+  await asegurarAdmin();
+  const u = DB.usuarios.find(x => x.usuario === $("#lu").value.trim().toLowerCase());
+  if (!u || !u.activo || u.pass !== await hash($("#lp").value)){ $("#lerr").textContent = "Usuario o contraseña incorrectos."; return; }
+  u.ultimo = new Date().toISOString(); save();
+  try { sessionStorage.setItem("vituma_ses", u.id); } catch(e){}
+  iniciar();
 }
 $("#lbtn").onclick = entrar; $("#lp").onkeydown = e => { if (e.key === "Enter") entrar(); };
-$("#reset").onclick = e => { e.preventDefault(); if (!window.confirm("¿Borrar todas las ventas, clientes y gastos de la muestra?")) return; try { localStorage.removeItem("vituma_demo_db"); } catch(x){} DB = VT.cargar(); ir("ventas"); toast("Datos borrados"); };
+$("#reset").onclick = e => { e.preventDefault(); if (!window.confirm("¿Borrar todas las ventas, clientes, gastos y pedidos a bodega de la muestra? (Los usuarios se conservan)")) return;
+  const us = DB.usuarios; try { localStorage.removeItem("vituma_demo_db"); } catch(x){} DB = VT.cargar(); DB.usuarios = us; save(); ir(sec); toast("Datos borrados"); };
 $("#logout").onclick = e => { e.preventDefault(); try { sessionStorage.removeItem("vituma_ses"); } catch(x){} location.reload(); };
 
 /* ---------- navegación ---------- */
-const SECC = [["ventas","Ventas"],["clientes","Clientes"],["bodega","Pedido a bodega"],["gastos","Gastos"],["reportes","Reportes"]];
+const SECC = [["ventas","Ventas","ver_ventas"],["clientes","Clientes","ver_clientes"],["bodega","Pedido a bodega","bodega"],["gastos","Gastos","gastos"],["reportes","Reportes","reportes"],["usuarios","Usuarios","usuarios"]];
 let sec = "ventas";
+const secciones = () => SECC.filter(s => can(s[2]));
 function nav(){
-  const pv = DB.ventas.filter(v => VT.cuentas(v).porValidar > 0).length;
-  $("#nav").innerHTML = SECC.map(([k,t]) => `<button class="${k===sec?"on":""}" data-s="${k}">${t}${k==="ventas"&&pv?`<span class="n">${pv}</span>`:""}</button>`).join("");
+  const pv = can("validar_pagos") ? DB.ventas.filter(v => v.estado !== "cancelada" && (!SES.sucursal || v.sucursal === SES.sucursal) && VT.cuentas(v).porValidar > 0).length : 0;
+  const ajus = ["Administrador","Encargado","Diseño"].includes(SES.rol);
+  $("#nav").innerHTML = secciones().map(([k,t]) => `<button class="${k===sec?"on":""}" data-s="${k}">${t}${k==="ventas"&&pv?`<span class="n">${pv}</span>`:""}</button>`).join("")
+    + (ajus ? `<a href="${AJUSTADOR}" target="_blank" rel="noopener" style="color:#fff;opacity:.78;text-decoration:none;padding:10px 12px;font-weight:600">Ajustador de tallas ↗</a>` : "");
   document.querySelectorAll("#nav button").forEach(b => b.onclick = () => ir(b.dataset.s));
-  $("#mnav").innerHTML = SECC.map(([k,t]) => `<option value="${k}"${k===sec?" selected":""}>${t}${k==="ventas"&&pv?` (${pv} por validar)`:""}</option>`).join("");
+  $("#mnav").innerHTML = secciones().map(([k,t]) => `<option value="${k}"${k===sec?" selected":""}>${t}${k==="ventas"&&pv?` (${pv} por validar)`:""}</option>`).join("");
 }
 $("#mnav").onchange = e => ir(e.target.value);
-function ir(s){ sec = s; DB = VT.cargar(); nav(); ({ ventas:pVentas, clientes:pClientes, bodega:pBodega, gastos:pGastos, reportes:pReportes })[s](); window.scrollTo(0,0); }
-function iniciar(){ $("#login").style.display = "none"; $("#app").style.display = "block"; ir("ventas"); }
+const PAGINAS = () => ({ ventas:pVentas, clientes:pClientes, bodega:pBodega, gastos:pGastos, reportes:pReportes, usuarios:pUsuarios });
+function ir(s){ if (!secciones().some(x => x[0] === s)) s = (secciones()[0] || [""])[0]; sec = s; DB = VT.cargar(); DB.usuarios = DB.usuarios || []; nav(); if (s) PAGINAS()[s](); else $("#main").innerHTML = `<div class="empty">Tu usuario no tiene permisos asignados.</div>`; window.scrollTo(0,0); }
+async function iniciar(){
+  await asegurarAdmin();
+  let id = null; try { id = sessionStorage.getItem("vituma_ses"); } catch(e){}
+  SES = DB.usuarios.find(u => u.id === id && u.activo) || null;
+  if (!SES){ $("#login").style.display = "flex"; $("#app").style.display = "none"; return; }
+  $("#who").textContent = `${SES.nombre} · ${SES.rol}${SES.sucursal ? " · " + suc(SES.sucursal) : ""}`;
+  if (SES.sucursal){ vSuc = SES.sucursal; bSuc = SES.sucursal; rSuc = SES.sucursal; }
+  if (!can("ver_montos")) vTab = "produccion";
+  $("#login").style.display = "none"; $("#app").style.display = "block"; ir("ventas");
+}
+const selSuc = (id, val, todas) => SES.sucursal ? `<span class="badge gris" style="align-self:center">${suc(SES.sucursal)}</span>` :
+  `<select id="${id}" style="width:auto"><option value="">${todas}</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===val?" selected":""}>${suc(k)}</option>`).join("")}</select>`;
 
 /* ---------- VENTAS ---------- */
 let vTab = "todas", vSuc = "", vQ = "";
 function pVentas(){
-  const c = v => VT.cuentas(v);
+  const c = v => VT.cuentas(v), mon = can("ver_montos");
   const filtros = {
-    todas: () => true,
-    validar: v => c(v).porValidar > 0,
-    pendientes: v => c(v).saldo > 0,
+    todas: v => v.estado !== "cancelada",
+    validar: v => v.estado !== "cancelada" && c(v).porValidar > 0,
+    pendientes: v => v.estado !== "cancelada" && c(v).saldo > 0,
     produccion: v => ["diseno","autorizacion","produccion"].includes(v.estado),
-    listos: v => v.estado === "listo"
+    listos: v => v.estado === "listo",
+    canceladas: v => v.estado === "cancelada"
   };
+  const tabs = mon ? [["todas","Todas"],["validar","Por validar"],["pendientes","Pagos pendientes"],["produccion","En producción"],["listos","Listos sin entregar"],["canceladas","Canceladas"]]
+                   : [["produccion","En diseño y producción"],["listos","Listos sin entregar"],["todas","Todas"]];
+  if (!tabs.some(t => t[0] === vTab)) vTab = tabs[0][0];
   const base = DB.ventas.filter(v => (!vSuc || v.sucursal === vSuc) && (!vQ || (v.folio + " " + v.cliente.nombre + " " + (v.trabajo||"") + " " + v.items.map(i=>i.prenda).join(" ") + " " + v.vendedor).toLowerCase().includes(vQ.toLowerCase())));
   const cnt = k => base.filter(filtros[k]).length;
   const lista = base.filter(filtros[vTab]);
   $("#main").innerHTML = `
     <div class="top"><h1 class="t">Ventas</h1><div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn sec" id="seed">Cargar ventas de ejemplo</button>
-      <button class="btn sec" id="xls">⬇ Descargar ventas</button>
+      ${SES.rol === "Administrador" ? `<button class="btn sec" id="seed">Cargar ventas de ejemplo</button>` : ""}
+      ${mon ? `<button class="btn sec" id="xls">⬇ Descargar ventas</button>` : ""}
       <a class="btn pri" href="./" target="_blank" style="text-decoration:none">＋ Nueva venta</a></div></div>
     <div class="card">
-      <div class="filters"><input id="q" placeholder="Buscar por folio, cliente, trabajo, prenda o vendedor" value="${esc(vQ)}">
-        <select id="fs"><option value="">Todas las sucursales</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===vSuc?" selected":""}>${suc(k)}</option>`).join("")}</select></div>
-      <div class="tabs">${[["todas","Todas"],["validar","Por validar"],["pendientes","Pagos pendientes"],["produccion","En producción"],["listos","Listos sin entregar"]].map(([k,t])=>`<button class="${k===vTab?"on":""}" data-t="${k}">${t}<span class="n">${cnt(k)}</span></button>`).join("")}</div>
-      ${lista.length ? `<table class="t resp"><thead><tr><th>Venta</th><th>Sucursal</th><th>Fecha</th><th>Cliente</th><th>Pago</th><th class="n">Total</th><th class="n">Saldo</th><th>Pedido</th></tr></thead><tbody>
+      <div class="filters"><input id="q" placeholder="Buscar por folio, cliente, trabajo, prenda o vendedor" value="${esc(vQ)}">${selSuc("fs", vSuc, "Todas las sucursales")}</div>
+      <div class="tabs">${tabs.map(([k,t])=>`<button class="${k===vTab?"on":""}" data-t="${k}">${t}<span class="n">${cnt(k)}</span></button>`).join("")}</div>
+      ${lista.length ? `<table class="t resp"><thead><tr><th>Venta</th><th>Sucursal</th><th>Fecha</th><th>Cliente</th>${mon?`<th>Pago</th><th class="n">Total</th><th class="n">Saldo</th>`:`<th>Entrega</th>`}<th>Pedido</th></tr></thead><tbody>
         ${lista.map(v => { const k = c(v); return `<tr class="click" data-f="${v.folio}">
           <td><span class="folio">${v.folio}</span></td><td data-h="Sucursal">${suc(v.sucursal)}</td><td data-h="Fecha">${VT.fechaHora(v.fecha)}</td>
           <td data-h="Cliente"><b>${esc(v.cliente.nombre)}</b>${v.trabajo?`<div class="muted">${esc(v.trabajo)}</div>`:""}</td>
-          <td>${badge(k.pago.t, k.pago.c)}</td><td class="n" data-h="Total">${money(v.total)}</td><td class="n" data-h="Saldo">${k.saldo ? `<b>${money(k.saldo)}</b>` : "—"}</td>
+          ${mon ? `<td>${badge(k.pago.t, k.pago.c)}</td><td class="n" data-h="Total">${money(v.total)}</td><td class="n" data-h="Saldo">${k.saldo && v.estado!=="cancelada" ? `<b>${money(k.saldo)}</b>` : "—"}</td>`
+                : `<td data-h="Entrega">A más tardar ${VT.fecha(v.entregaMax)}</td>`}
           <td>${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</td></tr>`; }).join("")}</tbody></table>`
       : `<div class="empty">No hay ventas en esta vista.</div>`}
     </div>`;
   $("#q").oninput = e => { vQ = e.target.value; const pos = e.target.selectionStart; pVentas(); const q = $("#q"); q.focus(); q.setSelectionRange(pos,pos); };
-  $("#fs").onchange = e => { vSuc = e.target.value; pVentas(); };
+  if ($("#fs")) $("#fs").onchange = e => { vSuc = e.target.value; pVentas(); };
   document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { vTab = b.dataset.t; pVentas(); });
   document.querySelectorAll("tr[data-f]").forEach(r => r.onclick = () => abrirVenta(r.dataset.f));
-  $("#xls").onclick = () => excelVentas(lista, "Ventas");
-  $("#seed").onclick = () => { sembrar(); ir("ventas"); toast("Ventas de ejemplo cargadas"); };
+  if ($("#xls")) $("#xls").onclick = () => excelVentas(lista, "Ventas");
+  if ($("#seed")) $("#seed").onclick = () => { sembrar(); ir("ventas"); toast("Ventas de ejemplo cargadas"); };
 }
 
 function abrirVenta(folio){
   DB = VT.cargar();
   const v = DB.ventas.find(x => x.folio === folio); if (!v) return;
-  const k = VT.cuentas(v);
+  const k = VT.cuentas(v), mon = can("ver_montos"), cancel = v.estado === "cancelada";
   const cli = DB.clientes.find(x => x.tel === v.cliente.tel);
   $("#dTitle").textContent = `Venta ${v.folio}`;
-  const items = v.items.map(i => `<tr><td class="n" style="text-align:center">${i.cant}</td><td>${esc(i.desc)}</td><td class="n">${money(i.punit)}</td><td class="n">${money(i.importe)}</td></tr>`).join("");
+  const items = v.items.map(i => `<tr><td class="n" style="text-align:center">${i.cant}</td><td>${esc(i.desc)}</td>${mon?`<td class="n">${money(i.punit)}</td><td class="n">${money(i.importe)}</td>`:""}</tr>`).join("");
   const pagos = v.pagos.map(p => `<div class="pago ${p.estado==="por_validar"?"pv":""}">
       ${p.comprobante ? (p.comprobante.tipo==="img" ? `<img src="${p.comprobante.src}" alt="Comprobante" data-zoom>` : `<a class="btn sec sm" href="${p.comprobante.src}" download="${esc(p.comprobante.nombre)}">PDF</a>`) : `<div style="width:64px;text-align:center;font-size:26px">${p.forma==="Efectivo"?"💵":p.forma.startsWith("Tarjeta")?"💳":"🏦"}</div>`}
       <div><b>${p.tipo} · ${money(p.monto)}</b><div class="muted">${p.forma} · ${VT.fechaHora(p.fecha)} · ${esc(p.registro||"")}</div>
         ${p.estado==="validado" ? `<div class="muted">Validado por ${esc(p.validadoPor||"admin")} el ${VT.fechaHora(p.validadoEl||p.fecha)}</div>` : ""}
-        ${p.estado==="rechazado" ? `<div class="muted" style="color:#B42318">Rechazado: ${esc(p.motivo||"")}</div>` : ""}</div>
-      <div class="acts">${p.estado==="por_validar" ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge(p.estado==="validado"?"Validado":"Rechazado", p.estado==="validado"?"verde":"rojo")}</div>
+        ${p.estado==="rechazado" ? `<div class="muted" style="color:#B42318">Rechazado por ${esc(p.validadoPor||"")}: ${esc(p.motivo||"")}</div>` : ""}</div>
+      <div class="acts">${p.estado==="por_validar" ? (can("validar_pagos") && !cancel ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge("Por validar","amarillo")) : badge(p.estado==="validado"?"Validado":"Rechazado", p.estado==="validado"?"verde":"rojo")}</div>
     </div>`).join("") || `<div class="muted">Sin pagos registrados.</div>`;
+  const hist = (v.historial || []).map(h => `<div class="li"><span><b>${esc(h.accion)}</b>${h.detalle?` · ${esc(h.detalle)}`:""}<div class="muted">${esc(h.usuario)} · ${VT.fechaHora(h.fecha)}</div></span></div>`).join("");
   $("#dBody").innerHTML = `
-    <div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${badge(k.pago.t,k.pago.c)} ${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</div>
+    ${cancel ? `<div class="card" style="background:#FDECEC"><b style="color:#B42318">Venta cancelada</b><div class="muted">Por ${esc(v.cancelacion.usuario)} el ${VT.fechaHora(v.cancelacion.fecha)} · Motivo: ${esc(v.cancelacion.motivo)}</div></div>` : ""}
+    <div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${mon?badge(k.pago.t,k.pago.c):""} ${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</div>
       <div class="kv"><b>Cliente</b><span>${esc(v.cliente.nombre)} · ${esc(v.cliente.tel)}</span><b>Trabajo</b><span>${esc(v.trabajo||"—")}</span>
       <b>Sucursal</b><span>${suc(v.sucursal)}</span><b>Fecha</b><span>${VT.fechaHora(v.fecha)}</span><b>Vendedor</b><span>${esc(v.vendedor)}</span>
       <b>Entrega</b><span>Entre ${VT.fecha(v.entregaMin)} y ${VT.fecha(v.entregaMax)}</span>
-      ${v.ponchado && v.ponchado.aplica ? `<b>Ponchado</b><span>${v.ponchado.logos} logo(s) · ${v.ponchado.monto ? money(v.ponchado.monto) : "sin cargo"}${v.ponchado.ya ? " · <b style='color:#B4400F'>el cliente dice que ya está ponchado: verificar</b>" : ""}</span>` : ""}
+      ${v.ponchado && v.ponchado.aplica ? `<b>Ponchado</b><span>${v.ponchado.logos} logo(s)${mon?" · "+(v.ponchado.monto ? money(v.ponchado.monto) : "sin cargo"):""}${v.ponchado.ya ? " · <b style='color:#B4400F'>el cliente dice que ya está ponchado: verificar</b>" : ""}</span>` : ""}
       ${cli && cli.logosPonchados && cli.logosPonchados.length ? `<b>Logos ponchados</b><span>${cli.logosPonchados.map(l=>`${l.logos} logo(s) en ${l.folio}`).join(", ")}</span>` : ""}
+      ${v.descBordado ? `<b>Bordado</b><span>${esc(v.descBordado)}</span>` : ""}
       ${v.enBodega ? `<b>Bodega</b><span>Incluido en el pedido ${v.enBodega}</span>` : ""}
       ${v.disenoAdjunto ? `<b>Diseño</b><span>El cliente enviará su logo por WhatsApp</span>` : ""}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-        <button class="btn sec sm" id="verNota">🧾 Ver nota</button><button class="btn sec sm" id="pdfNota">⬇ PDF</button>
-        <button class="btn wa sm" id="waCli">WhatsApp al cliente</button></div></div>
-    <div class="card"><h3>Prendas</h3><table class="t"><tr><th>Cant.</th><th>Descripción</th><th class="n">P. unit.</th><th class="n">Importe</th></tr>${items}</table>
-      <div class="kv" style="margin-top:12px;justify-content:end"><b>Total</b><span><b>${money(v.total)}</b></span><b>Anticipo requerido</b><span>${money(v.anticipoReq)}</span><b>Pagado</b><span>${money(k.pagado)}</span>${k.porValidar?`<b>Por validar</b><span>${money(k.porValidar)}</span>`:""}<b>Saldo</b><span style="color:#B42318;font-weight:800">${money(k.saldo)}</span></div></div>
-    <div class="card"><h3>Pagos</h3>${pagos}
-      ${k.saldo > 0 ? `<h3 style="margin-top:16px">Registrar pago en mostrador</h3>
+        ${mon ? `<button class="btn sec sm" id="verNota">🧾 Ver nota</button><button class="btn sec sm" id="pdfNota">⬇ PDF</button>` : ""}
+        <button class="btn wa sm" id="waCli">WhatsApp al cliente</button>
+        ${can("modificar_ventas") && !cancel ? `<button class="btn sec sm" id="modBtn">✏️ Modificar venta</button>` : ""}
+        ${can("cancelar_ventas") && !cancel && v.estado !== "entregado" ? `<button class="btn no sm" id="canBtn">Cancelar venta</button>` : ""}
+        ${["Administrador","Encargado","Diseño"].includes(SES.rol) && ["diseno","autorizacion"].includes(v.estado) ? `<a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none">Ajustador de tallas ↗</a>` : ""}</div></div>
+    <div class="card"><h3>Prendas</h3><table class="t"><tr><th>Cant.</th><th>Descripción</th>${mon?`<th class="n">P. unit.</th><th class="n">Importe</th>`:""}</tr>${items}</table>
+      ${mon ? `<div class="kv" style="margin-top:12px;justify-content:end"><b>Total</b><span><b>${money(v.total)}</b></span><b>Anticipo requerido</b><span>${money(v.anticipoReq)}</span><b>Pagado</b><span>${money(k.pagado)}</span>${k.porValidar?`<b>Por validar</b><span>${money(k.porValidar)}</span>`:""}<b>Saldo</b><span style="color:#B42318;font-weight:800">${money(k.saldo)}</span></div>` : ""}</div>
+    ${mon ? `<div class="card"><h3>Pagos</h3>${pagos}
+      ${k.saldo > 0 && !cancel && can("registrar_pagos") ? `<h3 style="margin-top:16px">Registrar pago en mostrador</h3>
       <div class="row3"><div><label class="l">Monto</label><input id="rMonto" inputmode="decimal" value="${k.saldo.toFixed(2)}"></div>
         <div><label class="l">Forma de pago</label><select id="rForma">${VT.FORMAS.map(f=>`<option>${f}</option>`).join("")}</select></div>
         <div><label class="l">&nbsp;</label><button class="btn pri" id="rBtn" style="width:100%">Registrar</button></div></div>
-      <p class="muted" style="margin-top:6px">Para anticipos, abonos y la liquidación al recoger. Se registra como validado.</p>` : ""}</div>
-    <div class="card"><h3>Estado del pedido</h3>
-      <div class="row2"><select id="eSel">${Object.entries(VT.ESTADOS).map(([e,o])=>`<option value="${e}"${e===v.estado?" selected":""}>${o.t}</option>`).join("")}</select>
-      <button class="btn pri" id="eBtn">Guardar estado</button></div></div>`;
+      <p class="muted" style="margin-top:6px">Para anticipos, abonos y la liquidación al recoger. Queda registrado a tu nombre.</p>` : ""}</div>` : ""}
+    ${can("cambiar_estado") && !cancel ? `<div class="card"><h3>Estado del pedido</h3>
+      <div class="row2"><select id="eSel">${Object.entries(VT.ESTADOS).filter(([e])=>e!=="cancelada").map(([e,o])=>`<option value="${e}"${e===v.estado?" selected":""}>${o.t}</option>`).join("")}</select>
+      <button class="btn pri" id="eBtn">Guardar estado</button></div></div>` : ""}
+    <div class="card"><h3>Historial de movimientos</h3><div class="list">${hist || `<div class="muted">Sin movimientos registrados.</div>`}</div></div>`;
   abrir();
-  const msgCli = () => { const vv = VT.cargar().ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv), n = vv.cliente.nombre.split(" ")[0];
+  $("#waCli").onclick = () => { const vv = VT.cargar().ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv), n = vv.cliente.nombre.split(" ")[0];
     const t = { cotizacion:`Hola ${n} 👋, te escribimos de VITUMA por tu pedido ${vv.folio}. Tu anticipo es de ${money(vv.anticipoReq)}; cuando hagas la transferencia sube tu comprobante en la app.`,
       diseno:`Hola ${n} 👋, recibimos tu pago del pedido ${vv.folio}. ¡Ya estamos trabajando en tu diseño! Saldo pendiente: ${money(kk.saldo)}.`,
       autorizacion:`Hola ${n} 👋, ya está la vista previa de tu pedido ${vv.folio}. Revísala y autorízanos para pasar a producción.`,
       produccion:`Hola ${n} 👋, tu pedido ${vv.folio} ya está en producción. Entrega estimada a más tardar el ${VT.fecha(vv.entregaMax)}.`,
       listo:`Hola ${n} 👋, ¡tu pedido ${vv.folio} está listo! Puedes recogerlo en VITUMA ${suc(vv.sucursal)}. Saldo a liquidar: ${money(kk.saldo)}.`,
-      entregado:`Hola ${n} 👋, gracias por tu compra en VITUMA (pedido ${vv.folio}). ¡Esperamos verte pronto!` }[vv.estado];
+      entregado:`Hola ${n} 👋, gracias por tu compra en VITUMA (pedido ${vv.folio}). ¡Esperamos verte pronto!`,
+      cancelada:`Hola ${n}, te escribimos de VITUMA respecto a tu pedido ${vv.folio}, que fue cancelado.` }[vv.estado];
     window.open(`https://wa.me/52${vv.cliente.tel}?text=${encodeURIComponent(t)}`, "_blank"); };
-  $("#waCli").onclick = msgCli;
-  $("#verNota").onclick = () => { const z = $("#zoom"); z.innerHTML = `<div class="nbox">${VT.notaHTML(VT.cargar().ventas.find(x=>x.folio===folio))}</div>`; z.classList.add("on"); };
-  $("#pdfNota").onclick = () => VT.notaPDF(VT.cargar().ventas.find(x=>x.folio===folio));
-  document.querySelectorAll("[data-val]").forEach(b => b.onclick = () => { validar(folio, b.dataset.val); });
+  if ($("#verNota")) $("#verNota").onclick = () => { const z = $("#zoom"); z.innerHTML = `<div class="nbox">${VT.notaHTML(VT.cargar().ventas.find(x=>x.folio===folio))}</div>`; z.classList.add("on"); };
+  if ($("#pdfNota")) $("#pdfNota").onclick = () => VT.notaPDF(VT.cargar().ventas.find(x=>x.folio===folio));
+  document.querySelectorAll("[data-val]").forEach(b => b.onclick = () => validar(folio, b.dataset.val));
   document.querySelectorAll("[data-rec]").forEach(b => b.onclick = () => {
     const motivo = window.prompt("Motivo del rechazo (se le dirá al cliente):", "No se encontró la transferencia en la cuenta");
     if (motivo === null) return;
     const vv = DB.ventas.find(x=>x.folio===folio), p = vv.pagos.find(x=>x.id===b.dataset.rec);
-    p.estado = "rechazado"; p.motivo = motivo; p.validadoEl = new Date().toISOString(); save(); toast("Pago rechazado", true); abrirVenta(folio); refrescar();
+    p.estado = "rechazado"; p.motivo = motivo; p.validadoPor = SES.nombre; p.validadoEl = new Date().toISOString();
+    log(vv, "Pago rechazado", `${p.tipo} ${money(p.monto)} · ${motivo}`); save(); toast("Pago rechazado", true); abrirVenta(folio); refrescar();
   });
   if ($("#rBtn")) $("#rBtn").onclick = () => {
     const monto = Math.round(parseFloat($("#rMonto").value.replace(/[^\d.]/g,""))*100)/100; if (!(monto>0)) return toast("Escribe un monto válido", true);
     const vv = DB.ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv);
     const tipo = kk.pagado <= 0 ? "Anticipo" : (monto >= kk.saldo ? "Liquidación" : "Abono");
-    const ahora = new Date().toISOString();
-    vv.pagos.push({ id:"P"+Date.now(), fecha:ahora, tipo, monto, forma:$("#rForma").value, estado:"validado", registro:"Mostrador (admin)", validadoPor:"admin", validadoEl:ahora });
+    const ahora = new Date().toISOString(), forma = $("#rForma").value;
+    vv.pagos.push({ id:"P"+Date.now(), fecha:ahora, tipo, monto, forma, estado:"validado", registro:`Mostrador (${SES.nombre})`, validadoPor:SES.nombre, validadoEl:ahora });
+    log(vv, `${tipo} registrado`, `${money(monto)} · ${forma}`);
     trasValidar(vv); save(); toast(`${tipo} registrado`); abrirVenta(folio); refrescar();
   };
-  $("#eBtn").onclick = () => { const vv = DB.ventas.find(x=>x.folio===folio); vv.estado = $("#eSel").value; save(); toast("Estado actualizado"); abrirVenta(folio); refrescar(); };
+  if ($("#eBtn")) $("#eBtn").onclick = () => { const vv = DB.ventas.find(x=>x.folio===folio), nuevo = $("#eSel").value; if (nuevo === vv.estado) return;
+    log(vv, "Cambio de estado", `${VT.ESTADOS[vv.estado].t} → ${VT.ESTADOS[nuevo].t}`); vv.estado = nuevo; save(); toast("Estado actualizado"); abrirVenta(folio); refrescar(); };
+  if ($("#canBtn")) $("#canBtn").onclick = () => {
+    const vv = DB.ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv);
+    const motivo = window.prompt(`¿Cancelar la venta ${folio}?${kk.pagado ? `\nTiene ${money(kk.pagado)} pagados (según las políticas no hay devoluciones).` : ""}\n\nEscribe el motivo:`, "");
+    if (motivo === null) return; if (!motivo.trim()) return toast("Escribe el motivo de la cancelación", true);
+    vv.cancelacion = { fecha:new Date().toISOString(), usuario:SES.nombre, motivo:motivo.trim(), estadoAnterior:vv.estado };
+    log(vv, "Venta cancelada", motivo.trim()); vv.estado = "cancelada"; save(); toast("Venta cancelada", true); abrirVenta(folio); refrescar();
+  };
+  if ($("#modBtn")) $("#modBtn").onclick = () => editarVenta(folio);
 }
+
+/* ---------- modificar venta ---------- */
+function editarVenta(folio){
+  const v = DB.ventas.find(x=>x.folio===folio);
+  const ord = ["XCH","CH","M","G","XL","2XL","3XL","4XL"];
+  $("#dTitle").textContent = `Modificar ${folio}`;
+  $("#dBody").innerHTML = `<div class="card"><h3>Datos del cliente</h3>
+      <div class="row2"><div><label class="l">Nombre</label><input id="mNom" value="${esc(v.cliente.nombre)}"></div><div><label class="l">Teléfono</label><input id="mTel" value="${esc(v.cliente.tel)}"></div></div>
+      <div style="height:10px"></div><div class="row2"><div><label class="l">Trabajo</label><input id="mTra" value="${esc(v.trabajo||"")}"></div>
+      <div><label class="l">Sucursal</label><select id="mSuc">${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===v.sucursal?" selected":""}>${suc(k)}</option>`).join("")}</select></div></div>
+      <div style="height:10px"></div><label class="l">Descripción del bordado</label><input id="mBor" value="${esc(v.descBordado||"")}"></div>
+    <div class="card"><h3>Prendas</h3>
+      ${v.items.map((i,n) => `<div style="border:1.5px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px">
+        <label class="l">Descripción</label><input data-md="${n}" value="${esc(i.desc)}">
+        <div style="height:8px"></div>
+        ${i.qty && Object.keys(i.qty).length ? `<label class="l">Piezas por talla</label><div style="display:flex;gap:6px;flex-wrap:wrap">${ord.filter(t => t in i.qty || ["CH","M","G","XL"].includes(t)).map(t=>`<label style="font-size:12px;font-weight:700;text-align:center">${t}<input data-mq="${n}" data-t="${t}" value="${i.qty[t]||0}" inputmode="numeric" style="width:58px;text-align:center"></label>`).join("")}</div>`
+          : `<label class="l">Cantidad</label><input data-mc="${n}" value="${i.cant}" inputmode="numeric" style="width:90px">`}
+        <div style="height:8px"></div><label class="l">Precio unitario</label><input data-mp="${n}" value="${i.punit}" inputmode="decimal" style="width:140px">
+      </div>`).join("")}
+      <label class="l">Anticipo requerido</label><input id="mAnt" value="${v.anticipoReq}" inputmode="decimal" style="width:160px">
+      <p class="muted" style="margin-top:6px">Al cambiar piezas o precios se recalcula el total. Revisa también el anticipo requerido.</p></div>
+    <div class="card"><label class="l">Motivo de la modificación *</label><input id="mMot" placeholder="Ej. El cliente agregó 2 piezas talla G">
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn pri" id="mSave">Guardar cambios</button><button class="btn sec" id="mCancel">Cancelar</button></div></div>`;
+  $("#mCancel").onclick = () => abrirVenta(folio);
+  $("#mSave").onclick = () => {
+    const motivo = $("#mMot").value.trim(); if (!motivo) return toast("Escribe el motivo de la modificación", true);
+    const tel = $("#mTel").value.replace(/\D/g,""); if (tel.length !== 10) return toast("El teléfono debe tener 10 dígitos", true);
+    const antes = `Total ${money(v.total)}`;
+    v.cliente.nombre = $("#mNom").value.trim() || v.cliente.nombre; v.cliente.tel = tel; v.trabajo = $("#mTra").value.trim(); v.sucursal = $("#mSuc").value; v.descBordado = $("#mBor").value.trim();
+    v.items.forEach((i,n) => {
+      i.desc = document.querySelector(`[data-md="${n}"]`).value.trim() || i.desc;
+      const qs = document.querySelectorAll(`[data-mq="${n}"]`);
+      if (qs.length){ const q = {}; qs.forEach(x => { const c = parseInt(x.value) || 0; if (c > 0) q[x.dataset.t] = c; }); i.qty = q; i.cant = Object.values(q).reduce((a,b)=>a+b,0); }
+      else { const c = document.querySelector(`[data-mc="${n}"]`); i.cant = Math.max(0, parseInt(c.value) || 0); }
+      i.punit = Math.round((parseFloat(document.querySelector(`[data-mp="${n}"]`).value) || 0) * 100) / 100;
+      i.importe = Math.round(i.punit * i.cant * 100) / 100;
+    });
+    v.items = v.items.filter(i => i.cant > 0 || i.categoria === "Ponchado");
+    v.total = Math.round(v.items.reduce((a,i)=>a+i.importe,0) * 100) / 100;
+    v.anticipoReq = Math.min(v.total, Math.round((parseFloat($("#mAnt").value) || 0) * 100) / 100);
+    const cl = DB.clientes.find(c => c.folios && c.folios.includes(folio)); if (cl){ cl.nombre = v.cliente.nombre; cl.tel = v.cliente.tel; }
+    log(v, "Venta modificada", `${motivo} (${antes} → ${money(v.total)})`);
+    save(); toast("Venta modificada"); abrirVenta(folio); refrescar();
+  };
+}
+
 function validar(folio, id){
   const v = DB.ventas.find(x=>x.folio===folio), p = v.pagos.find(x=>x.id===id);
-  p.estado = "validado"; p.validadoPor = "admin"; p.validadoEl = new Date().toISOString();
+  p.estado = "validado"; p.validadoPor = SES.nombre; p.validadoEl = new Date().toISOString();
+  log(v, "Pago validado", `${p.tipo} ${money(p.monto)} · ${p.forma}`);
   trasValidar(v); save(); toast("Pago validado ✔"); abrirVenta(folio); refrescar();
 }
 /* al cubrir el anticipo: pasa a diseño, recalcula la entrega y registra el ponchado del cliente */
@@ -483,6 +604,7 @@ function trasValidar(v){
   if (v.estado === "cotizacion" && k.pagado + 0.009 >= v.anticipoReq){
     const ahora = new Date().toISOString();
     v.estado = "diseno"; v.entregaMin = VT.sumarHabiles(ahora, VT.ENTREGA.min); v.entregaMax = VT.sumarHabiles(ahora, VT.ENTREGA.max);
+    log(v, "Anticipo cubierto", "El pedido pasa a diseño; la entrega se cuenta desde hoy");
     if (v.ponchado && v.ponchado.aplica && !v.ponchado.ya){
       const cli = DB.clientes.find(c => c.tel === v.cliente.tel);
       if (cli){ cli.logosPonchados = cli.logosPonchados || []; if (!cli.logosPonchados.some(l => l.folio === v.folio)) cli.logosPonchados.push({ folio: v.folio, logos: v.ponchado.logos, fecha: ahora }); }
@@ -492,7 +614,7 @@ function trasValidar(v){
 function abrir(){ $("#ov").classList.add("on"); $("#drawer").classList.add("on"); }
 function cerrar(){ $("#ov").classList.remove("on"); $("#drawer").classList.remove("on"); }
 $("#dClose").onclick = cerrar; $("#ov").onclick = cerrar;
-function refrescar(){ DB = VT.cargar(); nav(); ({ ventas:pVentas, clientes:pClientes, bodega:pBodega, gastos:pGastos, reportes:pReportes })[sec](); }
+function refrescar(){ DB = VT.cargar(); nav(); if (sec) PAGINAS()[sec](); }
 document.addEventListener("click", e => {
   const z = $("#zoom");
   if (e.target.matches("img[data-zoom]")){ z.innerHTML = `<img src="${e.target.src}" alt="">`; z.classList.add("on"); return; }
@@ -503,7 +625,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape"){ $("#zoom").
 /* ---------- CLIENTES ---------- */
 function pClientes(){
   const filas = DB.clientes.map(cl => {
-    const vs = DB.ventas.filter(v => v.cliente.tel === cl.tel);
+    const vs = DB.ventas.filter(v => v.cliente.tel === cl.tel && v.estado !== "cancelada");
     const tot = vs.reduce((a,v)=>a+v.total,0), pag = vs.reduce((a,v)=>a+VT.cuentas(v).pagado,0);
     return { cl, vs, tot, pag, saldo: tot - pag, ult: vs[0] ? vs[0].fecha : cl.alta };
   }).sort((a,b) => b.tot - a.tot);
@@ -534,7 +656,7 @@ function abrirCliente(tel){
 /* ---------- PEDIDO A BODEGA (concentrado de polos) ---------- */
 let bSuc = "";
 function concentrado(){
-  const ventas = DB.ventas.filter(v => !v.enBodega && (!bSuc || v.sucursal === bSuc) && VT.cuentas(v).pagado > 0 && v.items.some(i => i.categoria === "Playeras polo"));
+  const ventas = DB.ventas.filter(v => v.estado !== "cancelada" && !v.enBodega && (!bSuc || v.sucursal === bSuc) && VT.cuentas(v).pagado > 0 && v.items.some(i => i.categoria === "Playeras polo"));
   const map = new Map();
   ventas.forEach(v => v.items.filter(i => i.categoria === "Playeras polo").forEach(i => Object.entries(i.qty||{}).forEach(([t,n]) => {
     if (!n) return; const key = [i.marca, i.prenda, i.modelo, i.color, t].join("|");
@@ -548,7 +670,7 @@ function concentrado(){
 function pBodega(){
   const { ventas, filas } = concentrado(), total = filas.reduce((a,r)=>a+r.cant,0);
   $("#main").innerHTML = `<div class="top"><h1 class="t">Pedido a bodega</h1>
-      <select id="bs" style="width:auto"><option value="">Ambas sucursales</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===bSuc?" selected":""}>${suc(k)}</option>`).join("")}</select></div>
+      ${selSuc("bs", bSuc, "Ambas sucursales")}</div>
     <div class="card"><h3>Polos por pedir (${total} piezas de ${ventas.length} ventas)</h3>
       <p class="muted" style="margin-bottom:10px">Incluye las ventas con anticipo validado que todavía no se han pedido a bodega. Al marcar el pedido como solicitado, esas ventas ya no vuelven a aparecer aquí.</p>
       ${filas.length ? `<table class="t resp"><thead><tr><th>Marca</th><th>Prenda</th><th>Modelo</th><th>Color</th><th>Talla</th><th class="n">Cantidad</th><th>Folios</th></tr></thead><tbody>
@@ -561,7 +683,7 @@ function pBodega(){
         <td class="n"><input data-cc="${cp.id}" value="${cp.costo||""}" placeholder="$ costo" style="width:110px;text-align:right"></td>
         <td><label style="white-space:nowrap"><input type="checkbox" data-cp="${cp.id}" style="width:auto"${cp.pagado?" checked":""}> Pagado</label></td>
         <td><button class="btn sec sm" data-cx="${cp.id}">⬇ Excel</button></td></tr>`).join("")}</tbody></table>` : `<div class="empty">Sin pedidos a bodega.</div>`}</div>`;
-  $("#bs").onchange = e => { bSuc = e.target.value; pBodega(); };
+  if ($("#bs")) $("#bs").onchange = e => { bSuc = e.target.value; pBodega(); };
   const hoja = (fs, titulo) => excel([["Marca","Prenda","Modelo","Color","Talla","Cantidad","Folios"], ...fs.map(r=>[r.marca,r.prenda,r.modelo,r.color,r.talla,r.cant,[...r.folios].join(", ")]), [], ["","","","","TOTAL", fs.reduce((a,r)=>a+r.cant,0)]], "Pedido bodega", titulo);
   if ($("#bx")) $("#bx").onclick = () => hoja(filas, `Pedido bodega ${VT.fecha(new Date().toISOString()).replace(/\//g,"-")}${bSuc?" "+suc(bSuc):""}`);
   if ($("#bm")) $("#bm").onclick = () => {
@@ -585,7 +707,7 @@ function pGastos(){
       <div><label class="l">Concepto</label><input id="gC" placeholder="Ej. Envío a Escuinapa"></div>
       <div><label class="l">Monto</label><input id="gM" inputmode="decimal"></div>
       <div><label class="l">Fecha</label><input id="gF" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
-      <div><label class="l">Sucursal</label><select id="gS">${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}">${suc(k)}</option>`).join("")}</select></div>
+      <div><label class="l">Sucursal</label><select id="gS">${Object.keys(VT.SUCURSALES).filter(k=>!SES.sucursal||k===SES.sucursal).map(k=>`<option value="${k}">${suc(k)}</option>`).join("")}</select></div>
       <div><label class="l">Forma de pago</label><select id="gP">${VT.FORMAS.map(f=>`<option>${f}</option>`).join("")}</select></div>
       <div><label class="l">&nbsp;</label><button class="btn pri" id="gB" style="width:100%">Guardar gasto</button></div></div></div>
     <div class="card"><h3>Listado de gastos · Total ${money(tot)}</h3>${DB.gastos.length ? `<table class="t resp"><thead><tr><th>Fecha</th><th>Concepto</th><th>Sucursal</th><th>Forma</th><th class="n">Monto</th><th></th></tr></thead><tbody>
@@ -593,7 +715,7 @@ function pGastos(){
   $("#gB").onclick = () => {
     const concepto = $("#gC").value.trim(), monto = parseFloat($("#gM").value.replace(/[^\d.]/g,""));
     if (!concepto || !(monto>0)) return toast("Escribe concepto y monto", true);
-    DB.gastos.unshift({ id:"G"+Date.now(), concepto, monto, fecha: new Date($("#gF").value + "T12:00:00").toISOString(), sucursal:$("#gS").value, forma:$("#gP").value });
+    DB.gastos.unshift({ id:"G"+Date.now(), registro: SES.nombre, concepto, monto, fecha: new Date($("#gF").value + "T12:00:00").toISOString(), sucursal:$("#gS").value, forma:$("#gP").value });
     save(); toast("Gasto guardado"); pGastos();
   };
   document.querySelectorAll("[data-gd]").forEach(b => b.onclick = () => { if (!window.confirm("¿Borrar este gasto?")) return; DB.gastos = DB.gastos.filter(g=>g.id!==b.dataset.gd); save(); pGastos(); });
@@ -607,13 +729,13 @@ function pReportes(){
   if (rPer === "7") ini.setDate(ini.getDate() - 6); else if (rPer === "30") ini.setDate(ini.getDate() - 29); else if (rPer === "mes") ini.setDate(1); else if (rPer === "todo") ini.setFullYear(2000);
   const enRango = iso => new Date(iso) >= ini && new Date(iso) <= ahora;
   const S = x => !rSuc || x.sucursal === rSuc;
-  const ventas = DB.ventas.filter(v => S(v) && enRango(v.fecha));
+  const ventas = DB.ventas.filter(v => S(v) && v.estado !== "cancelada" && enRango(v.fecha));
   const pagos = DB.ventas.filter(S).flatMap(v => v.pagos.filter(p => p.estado === "validado" && enRango(p.validadoEl || p.fecha)).map(p => ({...p, folio:v.folio, cliente:v.cliente.nombre})));
   const gastos = DB.gastos.filter(g => S(g) && enRango(g.fecha));
   const compras = DB.compras.filter(c => (!rSuc || !c.sucursal || c.sucursal === rSuc) && enRango(c.fecha));
   const vendido = ventas.reduce((a,v)=>a+v.total,0), cobrado = pagos.reduce((a,p)=>a+p.monto,0);
   const gastoT = gastos.reduce((a,g)=>a+g.monto,0), compraT = compras.reduce((a,c)=>a+(c.costo||0),0);
-  const abiertas = DB.ventas.filter(v => S(v) && VT.cuentas(v).saldo > 0.009);
+  const abiertas = DB.ventas.filter(v => S(v) && v.estado !== "cancelada" && VT.cuentas(v).saldo > 0.009);
   const porCobrar = abiertas.reduce((a,v)=>a+VT.cuentas(v).saldo,0);
   const aging = [["0 a 7 días",0,7],["8 a 30 días",8,30],["Más de 30 días",31,1e9]].map(([t,a,b]) => [t, abiertas.filter(v=>{const d=dias(v.fecha);return d>=a&&d<=b;}).reduce((s,v)=>s+VT.cuentas(v).saldo,0)]);
   const porPagar = DB.compras.filter(c => !c.pagado && c.costo).reduce((a,c)=>a+c.costo,0);
@@ -624,7 +746,7 @@ function pReportes(){
   const mxD = Math.max(1, ...porDia.map(d=>d[1]));
   const chart = `<svg viewBox="0 0 ${porDia.length*40} 180" style="width:100%;max-width:${porDia.length*70}px;height:200px">${porDia.map(([k,v],i)=>{ const h = v/mxD*125; return `<rect x="${i*40+8}" y="${150-h}" width="24" height="${h}" rx="4" fill="#2F6FDE"/><text x="${i*40+20}" y="170" font-size="10" text-anchor="middle" fill="#6B7088">${k.slice(8)}/${k.slice(5,7)}</text>${v?`<text x="${i*40+20}" y="${144-h}" font-size="9" text-anchor="middle" fill="#1C2340">${Math.round(v/100)/10}k</text>`:""}`; }).join("")}</svg>`;
   $("#main").innerHTML = `<div class="top"><h1 class="t">Reportes</h1><div style="display:flex;gap:8px;flex-wrap:wrap">
-      <select id="rs" style="width:auto"><option value="">Ambas sucursales</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===rSuc?" selected":""}>${suc(k)}</option>`).join("")}</select>
+      ${selSuc("rs", rSuc, "Ambas sucursales")}
       <select id="rp" style="width:auto">${[["hoy","Hoy"],["7","Últimos 7 días"],["30","Últimos 30 días"],["mes","Este mes"],["todo","Todo"]].map(([k,t])=>`<option value="${k}"${k===rPer?" selected":""}>${t}</option>`).join("")}</select>
       <button class="btn sec" id="xls">⬇ Descargar ventas</button></div></div>
     <div class="kpis">
@@ -651,8 +773,58 @@ function pReportes(){
     <div class="card"><h3>Movimientos de dinero</h3><div class="list">${[...pagos.map(p=>({f:p.validadoEl||p.fecha, t:`${p.tipo} ${p.folio} · ${p.cliente} · ${p.forma}`, m:p.monto})), ...gastos.map(g=>({f:g.fecha, t:`Gasto: ${g.concepto}`, m:-g.monto}))].sort((a,b)=>b.f.localeCompare(a.f)).slice(0,15).map(x=>`<div class="li"><span>${esc(x.t)}<div class="muted">${VT.fechaHora(x.f)}</div></span><span class="${x.m>=0?"up":"down"}">${x.m>=0?"+":"−"}${money(Math.abs(x.m))}</span></div>`).join("") || `<div class="muted">Sin movimientos</div>`}</div></div>
     <p class="muted">Para calcular el <b>margen por prenda</b> falta capturar el costo de cada prenda (siguiente etapa).</p>`;
   $("#rp").onchange = e => { rPer = e.target.value; pReportes(); };
-  $("#rs").onchange = e => { rSuc = e.target.value; pReportes(); };
+  if ($("#rs")) $("#rs").onchange = e => { rSuc = e.target.value; pReportes(); };
   $("#xls").onclick = () => excelVentas(ventas, "Reporte ventas");
+}
+
+/* ---------- USUARIOS ---------- */
+function pUsuarios(){
+  const us = DB.usuarios || [];
+  $("#main").innerHTML = `<div class="top"><h1 class="t">Usuarios</h1><button class="btn pri" id="uNew">＋ Nuevo usuario</button></div>
+    <div class="card"><table class="t resp"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Sucursal</th><th>Último acceso</th><th>Estado</th></tr></thead><tbody>
+      ${us.map(u => `<tr class="click" data-u="${u.id}"><td><b>${esc(u.nombre)}</b></td><td data-h="Usuario">${esc(u.usuario)}</td><td>${badge(u.rol, u.rol==="Administrador"?"naranja":"azul")}</td>
+        <td data-h="Sucursal">${u.sucursal ? suc(u.sucursal) : "Ambas"}</td><td data-h="Último acceso">${u.ultimo ? VT.fechaHora(u.ultimo) : "—"}</td><td>${u.activo ? badge("Activo","verde") : badge("Desactivado","gris")}</td></tr>`).join("")}</tbody></table></div>
+    <div class="card"><h3>Permisos de cada rol (puedes ajustarlos por usuario)</h3><table class="t resp"><thead><tr><th>Permiso</th>${Object.keys(ROLES).map(r=>`<th style="text-align:center">${r}</th>`).join("")}</tr></thead><tbody>
+      ${PERMISOS.map(([k,t]) => `<tr><td>${t}</td>${Object.values(ROLES).map(ps=>`<td style="text-align:center">${ps.includes(k)?"✔":"—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  $("#uNew").onclick = () => editarUsuario(null);
+  document.querySelectorAll("tr[data-u]").forEach(r => r.onclick = () => editarUsuario(r.dataset.u));
+}
+function editarUsuario(id){
+  const u = id ? DB.usuarios.find(x => x.id === id) : { nombre:"", usuario:"", rol:"Cajera", sucursal:"", permisos:[...ROLES.Cajera], activo:true };
+  const yo = id && id === SES.id;
+  $("#dTitle").textContent = id ? `Usuario: ${u.nombre}` : "Nuevo usuario";
+  const pintarPermisos = ps => PERMISOS.map(([k,t]) => `<label style="display:flex;gap:8px;align-items:center;padding:5px 0;font-size:13.5px"><input type="checkbox" data-p="${k}" style="width:auto"${ps.includes(k)?" checked":""}${u.rol==="Administrador"?" disabled":""}> ${t}</label>`).join("");
+  $("#dBody").innerHTML = `<div class="card">
+      <div class="row2"><div><label class="l">Nombre completo *</label><input id="uNom" value="${esc(u.nombre)}"></div>
+        <div><label class="l">Usuario para entrar *</label><input id="uUsr" value="${esc(u.usuario)}" autocapitalize="none" placeholder="ej. patricia"></div></div>
+      <div style="height:10px"></div>
+      <div class="row2"><div><label class="l">${id ? "Nueva contraseña (déjala vacía para no cambiarla)" : "Contraseña * (mínimo 6 caracteres)"}</label><input id="uPas" type="password" autocomplete="new-password"></div>
+        <div><label class="l">Rol</label><select id="uRol"${yo?" disabled":""}>${Object.keys(ROLES).map(r=>`<option${r===u.rol?" selected":""}>${r}</option>`).join("")}</select></div></div>
+      <div style="height:10px"></div>
+      <div class="row2"><div><label class="l">Sucursal</label><select id="uSuc"><option value="">Ambas sucursales</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===u.sucursal?" selected":""}>${suc(k)}</option>`).join("")}</select></div>
+        <div><label class="l">Estado</label><select id="uAct"${yo?" disabled":""}><option value="1"${u.activo?" selected":""}>Activo</option><option value="0"${u.activo?"":" selected"}>Desactivado</option></select></div></div></div>
+    <div class="card"><h3>Permisos</h3><p class="muted" style="margin-bottom:6px">Al elegir un rol se marcan sus permisos; puedes ajustarlos para esta persona.${u.rol==="Administrador"?" El administrador tiene todos los permisos.":""}</p><div id="uPerms">${pintarPermisos(u.permisos||[])}</div></div>
+    <div class="card"><div style="display:flex;gap:8px"><button class="btn pri" id="uSave">Guardar usuario</button><button class="btn sec" id="uCan">Cancelar</button></div></div>`;
+  abrir();
+  $("#uRol").onchange = e => { u.rol = e.target.value; $("#uPerms").innerHTML = pintarPermisos(ROLES[u.rol]); };
+  $("#uCan").onclick = cerrar;
+  $("#uSave").onclick = async () => {
+    const nombre = $("#uNom").value.trim(), usuario = $("#uUsr").value.trim().toLowerCase().replace(/\s+/g,""), pass = $("#uPas").value;
+    if (!nombre || !usuario) return toast("Escribe nombre y usuario", true);
+    if (DB.usuarios.some(x => x.usuario === usuario && x.id !== id)) return toast("Ese usuario ya existe", true);
+    if (!id && pass.length < 6) return toast("La contraseña debe tener al menos 6 caracteres", true);
+    if (id && pass && pass.length < 6) return toast("La contraseña debe tener al menos 6 caracteres", true);
+    const rol = yo ? u.rol : $("#uRol").value, activo = yo ? true : $("#uAct").value === "1";
+    const admins = DB.usuarios.filter(x => x.rol === "Administrador" && x.activo && x.id !== id).length;
+    if (id && DB.usuarios.find(x=>x.id===id).rol === "Administrador" && (rol !== "Administrador" || !activo) && admins === 0) return toast("Debe quedar al menos un administrador activo", true);
+    const permisos = rol === "Administrador" ? [...ROLES.Administrador] : [...document.querySelectorAll("#uPerms [data-p]")].filter(x=>x.checked).map(x=>x.dataset.p);
+    const datos = { nombre, usuario, rol, sucursal:$("#uSuc").value, permisos, activo };
+    if (pass) datos.pass = await hash(pass);
+    if (id) Object.assign(DB.usuarios.find(x=>x.id===id), datos);
+    else DB.usuarios.push({ id:"U"+Date.now(), alta:new Date().toISOString(), ...datos });
+    save(); if (yo){ SES = DB.usuarios.find(x=>x.id===id); }
+    cerrar(); toast(id ? "Usuario actualizado" : "Usuario creado"); pUsuarios();
+  };
 }
 
 /* ---------- Excel ---------- */

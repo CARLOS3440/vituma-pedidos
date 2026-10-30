@@ -211,7 +211,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
       <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 22 L20 10 L32 22 L44 10 L56 22 L32 50 Z" fill="none" stroke="#EE5A24" stroke-width="6" stroke-linejoin="round"/><path d="M20 10 L32 50 L44 10" fill="none" stroke="#EE5A24" stroke-width="4"/></svg>
       <div><h1>VITUMA</h1><small>VISTE TU MARCA</small></div>
     </div>
-    <p class="hero"><b>Sublimamos ideas, creamos identidad.</b> Cotiza aquí tus playeras y polos en segundos y envíanos tu pedido por WhatsApp.</p>
+    <p class="hero"><b>Sublimamos ideas, creamos identidad.</b> Cotiza o diseña tus playeras y polos, genera tu nota de venta y paga tu anticipo en línea.</p>
     <nav>
       <button class="on" data-tab="cotizar">Cotizar</button>
       <button data-tab="disena">Diseña</button>
@@ -445,7 +445,8 @@ const VT = (() => {
     autorizacion:{ t: "Esperando tu autorización", c: "amarillo" },
     produccion: { t: "En producción", c: "naranja" },
     listo:      { t: "Listo para entregar", c: "verde" },
-    entregado:  { t: "Entregado", c: "verde2" }
+    entregado:  { t: "Entregado", c: "verde2" },
+    cancelada:  { t: "Cancelada", c: "rojo" }
   };
   const FORMAS = ["Transferencia", "Efectivo", "Tarjeta de débito", "Tarjeta de crédito"];
 
@@ -494,6 +495,7 @@ const VT = (() => {
     const porValidar = pagos.filter(p => p.estado === "por_validar").reduce((a,p)=>a+p.monto, 0);
     const saldo = Math.max(0, Math.round((v.total - pagado) * 100) / 100);
     let pago;
+    if (v.estado === "cancelada") return { pagado, porValidar: 0, saldo: 0, pago: { k:"cancelada", t:"Cancelada", c:"gris" }, piezas: (v.items||[]).reduce((a,i)=>a+i.cant, 0) };
     if (porValidar > 0) pago = { k:"validar", t:"Comprobante por validar", c:"amarillo" };
     else if (pagado <= 0) pago = { k:"sin", t:"Sin anticipo", c:"rojo" };
     else if (pagado + 0.009 < v.anticipoReq) pago = { k:"incompleto", t:"Anticipo incompleto", c:"rojo" };
@@ -1886,6 +1888,7 @@ function abrirPedido(folio, recien){
   const falta = Math.max(0, Math.round((v.anticipoReq - c.pagado - c.porValidar) * 100) / 100);
   const sugerido = falta > 0 ? falta : Math.max(0, Math.round((c.saldo - c.porValidar) * 100) / 100);
   let h = `<button class="btn ghost" id="misVolver" style="margin-bottom:12px">‹ Mis pedidos</button>`;
+  if (v.estado === "cancelada") h += `<div class="warn" style="margin-bottom:12px"><b>Este pedido fue cancelado.</b> Si tienes dudas, escríbenos por WhatsApp.</div>`;
   if (recien) h += `<div class="ok-banner"><b>✅ ¡Tu nota de venta está lista!</b>Folio <b style="display:inline;font-size:15px">${v.folio}</b>. Paga tu anticipo por transferencia y sube tu comprobante para confirmar tu orden.</div>`;
   h += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">${v.folio}</h2><span class="badge ${c.pago.c}">${c.pago.t}</span></div>
     <p class="muted">${VT.fechaHora(v.fecha)} · Sucursal ${VT.SUCURSALES[v.sucursal].nombre}${v.trabajo ? " · " + VT.esc(v.trabajo) : ""}</p>
@@ -1897,7 +1900,7 @@ function abrirPedido(folio, recien){
     </div>
     <p class="muted" style="margin-top:8px">Anticipo requerido: ${money(v.anticipoReq)} · Entrega estimada: entre el ${VT.fecha(v.entregaMin)} y el ${VT.fecha(v.entregaMax)} (${VT.ENTREGA.min} a ${VT.ENTREGA.max} días hábiles como máximo desde que se valida tu anticipo; si está antes, te avisamos).</p></div>`;
   h += `<div class="card"><h3>Estado de tu pedido</h3><div class="timeline">${pasos.map((p,i)=>`<div class="${i<idx?"ok":i===idx?"cur":""}"><i></i>${VT.ESTADOS[p].t}</div>`).join("")}</div></div>`;
-  if (sugerido > 0) h += `<div class="card" id="pagoCard">
+  if (sugerido > 0 && v.estado !== "cancelada") h += `<div class="card" id="pagoCard">
     <h3>${falta > 0 ? (c.pagado > 0 ? "Completa tu anticipo" : "Paga tu anticipo") : "Abonar o liquidar"}</h3>
     <p class="muted">Haz tu transferencia con estos datos y sube la captura.</p>
     <div style="margin-top:6px">
