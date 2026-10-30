@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>VITUMA · Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<style>
+:root{--navy:#1C2340;--navy2:#2A3358;--orange:#EE5A24;--bg:#F3F4F7;--card:#fff;--text:#1C2340;--muted:#6B7088;--line:#E3E5EC;--ok:#1F9D55;--blue:#2F6FDE}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Montserrat,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45}
+button,input,select{font-family:inherit;font-size:14px}
+input,select{border:1.5px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff;width:100%}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--orange);color:#fff}.btn.sec{background:#fff;border:1.5px solid var(--line);color:var(--navy)}
+.btn.ok{background:var(--ok);color:#fff}.btn.no{background:#fff;border:1.5px solid #E7B4AE;color:#B42318}.btn.wa{background:#25D366;color:#fff}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.demo{background:#FFF4D6;color:#7A5600;text-align:center;font-size:12.5px;padding:6px 12px;font-weight:600}
+/* login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--navy)}
+#login .box{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:360px}
+#login h1{font-size:26px;letter-spacing:3px;font-weight:800}#login p{color:var(--muted);font-size:13px;margin:4px 0 18px}
+#login label{display:block;font-weight:700;font-size:13px;margin:10px 0 5px}
+/* layout */
+#app{display:none;min-height:100vh}
+.side{position:fixed;inset:0 auto 0 0;width:220px;background:var(--navy);color:#fff;padding:18px 12px;display:flex;flex-direction:column;gap:4px;z-index:5}
+.side .logo{font-weight:800;font-size:22px;letter-spacing:3px;padding:4px 10px 2px}.side .logo small{display:block;font-size:9.5px;letter-spacing:2px;opacity:.7;font-weight:600}
+.side hr{border:0;border-top:1px solid rgba(255,255,255,.12);margin:12px 0}
+.side button{background:transparent;border:0;color:#fff;opacity:.78;text-align:left;padding:10px 12px;border-radius:9px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.side button.on{background:rgba(255,255,255,.1);opacity:1;box-shadow:inset 3px 0 0 var(--orange)}
+.side button .n{background:var(--orange);border-radius:20px;font-size:11px;padding:1px 7px}
+.side .bottom{margin-top:auto;font-size:12px;opacity:.7;padding:0 10px}
+main{margin-left:220px;padding:22px 26px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+h1.t{font-size:24px;font-weight:800}
+.card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(28,35,64,.06);margin-bottom:16px}
+.card h3{font-size:15px;margin-bottom:10px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.filters input{flex:1;min-width:200px}.filters select{width:auto}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{border:0;background:transparent;padding:8px 12px;border-radius:9px;font-weight:600;color:var(--muted);cursor:pointer}
+.tabs button.on{background:#ECEEF3;color:var(--navy)}
+.tabs .n{background:#ECEEF3;border-radius:20px;font-size:11px;padding:1px 7px;margin-left:4px}.tabs button.on .n{background:#fff}
+table.t{width:100%;border-collapse:collapse}
+table.t th{text-align:left;font-size:12.5px;color:var(--muted);font-weight:700;padding:10px;border-bottom:1px solid var(--line);background:#FAFBFC}
+table.t td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.t tr.click{cursor:pointer}table.t tr.click:hover td{background:#FAFBFF}
+table.t td.n,table.t th.n{text-align:right;white-space:nowrap}
+.folio{color:var(--blue);font-weight:700}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.badge.gris{background:#ECEEF3;color:#4A5068}.badge.azul{background:#E5EEFF;color:#1E4FB5}.badge.amarillo{background:#FFF4D6;color:#8A6200}
+.badge.naranja{background:#FFE9DE;color:#B4400F}.badge.verde{background:#E3F6EA;color:#17803F}.badge.verde2{background:#1F9D55;color:#fff}.badge.rojo{background:#FDE7E7;color:#B42318}
+.muted{color:var(--muted);font-size:12.5px}
+.empty{text-align:center;color:var(--muted);padding:30px}
+/* drawer */
+.ov{position:fixed;inset:0;background:rgba(15,20,40,.45);z-index:20;display:none}
+.ov.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--bg);z-index:21;overflow:auto;transform:translateX(100%);transition:transform .25s}
+.drawer.on{transform:none}
+.drawer .hd{position:sticky;top:0;background:var(--navy);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.drawer .hd b{font-size:19px}.drawer .hd button{background:transparent;border:0;color:#fff;font-size:24px;cursor:pointer}
+.drawer .bd{padding:16px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13.5px}.kv b{color:var(--muted);font-weight:600}
+.pago{border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.pago.pv{border-color:#F2D27A;background:#FFFBEF}
+.pago img{width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--line)}
+.pago .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+label.l{display:block;font-size:12.5px;font-weight:700;margin-bottom:4px}
+.zoom{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:40;display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+.zoom.on{display:flex}.zoom img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
+.zoom .nbox{max-height:100%;overflow:auto;background:#fff;border-radius:8px}
+/* reportes */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(28,35,64,.06)}
+.kpi span{font-size:12.5px;color:var(--muted);font-weight:600}.kpi b{display:block;font-size:24px;font-weight:800;margin-top:4px}
+.kpi.g b{color:var(--ok)}.kpi.r b{color:#B42318}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.bars .b{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;font-size:13px;margin:7px 0}
+.bars .b i{display:block;height:12px;border-radius:6px;background:var(--blue)}
+.list .li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.list .li:last-child{border-bottom:0}
+.up{color:var(--ok);font-weight:700}.down{color:#B42318;font-weight:700}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 18px;border-radius:30px;font-weight:700;opacity:0;transition:.25s;z-index:50;pointer-events:none}
+.toast.on{opacity:1}
+.mtop{display:none}
+@media(max-width:860px){
+  .side{display:none}main{margin-left:0;padding:14px 14px 60px}
+  .mtop{display:flex;gap:10px;align-items:center;background:var(--navy);color:#fff;padding:10px 14px;position:sticky;top:0;z-index:6}
+  .mtop b{letter-spacing:2px;font-size:18px}.mtop select{background:#2A3358;color:#fff;border-color:#3A4470}
+  table.t.resp thead{display:none}
+  table.t.resp tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:12px 4px;border-bottom:1px solid var(--line)}
+  table.t.resp td{border:0;padding:2px 6px}
+  table.t.resp td[data-h]::before{content:attr(data-h) ": ";color:var(--muted);font-size:11.5px}
+  .row3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="demo">MODO MUESTRA · Los datos se guardan solo en este navegador. En la versión final se guardarán en la base de datos de VITUMA.</div>
+
+<div id="login"><div class="box">
+  <h1>VITUMA</h1><p>Panel de administración</p>
+  <label>Usuario</label><input id="lu" autocomplete="username">
+  <label>Contraseña</label><input id="lp" type="password" autocomplete="current-password">
+  <div id="lerr" class="muted" style="color:#B42318;margin-top:8px"></div>
+  <button class="btn pri" id="lbtn" style="width:100%;margin-top:14px">Entrar</button>
+  <p style="margin-top:14px">Muestra: usuario <b>admin</b> · contraseña <b>vituma</b></p>
+</div></div>
+
+<div id="app">
+  <div class="mtop"><b>VITUMA</b><select id="mnav" style="margin-left:auto;width:auto"></select></div>
+  <aside class="side">
+    <div class="logo">VITUMA<small>PANEL DE ADMINISTRACIÓN</small></div>
+    <hr>
+    <div id="nav" style="display:flex;flex-direction:column;gap:4px"></div>
+    <div class="bottom">Sesión: <b id="who">admin</b><br><a href="#" id="logout" style="color:#fff">Cerrar sesión</a><br><br><a href="#" id="reset" style="color:#fff;opacity:.8">Borrar datos de la muestra</a></div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<div class="ov" id="ov"></div>
+<div class="drawer" id="drawer"><div class="hd"><b id="dTitle"></b><button id="dClose" aria-label="Cerrar">×</button></div><div class="bd" id="dBody"></div></div>
+<div class="zoom" id="zoom"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   VITUMA · Funciones compartidas (app del cliente y panel)
+   MODO MUESTRA: los datos se guardan en este navegador (localStorage).
+   En la versión final se guardarán en la base de datos (Upstash + Vercel).
+   ===================================================================== */
+const VT = (() => {
+  const BANCO = {
+    banco: "BBVA",
+    titular: "Patricia Yolanda Rodríguez Rivera",
+    clabe: "012744004859384146"
+  };
+  const WHATSAPP_AVISOS = "526691616789";
+  const SUCURSALES = {
+    MAZ:   { nombre: "Mazatlán",  direccion: "Av. Santa Rosa 5800, Valle Dorado, 82163 Mazatlán, Sin." },
+    ESCUI: { nombre: "Escuinapa", direccion: "Escuinapa, Sin." }
+  };
+  const PONCHADO = { precio: 150, gratisDesde: 12 };
+  const ENTREGA = { min: 10, max: 15 }; // días hábiles
+  const POLITICAS = [
+    ["ANTICIPO", "Se requiere un pago inicial para comenzar las etapas de diseño, gestión de mercancía y producción. El pago del anticipo confirma automáticamente su orden."],
+    ["REVISIÓN", "Es responsabilidad del cliente verificar detalladamente la información de esta nota al momento del levantamiento del pedido."],
+    ["CAMBIOS Y CANCELACIONES", "Una vez confirmada la orden, no se aceptan cancelaciones, devoluciones ni modificaciones en el modelo, color o talla del producto."]
+  ];
+  const ESTADOS = {
+    cotizacion: { t: "Esperando anticipo", c: "gris" },
+    diseno:     { t: "En diseño", c: "azul" },
+    autorizacion:{ t: "Esperando tu autorización", c: "amarillo" },
+    produccion: { t: "En producción", c: "naranja" },
+    listo:      { t: "Listo para entregar", c: "verde" },
+    entregado:  { t: "Entregado", c: "verde2" }
+  };
+  const FORMAS = ["Transferencia", "Efectivo", "Tarjeta de débito", "Tarjeta de crédito"];
+
+  const KEY = "vituma_demo_db";
+  const vacia = () => ({ ventas: [], clientes: [], gastos: [], compras: [], folios: { MAZ: 0, ESCUI: 0 } });
+  function cargar(){ try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && d.ventas) return d; } catch(e){} return vacia(); }
+  function guardar(d){ try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch(e){ return false; } }
+
+  const money = n => "$" + (Number(n)||0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const esc = t => String(t ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const fecha = iso => { const d = new Date(iso); return d.toLocaleDateString("es-MX", { day:"2-digit", month:"2-digit", year:"numeric" }); };
+  const fechaHora = iso => { const d = new Date(iso); return d.toLocaleDateString("es-MX", { day:"2-digit", month:"short" }) + " " + d.toLocaleTimeString("es-MX", { hour:"2-digit", minute:"2-digit" }); };
+  const fechaLarga = iso => new Date(iso).toLocaleDateString("es-MX", { weekday:"long", day:"numeric", month:"long" });
+
+  function sumarHabiles(desde, n){
+    const d = new Date(desde); let k = 0;
+    while (k < n){ d.setDate(d.getDate() + 1); const w = d.getDay(); if (w !== 0 && w !== 6) k++; }
+    return d.toISOString();
+  }
+
+  /* ---- importe con letra ---- */
+  function letras(n){
+    const U = ["","UNO","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE","DIEZ","ONCE","DOCE","TRECE","CATORCE","QUINCE","DIECISÉIS","DIECISIETE","DIECIOCHO","DIECINUEVE","VEINTE","VEINTIUNO","VEINTIDÓS","VEINTITRÉS","VEINTICUATRO","VEINTICINCO","VEINTISÉIS","VEINTISIETE","VEINTIOCHO","VEINTINUEVE"];
+    const D = ["","","","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
+    const C = ["","CIENTO","DOSCIENTOS","TRESCIENTOS","CUATROCIENTOS","QUINIENTOS","SEISCIENTOS","SETECIENTOS","OCHOCIENTOS","NOVECIENTOS"];
+    const cien = x => { if (!x) return ""; if (x === 100) return "CIEN";
+      const c = Math.floor(x/100), r = x % 100; let s = C[c];
+      if (r) s += (s ? " " : "") + (r < 30 ? U[r] : D[Math.floor(r/10)] + (r%10 ? " Y " + U[r%10] : ""));
+      return s; };
+    const un = s => s.replace(/UNO$/, "UN").replace(/VEINTIUN$/, "VEINTIÚN");
+    n = Math.round((Number(n)||0) * 100) / 100;
+    const ent = Math.floor(n), cent = Math.round((n - ent) * 100);
+    const mill = Math.floor(ent / 1e6), miles = Math.floor((ent % 1e6) / 1000), resto = ent % 1000;
+    const p = [];
+    if (mill) p.push(mill === 1 ? "UN MILLÓN" : un(cien(mill)) + " MILLONES");
+    if (miles) p.push(miles === 1 ? "MIL" : un(cien(miles)) + " MIL");
+    if (resto) p.push(cien(resto));
+    const t = un(p.join(" ") || "CERO");
+    return `${t} ${ent === 1 ? "PESO" : "PESOS"} ${String(cent).padStart(2,"0")}/100 M.N.`;
+  }
+
+  /* ---- cálculos de una venta ---- */
+  function cuentas(v){
+    const pagos = v.pagos || [];
+    const pagado = pagos.filter(p => p.estado === "validado").reduce((a,p)=>a+p.monto, 0);
+    const porValidar = pagos.filter(p => p.estado === "por_validar").reduce((a,p)=>a+p.monto, 0);
+    const saldo = Math.max(0, Math.round((v.total - pagado) * 100) / 100);
+    let pago;
+    if (porValidar > 0) pago = { k:"validar", t:"Comprobante por validar", c:"amarillo" };
+    else if (pagado <= 0) pago = { k:"sin", t:"Sin anticipo", c:"rojo" };
+    else if (pagado + 0.009 < v.anticipoReq) pago = { k:"incompleto", t:"Anticipo incompleto", c:"rojo" };
+    else if (saldo > 0) pago = { k:"saldo", t:"Saldo pendiente", c:"naranja" };
+    else pago = { k:"pagada", t:"Pagada", c:"verde" };
+    return { pagado, porValidar, saldo, pago, piezas: (v.items||[]).reduce((a,i)=>a+i.cant, 0) };
+  }
+
+  function siguienteFolio(db, suc){
+    db.folios[suc] = (db.folios[suc] || 0) + 1;
+    return suc + String(db.folios[suc]).padStart(4, "0");
+  }
+
+  /* ---- nota de venta (diseño basado en la nota de papel de VITUMA) ---- */
+  const LOGO = `<svg viewBox="0 0 64 40" width="54" height="34" aria-hidden="true"><path d="M8 10 L18 2 L32 12 L46 2 L56 10 L32 36 Z" fill="none" stroke="#EE5A24" stroke-width="5" stroke-linejoin="round"/><path d="M18 2 L32 36 L46 2" fill="none" stroke="#EE5A24" stroke-width="3"/></svg>`;
+  const CSS = `
+  .nota{width:528px;max-width:100%;background:#fff;color:#1C2340;font-family:Montserrat,Arial,sans-serif;font-size:10px;line-height:1.3;border:1px solid #d9dbe3;margin:0 auto}
+  .nota *{box-sizing:border-box}
+  .nota .nh{background:#1C2340;color:#fff;padding:14px 16px 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .nota .brand{display:flex;flex-direction:column;align-items:center;text-align:center}.nota .brand b{display:block;font-size:24px;letter-spacing:3px;font-weight:800;line-height:1}.nota .brand small{font-size:8px;letter-spacing:2px;opacity:.85}
+  .nota .dir{text-align:center;font-weight:700;font-size:9.5px}.nota .dir span{display:block;font-size:7.5px;font-weight:600;margin-top:4px;opacity:.9}
+  .nota .fbox{background:#fff;color:#1C2340;border-radius:6px;padding:4px 6px;margin-top:8px;font-size:7.5px;font-weight:700}
+  .nota .fbox table{width:100%;border-collapse:collapse;margin-top:3px}.nota .fbox td{border:1px solid #1C2340;text-align:center;padding:3px 2px;font-size:10px;font-weight:700}
+  .nota .fbox th{font-size:7px;font-weight:700;padding:1px}
+  .nota .folio{background:#fff;color:#1C2340;border-radius:6px;margin-top:8px;text-align:center;padding:4px}
+  .nota .folio small{display:block;font-size:9px;font-weight:800;border-bottom:1.5px solid #1C2340;padding-bottom:2px}
+  .nota .folio b{display:block;font-size:20px;color:#C0392B;letter-spacing:1px;padding:4px 0}
+  .nota .sec{margin:10px 12px;border:1.5px solid #1C2340;border-radius:8px;overflow:hidden}
+  .nota .sec .r{display:flex;gap:6px;padding:6px 8px;border-bottom:1.5px solid #1C2340;font-size:10px}.nota .sec .r:last-child{border-bottom:0}
+  .nota .sec .r b{font-weight:800;min-width:70px}
+  .nota .nchk{display:inline-block;width:12px;height:12px;border:1.5px solid #1C2340;vertical-align:middle;margin:0 10px 0 4px;text-align:center;line-height:10px;font-size:10px;font-weight:800}
+  .nota table.it{width:100%;border-collapse:collapse}
+  .nota table.it th{background:#1C2340;color:#fff;font-size:10px;font-weight:800;padding:6px;letter-spacing:1px}
+  .nota table.it td{border:1px solid #1C2340;padding:5px 6px;vertical-align:top;font-size:9.5px}
+  .nota table.it td.n{text-align:right;white-space:nowrap}
+  .nota .tot{display:grid;grid-template-columns:1fr auto;margin:0 12px;gap:6px}
+  .nota .let{border:1.5px solid #1C2340;border-radius:8px;padding:5px 8px;font-size:8.5px}.nota .let b{display:block;font-size:8px;letter-spacing:1px}
+  .nota .tt{display:flex;border:1.5px solid #1C2340;border-radius:8px;overflow:hidden;font-weight:800}.nota .tt span{background:#1C2340;color:#fff;padding:8px;font-size:12px}.nota .tt b{padding:8px 10px;font-size:13px;min-width:110px;text-align:right}
+  .nota .pg{display:grid;grid-template-columns:1fr 1fr;gap:0}.nota .pg div{padding:5px 8px;border-bottom:1px solid #d0d3dc;font-size:9.5px}.nota .pg div:nth-child(odd){border-right:1px solid #d0d3dc}
+  .nota .pg b{display:block;font-size:7.5px;letter-spacing:.5px;color:#4a5068}
+  .nota .pg .big{font-size:12px;font-weight:800}.nota .pg .red{color:#C0392B}
+  .nota .pol{margin:8px 12px 12px;font-size:7.2px;line-height:1.35}
+  .nota .pol .tag{background:#1C2340;color:#fff;font-weight:800;padding:1px 5px;border-radius:3px;margin-right:4px}
+  .nota .banco{margin:0 12px 10px;background:#F4F5F8;border-radius:6px;padding:6px 8px;font-size:8.5px}
+  `;
+
+  function notaHTML(v){
+    const c = cuentas(v), d = new Date(v.fecha);
+    const filas = v.items.map(i => `<tr><td class="n" style="text-align:center">${i.cant}</td><td>${esc(i.desc)}</td><td class="n">${money(i.punit)}</td><td class="n">${money(i.importe)}</td></tr>`).join("");
+    const vacias = Math.max(0, 5 - v.items.length);
+    const formas = [...new Set((v.pagos||[]).filter(p=>p.estado==="validado").map(p=>p.forma))].join(", ") || "Transferencia (pendiente)";
+    const entrega = v.entregaMax ? `Entre el ${fecha(v.entregaMin)} y el ${fecha(v.entregaMax)}` : "";
+    return `<div class="nota">
+      <div class="nh">
+        <div>
+          <div class="brand">${LOGO}<b>VITUMA</b><small>VISTE TU MARCA</small></div>
+          <div class="fbox">LUGAR Y FECHA DE EXPEDICIÓN:<br>${v.sucursal==="ESCUI"?"ESCUINAPA":"MAZATLÁN"}, SINALOA; MÉXICO A
+            <table><tr><th>DÍA</th><th>MES</th><th>AÑO</th></tr><tr><td>${String(d.getDate()).padStart(2,"0")}</td><td>${String(d.getMonth()+1).padStart(2,"0")}</td><td>${d.getFullYear()}</td></tr></table></div>
+        </div>
+        <div>
+          <div class="dir">Av Sta Rosa 5800, Valle Dorado,<br>82163 Mazatlán, Sin.<br>669 416 9231 · 669 161 6789<span>EMPRESA DEDICADA A LA VENTA DE UNIFORMES Y BORDADOS EMPRESARIALES Y DEPORTIVOS.</span></div>
+          <div class="folio"><small>NOTA DE VENTA</small><b>${esc(v.folio)}</b></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="r"><b>CLIENTE:</b><span>${esc(v.cliente.nombre)}</span></div>
+        <div class="r"><b>TRABAJO:</b><span>${esc(v.trabajo || "—")}</span></div>
+        <div class="r"><b>TELÉFONO:</b><span>${esc(v.cliente.tel)}</span><b style="margin-left:auto;min-width:0">SUCURSAL:</b><span>${SUCURSALES[v.sucursal].nombre}</span></div>
+        <div class="r"><b>BORDADO:</b>SÍ<span class="nchk">${v.bordado?"✕":""}</span>NO<span class="nchk">${v.bordado?"":"✕"}</span>
+          <b style="margin-left:auto;min-width:0">PONCHADO:</b>SÍ<span class="nchk">${v.ponchado && v.ponchado.aplica?"✕":""}</span>NO<span class="nchk">${v.ponchado && v.ponchado.aplica?"":"✕"}</span></div>
+      </div>
+      <div class="sec"><table class="it"><tr><th style="width:44px">CANT.</th><th>DESCRIPCIÓN</th><th style="width:72px">P.UNIT.</th><th style="width:80px">IMPORTE</th></tr>
+        ${filas}${"<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>".repeat(vacias)}</table></div>
+      <div class="tot"><div class="let"><b>IMPORTE CON LETRA</b>${letras(v.total)}</div><div class="tt"><span>TOTAL $</span><b>${money(v.total).slice(1)}</b></div></div>
+      <div class="sec"><div class="pg">
+        <div><b>ANTICIPO REQUERIDO</b><span class="big">${money(v.anticipoReq)}</span></div>
+        <div><b>PAGADO</b><span class="big">${money(c.pagado)}</span>${c.porValidar ? ` <small>(+${money(c.porValidar)} por validar)</small>` : ""}</div>
+        <div><b>SALDO PENDIENTE</b><span class="big red">${money(c.saldo)}</span></div>
+        <div><b>FORMA DE PAGO</b>${esc(formas)}</div>
+        <div style="grid-column:1/-1;border-right:0"><b>FECHA ESTIMADA DE ENTREGA</b>${entrega} (${ENTREGA.min} a ${ENTREGA.max} días hábiles como máximo, a partir de la validación del anticipo). Si su pedido está listo antes, le avisamos.</div>
+      </div></div>
+      <div class="sec"><div class="r" style="display:block"><b>DESCRIPCIÓN BORDADO:</b> ${esc(v.descBordado || (v.bordado ? "" : "No aplica"))}</div></div>
+      <div class="banco"><b>Pago por transferencia:</b> ${BANCO.banco} · CLABE ${BANCO.clabe.replace(/(\d{3})(?=\d)/g,"$1 ")} · ${BANCO.titular} · Concepto: <b>${esc(v.folio)}</b></div>
+      <div class="pol"><span class="tag">NOTA</span><b>POLÍTICAS DE PEDIDO Y PRODUCCIÓN</b><br>
+        ${POLITICAS.map(([t,x]) => `<b>${t}:</b> ${x.toUpperCase()}`).join("<br>")}
+        ${v.politicasAceptadas ? `<br><i>Políticas aceptadas por el cliente el ${fecha(v.politicasAceptadas)} a las ${new Date(v.politicasAceptadas).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}.</i>` : ""}
+      </div>
+    </div>`;
+  }
+
+  /* PDF de la nota (media carta: 396 × 612 pt) */
+  async function notaPDF(v){
+    if (!window.html2canvas || !window.jspdf){ alert("No se pudo cargar el generador de PDF. Revisa tu conexión a internet."); return; }
+    const box = document.createElement("div");
+    box.style.cssText = "position:fixed;left:-10000px;top:0;width:528px;background:#fff";
+    box.innerHTML = notaHTML(v);
+    document.body.appendChild(box);
+    try {
+      const canvas = await html2canvas(box.firstElementChild, { scale: 2, backgroundColor: "#ffffff" });
+      const w = 396, h = Math.max(612, canvas.height * w / canvas.width);
+      const pdf = new jspdf.jsPDF({ unit: "pt", format: [w, h] });
+      pdf.addImage(canvas.toDataURL("image/jpeg", .92), "JPEG", 0, 0, w, canvas.height * w / canvas.width);
+      pdf.save(`Nota-${v.folio}.pdf`);
+    } finally { box.remove(); }
+  }
+
+  /* reduce una imagen antes de guardarla (comprobantes) */
+  function reducirImagen(file, max = 1100){
+    return new Promise((ok, fail) => {
+      if (file.type === "application/pdf"){
+        const fr = new FileReader(); fr.onload = () => ok({ tipo:"pdf", src: fr.result, nombre: file.name }); fr.onerror = fail; fr.readAsDataURL(file); return;
+      }
+      const fr = new FileReader();
+      fr.onload = () => { const im = new Image(); im.onload = () => {
+        const k = Math.min(1, max / Math.max(im.width, im.height));
+        const c = document.createElement("canvas"); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k);
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        ok({ tipo:"img", src: c.toDataURL("image/jpeg", .8), nombre: file.name });
+      }; im.onerror = fail; im.src = fr.result; };
+      fr.onerror = fail; fr.readAsDataURL(file);
+    });
+  }
+
+  return { BANCO, WHATSAPP_AVISOS, SUCURSALES, PONCHADO, ENTREGA, POLITICAS, ESTADOS, FORMAS, CSS,
+           cargar, guardar, money, esc, fecha, fechaHora, fechaLarga, sumarHabiles, letras, cuentas, siguienteFolio,
+           notaHTML, notaPDF, reducirImagen };
+})();
+
+document.head.insertAdjacentHTML("beforeend", `<style>${VT.CSS}</style>`);
+const $ = s => document.querySelector(s);
+const { money, esc } = VT;
+let DB = VT.cargar();
+const save = () => { if (!VT.guardar(DB)) toast("No se pudo guardar (espacio lleno)", true); };
+const toast = (t, bad) => { const e = $("#toast"); e.textContent = t; e.style.background = bad ? "#B42318" : "var(--ok)"; e.classList.add("on"); setTimeout(() => e.classList.remove("on"), 1800); };
+const badge = (t, c) => `<span class="badge ${c}">${t}</span>`;
+const suc = s => VT.SUCURSALES[s].nombre;
+const dias = iso => Math.floor((Date.now() - new Date(iso).getTime()) / 864e5);
+
+/* ---------- sesión (en la versión final se valida en el servidor) ---------- */
+function entrar(){
+  if ($("#lu").value.trim() === "admin" && $("#lp").value === "vituma"){ try { sessionStorage.setItem("vituma_ses", "admin"); } catch(e){} iniciar(); }
+  else $("#lerr").textContent = "Usuario o contraseña incorrectos.";
+}
+$("#lbtn").onclick = entrar; $("#lp").onkeydown = e => { if (e.key === "Enter") entrar(); };
+$("#reset").onclick = e => { e.preventDefault(); if (!window.confirm("¿Borrar todas las ventas, clientes y gastos de la muestra?")) return; try { localStorage.removeItem("vituma_demo_db"); } catch(x){} DB = VT.cargar(); ir("ventas"); toast("Datos borrados"); };
+$("#logout").onclick = e => { e.preventDefault(); try { sessionStorage.removeItem("vituma_ses"); } catch(x){} location.reload(); };
+
+/* ---------- navegación ---------- */
+const SECC = [["ventas","Ventas"],["clientes","Clientes"],["bodega","Pedido a bodega"],["gastos","Gastos"],["reportes","Reportes"]];
+let sec = "ventas";
+function nav(){
+  const pv = DB.ventas.filter(v => VT.cuentas(v).porValidar > 0).length;
+  $("#nav").innerHTML = SECC.map(([k,t]) => `<button class="${k===sec?"on":""}" data-s="${k}">${t}${k==="ventas"&&pv?`<span class="n">${pv}</span>`:""}</button>`).join("");
+  document.querySelectorAll("#nav button").forEach(b => b.onclick = () => ir(b.dataset.s));
+  $("#mnav").innerHTML = SECC.map(([k,t]) => `<option value="${k}"${k===sec?" selected":""}>${t}${k==="ventas"&&pv?` (${pv} por validar)`:""}</option>`).join("");
+}
+$("#mnav").onchange = e => ir(e.target.value);
+function ir(s){ sec = s; DB = VT.cargar(); nav(); ({ ventas:pVentas, clientes:pClientes, bodega:pBodega, gastos:pGastos, reportes:pReportes })[s](); window.scrollTo(0,0); }
+function iniciar(){ $("#login").style.display = "none"; $("#app").style.display = "block"; ir("ventas"); }
+
+/* ---------- VENTAS ---------- */
+let vTab = "todas", vSuc = "", vQ = "";
+function pVentas(){
+  const c = v => VT.cuentas(v);
+  const filtros = {
+    todas: () => true,
+    validar: v => c(v).porValidar > 0,
+    pendientes: v => c(v).saldo > 0,
+    produccion: v => ["diseno","autorizacion","produccion"].includes(v.estado),
+    listos: v => v.estado === "listo"
+  };
+  const base = DB.ventas.filter(v => (!vSuc || v.sucursal === vSuc) && (!vQ || (v.folio + " " + v.cliente.nombre + " " + (v.trabajo||"") + " " + v.items.map(i=>i.prenda).join(" ") + " " + v.vendedor).toLowerCase().includes(vQ.toLowerCase())));
+  const cnt = k => base.filter(filtros[k]).length;
+  const lista = base.filter(filtros[vTab]);
+  $("#main").innerHTML = `
+    <div class="top"><h1 class="t">Ventas</h1><div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sec" id="seed">Cargar ventas de ejemplo</button>
+      <button class="btn sec" id="xls">⬇ Descargar ventas</button>
+      <a class="btn pri" href="./" target="_blank" style="text-decoration:none">＋ Nueva venta</a></div></div>
+    <div class="card">
+      <div class="filters"><input id="q" placeholder="Buscar por folio, cliente, trabajo, prenda o vendedor" value="${esc(vQ)}">
+        <select id="fs"><option value="">Todas las sucursales</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===vSuc?" selected":""}>${suc(k)}</option>`).join("")}</select></div>
+      <div class="tabs">${[["todas","Todas"],["validar","Por validar"],["pendientes","Pagos pendientes"],["produccion","En producción"],["listos","Listos sin entregar"]].map(([k,t])=>`<button class="${k===vTab?"on":""}" data-t="${k}">${t}<span class="n">${cnt(k)}</span></button>`).join("")}</div>
+      ${lista.length ? `<table class="t resp"><thead><tr><th>Venta</th><th>Sucursal</th><th>Fecha</th><th>Cliente</th><th>Pago</th><th class="n">Total</th><th class="n">Saldo</th><th>Pedido</th></tr></thead><tbody>
+        ${lista.map(v => { const k = c(v); return `<tr class="click" data-f="${v.folio}">
+          <td><span class="folio">${v.folio}</span></td><td data-h="Sucursal">${suc(v.sucursal)}</td><td data-h="Fecha">${VT.fechaHora(v.fecha)}</td>
+          <td data-h="Cliente"><b>${esc(v.cliente.nombre)}</b>${v.trabajo?`<div class="muted">${esc(v.trabajo)}</div>`:""}</td>
+          <td>${badge(k.pago.t, k.pago.c)}</td><td class="n" data-h="Total">${money(v.total)}</td><td class="n" data-h="Saldo">${k.saldo ? `<b>${money(k.saldo)}</b>` : "—"}</td>
+          <td>${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</td></tr>`; }).join("")}</tbody></table>`
+      : `<div class="empty">No hay ventas en esta vista.</div>`}
+    </div>`;
+  $("#q").oninput = e => { vQ = e.target.value; const pos = e.target.selectionStart; pVentas(); const q = $("#q"); q.focus(); q.setSelectionRange(pos,pos); };
+  $("#fs").onchange = e => { vSuc = e.target.value; pVentas(); };
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { vTab = b.dataset.t; pVentas(); });
+  document.querySelectorAll("tr[data-f]").forEach(r => r.onclick = () => abrirVenta(r.dataset.f));
+  $("#xls").onclick = () => excelVentas(lista, "Ventas");
+  $("#seed").onclick = () => { sembrar(); ir("ventas"); toast("Ventas de ejemplo cargadas"); };
+}
+
+function abrirVenta(folio){
+  DB = VT.cargar();
+  const v = DB.ventas.find(x => x.folio === folio); if (!v) return;
+  const k = VT.cuentas(v);
+  const cli = DB.clientes.find(x => x.tel === v.cliente.tel);
+  $("#dTitle").textContent = `Venta ${v.folio}`;
+  const items = v.items.map(i => `<tr><td class="n" style="text-align:center">${i.cant}</td><td>${esc(i.desc)}</td><td class="n">${money(i.punit)}</td><td class="n">${money(i.importe)}</td></tr>`).join("");
+  const pagos = v.pagos.map(p => `<div class="pago ${p.estado==="por_validar"?"pv":""}">
+      ${p.comprobante ? (p.comprobante.tipo==="img" ? `<img src="${p.comprobante.src}" alt="Comprobante" data-zoom>` : `<a class="btn sec sm" href="${p.comprobante.src}" download="${esc(p.comprobante.nombre)}">PDF</a>`) : `<div style="width:64px;text-align:center;font-size:26px">${p.forma==="Efectivo"?"💵":p.forma.startsWith("Tarjeta")?"💳":"🏦"}</div>`}
+      <div><b>${p.tipo} · ${money(p.monto)}</b><div class="muted">${p.forma} · ${VT.fechaHora(p.fecha)} · ${esc(p.registro||"")}</div>
+        ${p.estado==="validado" ? `<div class="muted">Validado por ${esc(p.validadoPor||"admin")} el ${VT.fechaHora(p.validadoEl||p.fecha)}</div>` : ""}
+        ${p.estado==="rechazado" ? `<div class="muted" style="color:#B42318">Rechazado: ${esc(p.motivo||"")}</div>` : ""}</div>
+      <div class="acts">${p.estado==="por_validar" ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge(p.estado==="validado"?"Validado":"Rechazado", p.estado==="validado"?"verde":"rojo")}</div>
+    </div>`).join("") || `<div class="muted">Sin pagos registrados.</div>`;
+  $("#dBody").innerHTML = `
+    <div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${badge(k.pago.t,k.pago.c)} ${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</div>
+      <div class="kv"><b>Cliente</b><span>${esc(v.cliente.nombre)} · ${esc(v.cliente.tel)}</span><b>Trabajo</b><span>${esc(v.trabajo||"—")}</span>
+      <b>Sucursal</b><span>${suc(v.sucursal)}</span><b>Fecha</b><span>${VT.fechaHora(v.fecha)}</span><b>Vendedor</b><span>${esc(v.vendedor)}</span>
+      <b>Entrega</b><span>Entre ${VT.fecha(v.entregaMin)} y ${VT.fecha(v.entregaMax)}</span>
+      ${v.ponchado && v.ponchado.aplica ? `<b>Ponchado</b><span>${v.ponchado.logos} logo(s) · ${v.ponchado.monto ? money(v.ponchado.monto) : "sin cargo"}${v.ponchado.ya ? " · <b style='color:#B4400F'>el cliente dice que ya está ponchado: verificar</b>" : ""}</span>` : ""}
+      ${cli && cli.logosPonchados && cli.logosPonchados.length ? `<b>Logos ponchados</b><span>${cli.logosPonchados.map(l=>`${l.logos} logo(s) en ${l.folio}`).join(", ")}</span>` : ""}
+      ${v.enBodega ? `<b>Bodega</b><span>Incluido en el pedido ${v.enBodega}</span>` : ""}
+      ${v.disenoAdjunto ? `<b>Diseño</b><span>El cliente enviará su logo por WhatsApp</span>` : ""}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn sec sm" id="verNota">🧾 Ver nota</button><button class="btn sec sm" id="pdfNota">⬇ PDF</button>
+        <button class="btn wa sm" id="waCli">WhatsApp al cliente</button></div></div>
+    <div class="card"><h3>Prendas</h3><table class="t"><tr><th>Cant.</th><th>Descripción</th><th class="n">P. unit.</th><th class="n">Importe</th></tr>${items}</table>
+      <div class="kv" style="margin-top:12px;justify-content:end"><b>Total</b><span><b>${money(v.total)}</b></span><b>Anticipo requerido</b><span>${money(v.anticipoReq)}</span><b>Pagado</b><span>${money(k.pagado)}</span>${k.porValidar?`<b>Por validar</b><span>${money(k.porValidar)}</span>`:""}<b>Saldo</b><span style="color:#B42318;font-weight:800">${money(k.saldo)}</span></div></div>
+    <div class="card"><h3>Pagos</h3>${pagos}
+      ${k.saldo > 0 ? `<h3 style="margin-top:16px">Registrar pago en mostrador</h3>
+      <div class="row3"><div><label class="l">Monto</label><input id="rMonto" inputmode="decimal" value="${k.saldo.toFixed(2)}"></div>
+        <div><label class="l">Forma de pago</label><select id="rForma">${VT.FORMAS.map(f=>`<option>${f}</option>`).join("")}</select></div>
+        <div><label class="l">&nbsp;</label><button class="btn pri" id="rBtn" style="width:100%">Registrar</button></div></div>
+      <p class="muted" style="margin-top:6px">Para anticipos, abonos y la liquidación al recoger. Se registra como validado.</p>` : ""}</div>
+    <div class="card"><h3>Estado del pedido</h3>
+      <div class="row2"><select id="eSel">${Object.entries(VT.ESTADOS).map(([e,o])=>`<option value="${e}"${e===v.estado?" selected":""}>${o.t}</option>`).join("")}</select>
+      <button class="btn pri" id="eBtn">Guardar estado</button></div></div>`;
+  abrir();
+  const msgCli = () => { const vv = VT.cargar().ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv), n = vv.cliente.nombre.split(" ")[0];
+    const t = { cotizacion:`Hola ${n} 👋, te escribimos de VITUMA por tu pedido ${vv.folio}. Tu anticipo es de ${money(vv.anticipoReq)}; cuando hagas la transferencia sube tu comprobante en la app.`,
+      diseno:`Hola ${n} 👋, recibimos tu pago del pedido ${vv.folio}. ¡Ya estamos trabajando en tu diseño! Saldo pendiente: ${money(kk.saldo)}.`,
+      autorizacion:`Hola ${n} 👋, ya está la vista previa de tu pedido ${vv.folio}. Revísala y autorízanos para pasar a producción.`,
+      produccion:`Hola ${n} 👋, tu pedido ${vv.folio} ya está en producción. Entrega estimada a más tardar el ${VT.fecha(vv.entregaMax)}.`,
+      listo:`Hola ${n} 👋, ¡tu pedido ${vv.folio} está listo! Puedes recogerlo en VITUMA ${suc(vv.sucursal)}. Saldo a liquidar: ${money(kk.saldo)}.`,
+      entregado:`Hola ${n} 👋, gracias por tu compra en VITUMA (pedido ${vv.folio}). ¡Esperamos verte pronto!` }[vv.estado];
+    window.open(`https://wa.me/52${vv.cliente.tel}?text=${encodeURIComponent(t)}`, "_blank"); };
+  $("#waCli").onclick = msgCli;
+  $("#verNota").onclick = () => { const z = $("#zoom"); z.innerHTML = `<div class="nbox">${VT.notaHTML(VT.cargar().ventas.find(x=>x.folio===folio))}</div>`; z.classList.add("on"); };
+  $("#pdfNota").onclick = () => VT.notaPDF(VT.cargar().ventas.find(x=>x.folio===folio));
+  document.querySelectorAll("[data-val]").forEach(b => b.onclick = () => { validar(folio, b.dataset.val); });
+  document.querySelectorAll("[data-rec]").forEach(b => b.onclick = () => {
+    const motivo = window.prompt("Motivo del rechazo (se le dirá al cliente):", "No se encontró la transferencia en la cuenta");
+    if (motivo === null) return;
+    const vv = DB.ventas.find(x=>x.folio===folio), p = vv.pagos.find(x=>x.id===b.dataset.rec);
+    p.estado = "rechazado"; p.motivo = motivo; p.validadoEl = new Date().toISOString(); save(); toast("Pago rechazado", true); abrirVenta(folio); refrescar();
+  });
+  if ($("#rBtn")) $("#rBtn").onclick = () => {
+    const monto = Math.round(parseFloat($("#rMonto").value.replace(/[^\d.]/g,""))*100)/100; if (!(monto>0)) return toast("Escribe un monto válido", true);
+    const vv = DB.ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv);
+    const tipo = kk.pagado <= 0 ? "Anticipo" : (monto >= kk.saldo ? "Liquidación" : "Abono");
+    const ahora = new Date().toISOString();
+    vv.pagos.push({ id:"P"+Date.now(), fecha:ahora, tipo, monto, forma:$("#rForma").value, estado:"validado", registro:"Mostrador (admin)", validadoPor:"admin", validadoEl:ahora });
+    trasValidar(vv); save(); toast(`${tipo} registrado`); abrirVenta(folio); refrescar();
+  };
+  $("#eBtn").onclick = () => { const vv = DB.ventas.find(x=>x.folio===folio); vv.estado = $("#eSel").value; save(); toast("Estado actualizado"); abrirVenta(folio); refrescar(); };
+}
+function validar(folio, id){
+  const v = DB.ventas.find(x=>x.folio===folio), p = v.pagos.find(x=>x.id===id);
+  p.estado = "validado"; p.validadoPor = "admin"; p.validadoEl = new Date().toISOString();
+  trasValidar(v); save(); toast("Pago validado ✔"); abrirVenta(folio); refrescar();
+}
+/* al cubrir el anticipo: pasa a diseño, recalcula la entrega y registra el ponchado del cliente */
+function trasValidar(v){
+  const k = VT.cuentas(v);
+  if (v.estado === "cotizacion" && k.pagado + 0.009 >= v.anticipoReq){
+    const ahora = new Date().toISOString();
+    v.estado = "diseno"; v.entregaMin = VT.sumarHabiles(ahora, VT.ENTREGA.min); v.entregaMax = VT.sumarHabiles(ahora, VT.ENTREGA.max);
+    if (v.ponchado && v.ponchado.aplica && !v.ponchado.ya){
+      const cli = DB.clientes.find(c => c.tel === v.cliente.tel);
+      if (cli){ cli.logosPonchados = cli.logosPonchados || []; if (!cli.logosPonchados.some(l => l.folio === v.folio)) cli.logosPonchados.push({ folio: v.folio, logos: v.ponchado.logos, fecha: ahora }); }
+    }
+  }
+}
+function abrir(){ $("#ov").classList.add("on"); $("#drawer").classList.add("on"); }
+function cerrar(){ $("#ov").classList.remove("on"); $("#drawer").classList.remove("on"); }
+$("#dClose").onclick = cerrar; $("#ov").onclick = cerrar;
+function refrescar(){ DB = VT.cargar(); nav(); ({ ventas:pVentas, clientes:pClientes, bodega:pBodega, gastos:pGastos, reportes:pReportes })[sec](); }
+document.addEventListener("click", e => {
+  const z = $("#zoom");
+  if (e.target.matches("img[data-zoom]")){ z.innerHTML = `<img src="${e.target.src}" alt="">`; z.classList.add("on"); return; }
+  if (e.target.closest("#zoom") && !e.target.closest(".nbox")) z.classList.remove("on");
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape"){ $("#zoom").classList.remove("on"); cerrar(); } });
+
+/* ---------- CLIENTES ---------- */
+function pClientes(){
+  const filas = DB.clientes.map(cl => {
+    const vs = DB.ventas.filter(v => v.cliente.tel === cl.tel);
+    const tot = vs.reduce((a,v)=>a+v.total,0), pag = vs.reduce((a,v)=>a+VT.cuentas(v).pagado,0);
+    return { cl, vs, tot, pag, saldo: tot - pag, ult: vs[0] ? vs[0].fecha : cl.alta };
+  }).sort((a,b) => b.tot - a.tot);
+  $("#main").innerHTML = `<div class="top"><h1 class="t">Clientes</h1><button class="btn sec" id="xls">⬇ Descargar clientes</button></div>
+    <div class="card"><div class="filters"><input id="q" placeholder="Buscar por nombre o teléfono"></div>
+    ${filas.length ? `<table class="t resp" id="tc"><thead><tr><th>Cliente</th><th>Teléfono</th><th>Sucursal</th><th class="n">Pedidos</th><th class="n">Comprado</th><th class="n">Pagado</th><th class="n">Saldo</th><th>Logos ponchados</th></tr></thead><tbody>
+    ${filas.map(f => `<tr class="click" data-t="${f.cl.tel}" data-s="${esc((f.cl.nombre+" "+f.cl.tel).toLowerCase())}"><td><b>${esc(f.cl.nombre)}</b><div class="muted">Última compra ${VT.fecha(f.ult)}</div></td><td data-h="Tel">${f.cl.tel}</td><td data-h="Sucursal">${suc(f.cl.sucursal)}</td>
+      <td class="n" data-h="Pedidos">${f.vs.length}</td><td class="n" data-h="Comprado">${money(f.tot)}</td><td class="n" data-h="Pagado">${money(f.pag)}</td><td class="n" data-h="Saldo">${f.saldo>0.009?`<b style="color:#B42318">${money(f.saldo)}</b>`:"—"}</td>
+      <td data-h="Ponchados">${(f.cl.logosPonchados||[]).reduce((a,l)=>a+l.logos,0) || "—"}</td></tr>`).join("")}</tbody></table>` : `<div class="empty">Aún no hay clientes.</div>`}</div>`;
+  $("#q").oninput = e => { const q = e.target.value.toLowerCase(); document.querySelectorAll("#tc tbody tr").forEach(r => r.style.display = r.dataset.s.includes(q) ? "" : "none"); };
+  document.querySelectorAll("tr[data-t]").forEach(r => r.onclick = () => abrirCliente(r.dataset.t));
+  $("#xls").onclick = () => excel([["Cliente","Teléfono","Sucursal","Pedidos","Comprado","Pagado","Saldo","Logos ponchados"],
+    ...filas.map(f => [f.cl.nombre, f.cl.tel, suc(f.cl.sucursal), f.vs.length, f.tot, f.pag, f.saldo, (f.cl.logosPonchados||[]).reduce((a,l)=>a+l.logos,0)])], "Clientes", "Clientes VITUMA");
+}
+function abrirCliente(tel){
+  const cl = DB.clientes.find(c => c.tel === tel), vs = DB.ventas.filter(v => v.cliente.tel === tel);
+  $("#dTitle").textContent = cl.nombre;
+  const tot = vs.reduce((a,v)=>a+v.total,0), pag = vs.reduce((a,v)=>a+VT.cuentas(v).pagado,0);
+  $("#dBody").innerHTML = `<div class="card"><div class="kv"><b>Teléfono</b><span>${cl.tel}</span><b>Sucursal</b><span>${suc(cl.sucursal)}</span><b>Cliente desde</b><span>${VT.fecha(cl.alta)}</span>
+      <b>Total comprado</b><span>${money(tot)}</span><b>Pagado</b><span>${money(pag)}</span><b>Saldo</b><span style="color:#B42318;font-weight:800">${money(tot-pag)}</span>
+      <b>Logos ponchados</b><span>${(cl.logosPonchados||[]).map(l=>`${l.logos} en ${l.folio} (${VT.fecha(l.fecha)})`).join("; ") || "Ninguno"}</span></div>
+      <a class="btn wa sm" style="display:inline-block;margin-top:12px;text-decoration:none" href="https://wa.me/52${cl.tel}" target="_blank">WhatsApp</a></div>
+    <div class="card"><h3>Historial de pedidos</h3><table class="t">${vs.map(v => { const k = VT.cuentas(v); return `<tr class="click" data-f="${v.folio}"><td><span class="folio">${v.folio}</span><div class="muted">${VT.fecha(v.fecha)}</div></td><td>${badge(VT.ESTADOS[v.estado].t,VT.ESTADOS[v.estado].c)}</td><td class="n">${money(v.total)}<div class="muted">Saldo ${money(k.saldo)}</div></td></tr>`; }).join("")}</table></div>`;
+  document.querySelectorAll("#dBody tr[data-f]").forEach(r => r.onclick = () => abrirVenta(r.dataset.f));
+  abrir();
+}
+
+/* ---------- PEDIDO A BODEGA (concentrado de polos) ---------- */
+let bSuc = "";
+function concentrado(){
+  const ventas = DB.ventas.filter(v => !v.enBodega && (!bSuc || v.sucursal === bSuc) && VT.cuentas(v).pagado > 0 && v.items.some(i => i.categoria === "Playeras polo"));
+  const map = new Map();
+  ventas.forEach(v => v.items.filter(i => i.categoria === "Playeras polo").forEach(i => Object.entries(i.qty||{}).forEach(([t,n]) => {
+    if (!n) return; const key = [i.marca, i.prenda, i.modelo, i.color, t].join("|");
+    const r = map.get(key) || { marca:i.marca, prenda:i.prenda, modelo:i.modelo, color:i.color, talla:t, cant:0, folios:new Set() };
+    r.cant += n; r.folios.add(v.folio); map.set(key, r);
+  })));
+  const ord = ["XCH","CH","M","G","XL","2XL","3XL","4XL"];
+  const filas = [...map.values()].sort((a,b) => (a.marca+a.prenda+a.modelo+a.color).localeCompare(b.marca+b.prenda+b.modelo+b.color) || ord.indexOf(a.talla)-ord.indexOf(b.talla));
+  return { ventas, filas };
+}
+function pBodega(){
+  const { ventas, filas } = concentrado(), total = filas.reduce((a,r)=>a+r.cant,0);
+  $("#main").innerHTML = `<div class="top"><h1 class="t">Pedido a bodega</h1>
+      <select id="bs" style="width:auto"><option value="">Ambas sucursales</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===bSuc?" selected":""}>${suc(k)}</option>`).join("")}</select></div>
+    <div class="card"><h3>Polos por pedir (${total} piezas de ${ventas.length} ventas)</h3>
+      <p class="muted" style="margin-bottom:10px">Incluye las ventas con anticipo validado que todavía no se han pedido a bodega. Al marcar el pedido como solicitado, esas ventas ya no vuelven a aparecer aquí.</p>
+      ${filas.length ? `<table class="t resp"><thead><tr><th>Marca</th><th>Prenda</th><th>Modelo</th><th>Color</th><th>Talla</th><th class="n">Cantidad</th><th>Folios</th></tr></thead><tbody>
+        ${filas.map(r=>`<tr><td data-h="Marca">${r.marca}</td><td>${r.prenda}</td><td data-h="Modelo">${r.modelo}</td><td data-h="Color">${r.color}</td><td data-h="Talla"><b>${r.talla}</b></td><td class="n" data-h="Cantidad"><b>${r.cant}</b></td><td class="muted" data-h="Folios">${[...r.folios].join(", ")}</td></tr>`).join("")}</tbody></table>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn sec" id="bx">⬇ Descargar Excel para bodega</button><button class="btn pri" id="bm">✔ Marcar como pedido a bodega</button></div>`
+      : `<div class="empty">No hay polos pendientes por pedir.</div>`}</div>
+    <div class="card"><h3>Pedidos a bodega anteriores</h3>${DB.compras.length ? `<table class="t resp"><thead><tr><th>Pedido</th><th>Fecha</th><th>Sucursal</th><th class="n">Piezas</th><th>Estado</th><th class="n">Costo</th><th>Pago</th><th></th></tr></thead><tbody>
+      ${DB.compras.map(cp => `<tr><td><b>${cp.id}</b><div class="muted">${cp.folios.join(", ")}</div></td><td data-h="Fecha">${VT.fecha(cp.fecha)}</td><td data-h="Sucursal">${cp.sucursal?suc(cp.sucursal):"Ambas"}</td><td class="n" data-h="Piezas">${cp.filas.reduce((a,r)=>a+r.cant,0)}</td>
+        <td><select data-ce="${cp.id}" style="width:auto"><option${cp.estado==="Solicitado"?" selected":""}>Solicitado</option><option${cp.estado==="Recibido"?" selected":""}>Recibido</option></select></td>
+        <td class="n"><input data-cc="${cp.id}" value="${cp.costo||""}" placeholder="$ costo" style="width:110px;text-align:right"></td>
+        <td><label style="white-space:nowrap"><input type="checkbox" data-cp="${cp.id}" style="width:auto"${cp.pagado?" checked":""}> Pagado</label></td>
+        <td><button class="btn sec sm" data-cx="${cp.id}">⬇ Excel</button></td></tr>`).join("")}</tbody></table>` : `<div class="empty">Sin pedidos a bodega.</div>`}</div>`;
+  $("#bs").onchange = e => { bSuc = e.target.value; pBodega(); };
+  const hoja = (fs, titulo) => excel([["Marca","Prenda","Modelo","Color","Talla","Cantidad","Folios"], ...fs.map(r=>[r.marca,r.prenda,r.modelo,r.color,r.talla,r.cant,[...r.folios].join(", ")]), [], ["","","","","TOTAL", fs.reduce((a,r)=>a+r.cant,0)]], "Pedido bodega", titulo);
+  if ($("#bx")) $("#bx").onclick = () => hoja(filas, `Pedido bodega ${VT.fecha(new Date().toISOString()).replace(/\//g,"-")}${bSuc?" "+suc(bSuc):""}`);
+  if ($("#bm")) $("#bm").onclick = () => {
+    if (!window.confirm(`¿Marcar ${total} piezas de ${ventas.length} ventas como pedidas a bodega?`)) return;
+    const id = "B" + String(DB.compras.length + 1).padStart(4, "0");
+    DB.compras.unshift({ id, fecha: new Date().toISOString(), sucursal: bSuc, folios: ventas.map(v=>v.folio), filas: filas.map(r=>({...r, folios:[...r.folios]})), estado:"Solicitado", costo:null, pagado:false });
+    ventas.forEach(v => { DB.ventas.find(x=>x.folio===v.folio).enBodega = id; });
+    save(); toast(`Pedido ${id} registrado`); pBodega();
+  };
+  document.querySelectorAll("[data-ce]").forEach(s => s.onchange = () => { DB.compras.find(c=>c.id===s.dataset.ce).estado = s.value; save(); toast("Actualizado"); });
+  document.querySelectorAll("[data-cc]").forEach(s => s.onchange = () => { DB.compras.find(c=>c.id===s.dataset.cc).costo = parseFloat(s.value.replace(/[^\d.]/g,"")) || null; save(); toast("Costo guardado"); });
+  document.querySelectorAll("[data-cp]").forEach(s => s.onchange = () => { DB.compras.find(c=>c.id===s.dataset.cp).pagado = s.checked; save(); toast("Actualizado"); });
+  document.querySelectorAll("[data-cx]").forEach(b => b.onclick = () => { const cp = DB.compras.find(c=>c.id===b.dataset.cx); hoja(cp.filas.map(r=>({...r, folios:new Set(r.folios)})), `Pedido bodega ${cp.id}`); });
+}
+
+/* ---------- GASTOS ---------- */
+function pGastos(){
+  const tot = DB.gastos.reduce((a,g)=>a+g.monto,0);
+  $("#main").innerHTML = `<div class="top"><h1 class="t">Gastos</h1><button class="btn sec" id="xls">⬇ Descargar gastos</button></div>
+    <div class="card"><h3>Registrar gasto</h3><div class="row3">
+      <div><label class="l">Concepto</label><input id="gC" placeholder="Ej. Envío a Escuinapa"></div>
+      <div><label class="l">Monto</label><input id="gM" inputmode="decimal"></div>
+      <div><label class="l">Fecha</label><input id="gF" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div><label class="l">Sucursal</label><select id="gS">${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}">${suc(k)}</option>`).join("")}</select></div>
+      <div><label class="l">Forma de pago</label><select id="gP">${VT.FORMAS.map(f=>`<option>${f}</option>`).join("")}</select></div>
+      <div><label class="l">&nbsp;</label><button class="btn pri" id="gB" style="width:100%">Guardar gasto</button></div></div></div>
+    <div class="card"><h3>Listado de gastos · Total ${money(tot)}</h3>${DB.gastos.length ? `<table class="t resp"><thead><tr><th>Fecha</th><th>Concepto</th><th>Sucursal</th><th>Forma</th><th class="n">Monto</th><th></th></tr></thead><tbody>
+      ${DB.gastos.map(g=>`<tr><td>${VT.fecha(g.fecha)}</td><td><b>${esc(g.concepto)}</b></td><td data-h="Sucursal">${suc(g.sucursal)}</td><td data-h="Forma">${g.forma}</td><td class="n">${money(g.monto)}</td><td><button class="btn no sm" data-gd="${g.id}">Borrar</button></td></tr>`).join("")}</tbody></table>` : `<div class="empty">Sin gastos registrados.</div>`}</div>`;
+  $("#gB").onclick = () => {
+    const concepto = $("#gC").value.trim(), monto = parseFloat($("#gM").value.replace(/[^\d.]/g,""));
+    if (!concepto || !(monto>0)) return toast("Escribe concepto y monto", true);
+    DB.gastos.unshift({ id:"G"+Date.now(), concepto, monto, fecha: new Date($("#gF").value + "T12:00:00").toISOString(), sucursal:$("#gS").value, forma:$("#gP").value });
+    save(); toast("Gasto guardado"); pGastos();
+  };
+  document.querySelectorAll("[data-gd]").forEach(b => b.onclick = () => { if (!window.confirm("¿Borrar este gasto?")) return; DB.gastos = DB.gastos.filter(g=>g.id!==b.dataset.gd); save(); pGastos(); });
+  $("#xls").onclick = () => excel([["Fecha","Concepto","Sucursal","Forma de pago","Monto"], ...DB.gastos.map(g=>[VT.fecha(g.fecha), g.concepto, suc(g.sucursal), g.forma, g.monto])], "Gastos", "Gastos VITUMA");
+}
+
+/* ---------- REPORTES ---------- */
+let rPer = "7", rSuc = "";
+function pReportes(){
+  const ahora = new Date(), ini = new Date(); ini.setHours(0,0,0,0);
+  if (rPer === "7") ini.setDate(ini.getDate() - 6); else if (rPer === "30") ini.setDate(ini.getDate() - 29); else if (rPer === "mes") ini.setDate(1); else if (rPer === "todo") ini.setFullYear(2000);
+  const enRango = iso => new Date(iso) >= ini && new Date(iso) <= ahora;
+  const S = x => !rSuc || x.sucursal === rSuc;
+  const ventas = DB.ventas.filter(v => S(v) && enRango(v.fecha));
+  const pagos = DB.ventas.filter(S).flatMap(v => v.pagos.filter(p => p.estado === "validado" && enRango(p.validadoEl || p.fecha)).map(p => ({...p, folio:v.folio, cliente:v.cliente.nombre})));
+  const gastos = DB.gastos.filter(g => S(g) && enRango(g.fecha));
+  const compras = DB.compras.filter(c => (!rSuc || !c.sucursal || c.sucursal === rSuc) && enRango(c.fecha));
+  const vendido = ventas.reduce((a,v)=>a+v.total,0), cobrado = pagos.reduce((a,p)=>a+p.monto,0);
+  const gastoT = gastos.reduce((a,g)=>a+g.monto,0), compraT = compras.reduce((a,c)=>a+(c.costo||0),0);
+  const abiertas = DB.ventas.filter(v => S(v) && VT.cuentas(v).saldo > 0.009);
+  const porCobrar = abiertas.reduce((a,v)=>a+VT.cuentas(v).saldo,0);
+  const aging = [["0 a 7 días",0,7],["8 a 30 días",8,30],["Más de 30 días",31,1e9]].map(([t,a,b]) => [t, abiertas.filter(v=>{const d=dias(v.fecha);return d>=a&&d<=b;}).reduce((s,v)=>s+VT.cuentas(v).saldo,0)]);
+  const porPagar = DB.compras.filter(c => !c.pagado && c.costo).reduce((a,c)=>a+c.costo,0);
+  const grupo = (arr, key, val) => { const m = {}; arr.forEach(x => { const k = key(x); m[k] = (m[k]||0) + val(x); }); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
+  const items = ventas.flatMap(v => v.items.map(i => ({...i, vendedor:v.vendedor})));
+  const porDia = []; for (let d = new Date(Math.max(ini, new Date(ahora - 29*864e5))); d <= ahora; d.setDate(d.getDate()+1)){ const k = d.toISOString().slice(0,10); porDia.push([k, ventas.filter(v=>v.fecha.slice(0,10)===k).reduce((a,v)=>a+v.total,0)]); }
+  const bars = (rows, fmt = money) => { const mx = Math.max(1, ...rows.map(r=>r[1])); return `<div class="bars">${rows.slice(0,8).map(([k,v])=>`<div class="b"><span>${esc(k)}</span><i style="width:${Math.max(2, v/mx*100)}%"></i><b>${fmt(v)}</b></div>`).join("") || `<div class="muted">Sin datos</div>`}</div>`; };
+  const mxD = Math.max(1, ...porDia.map(d=>d[1]));
+  const chart = `<svg viewBox="0 0 ${porDia.length*40} 180" style="width:100%;max-width:${porDia.length*70}px;height:200px">${porDia.map(([k,v],i)=>{ const h = v/mxD*125; return `<rect x="${i*40+8}" y="${150-h}" width="24" height="${h}" rx="4" fill="#2F6FDE"/><text x="${i*40+20}" y="170" font-size="10" text-anchor="middle" fill="#6B7088">${k.slice(8)}/${k.slice(5,7)}</text>${v?`<text x="${i*40+20}" y="${144-h}" font-size="9" text-anchor="middle" fill="#1C2340">${Math.round(v/100)/10}k</text>`:""}`; }).join("")}</svg>`;
+  $("#main").innerHTML = `<div class="top"><h1 class="t">Reportes</h1><div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select id="rs" style="width:auto"><option value="">Ambas sucursales</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===rSuc?" selected":""}>${suc(k)}</option>`).join("")}</select>
+      <select id="rp" style="width:auto">${[["hoy","Hoy"],["7","Últimos 7 días"],["30","Últimos 30 días"],["mes","Este mes"],["todo","Todo"]].map(([k,t])=>`<option value="${k}"${k===rPer?" selected":""}>${t}</option>`).join("")}</select>
+      <button class="btn sec" id="xls">⬇ Descargar ventas</button></div></div>
+    <div class="kpis">
+      <div class="kpi"><span>Ventas</span><b>${ventas.length}</b></div>
+      <div class="kpi"><span>Vendido</span><b>${money(vendido)}</b></div>
+      <div class="kpi g"><span>Cobrado</span><b>${money(cobrado)}</b></div>
+      <div class="kpi r"><span>Por cobrar (total)</span><b>${money(porCobrar)}</b></div>
+      <div class="kpi"><span>Gastos</span><b>${money(gastoT)}</b></div>
+      <div class="kpi"><span>Compras a bodega</span><b>${money(compraT)}</b></div>
+      <div class="kpi ${vendido-compraT-gastoT>=0?"g":"r"}"><span>Utilidad (vendido − compras − gastos)</span><b>${money(vendido-compraT-gastoT)}</b></div>
+    </div>
+    <div class="card"><h3>Vendido por día</h3>${chart}</div>
+    <div class="grid3">
+      <div class="card"><h3>Cobrado por forma de pago</h3>${bars(grupo(pagos, p=>p.forma, p=>p.monto))}</div>
+      <div class="card"><h3>Ventas por categoría</h3>${bars(grupo(items, i=>i.categoria, i=>i.importe))}</div>
+      <div class="card"><h3>Prendas más vendidas (piezas)</h3>${bars(grupo(items.filter(i=>i.categoria!=="Ponchado"), i=>i.prenda.replace("Playera sublimada","Sublimada"), i=>i.cant), n=>n+" pzs")}</div>
+      <div class="card"><h3>Colores más pedidos (polos)</h3>${bars(grupo(items.filter(i=>i.categoria==="Playeras polo"), i=>i.color, i=>i.cant), n=>n+" pzs")}</div>
+      <div class="card"><h3>Ventas por sucursal</h3>${bars(grupo(ventas, v=>suc(v.sucursal), v=>v.total))}</div>
+      <div class="card"><h3>Ventas por vendedor</h3>${bars(grupo(ventas, v=>v.vendedor, v=>v.total))}</div>
+      <div class="card"><h3>Ventas por cliente</h3>${bars(grupo(ventas, v=>v.cliente.nombre, v=>v.total))}</div>
+      <div class="card"><h3>Cuentas por cobrar</h3><div class="list">${aging.map(([t,v])=>`<div class="li"><span>${t}</span><b>${money(v)}</b></div>`).join("")}</div><p class="muted" style="margin-top:6px">Antigüedad contada desde la fecha de la venta.</p></div>
+      <div class="card"><h3>Cuentas por pagar (bodega)</h3><div class="list"><div class="li"><span>Pedidos a bodega sin pagar</span><b>${money(porPagar)}</b></div></div><p class="muted" style="margin-top:6px">Captura el costo de cada pedido en "Pedido a bodega".</p></div>
+    </div>
+    <div class="card"><h3>Movimientos de dinero</h3><div class="list">${[...pagos.map(p=>({f:p.validadoEl||p.fecha, t:`${p.tipo} ${p.folio} · ${p.cliente} · ${p.forma}`, m:p.monto})), ...gastos.map(g=>({f:g.fecha, t:`Gasto: ${g.concepto}`, m:-g.monto}))].sort((a,b)=>b.f.localeCompare(a.f)).slice(0,15).map(x=>`<div class="li"><span>${esc(x.t)}<div class="muted">${VT.fechaHora(x.f)}</div></span><span class="${x.m>=0?"up":"down"}">${x.m>=0?"+":"−"}${money(Math.abs(x.m))}</span></div>`).join("") || `<div class="muted">Sin movimientos</div>`}</div></div>
+    <p class="muted">Para calcular el <b>margen por prenda</b> falta capturar el costo de cada prenda (siguiente etapa).</p>`;
+  $("#rp").onchange = e => { rPer = e.target.value; pReportes(); };
+  $("#rs").onchange = e => { rSuc = e.target.value; pReportes(); };
+  $("#xls").onclick = () => excelVentas(ventas, "Reporte ventas");
+}
+
+/* ---------- Excel ---------- */
+function excel(rows, hoja, archivo){
+  if (!window.XLSX) return toast("No se pudo cargar el generador de Excel", true);
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"] = rows[0].map((_,i) => ({ wch: Math.min(48, Math.max(10, ...rows.map(r => String(r[i] ?? "").length + 2))) }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, hoja.slice(0,31));
+  XLSX.writeFile(wb, archivo.replace(/[\\/:*?"<>|]/g,"-") + ".xlsx");
+}
+function excelVentas(ventas, nombre){
+  excel([["Folio","Fecha","Sucursal","Cliente","Teléfono","Trabajo","Vendedor","Piezas","Total","Anticipo requerido","Pagado","Saldo","Pago","Estado","Formas de pago"],
+    ...ventas.map(v => { const k = VT.cuentas(v); return [v.folio, VT.fecha(v.fecha), suc(v.sucursal), v.cliente.nombre, v.cliente.tel, v.trabajo||"", v.vendedor, k.piezas, v.total, v.anticipoReq, k.pagado, k.saldo, k.pago.t, VT.ESTADOS[v.estado].t, [...new Set(v.pagos.filter(p=>p.estado==="validado").map(p=>p.forma))].join(", ")]; })], "Ventas", `${nombre} VITUMA ${VT.fecha(new Date().toISOString()).replace(/\//g,"-")}`);
+}
+
+/* ---------- datos de ejemplo (solo para la muestra) ---------- */
+function compImg(texto){
+  const c = document.createElement("canvas"); c.width = 360; c.height = 480; const x = c.getContext("2d");
+  x.fillStyle = "#F4F5F8"; x.fillRect(0,0,360,480); x.fillStyle = "#6B7088"; x.font = "bold 22px Arial"; x.textAlign = "center";
+  x.fillText("COMPROBANTE", 180, 200); x.fillText("DE EJEMPLO", 180, 232); x.font = "18px Arial"; x.fillText(texto, 180, 280);
+  return { tipo:"img", src: c.toDataURL("image/jpeg", .7), nombre:"ejemplo.jpg" };
+}
+function sembrar(){
+  const hace = (d, h = 11) => { const t = new Date(); t.setDate(t.getDate() - d); t.setHours(h, 15, 0, 0); return t.toISOString(); };
+  const polo = (prod, prenda, marca, modelo, color, qty, pu, ant, extra) => ({ prod, prenda, marca, categoria:"Playeras polo", modelo, color, qty, cant: Object.values(qty).reduce((a,b)=>a+b,0), pu, ant, extra });
+  const sub = (prod, prenda, modelo, qty, pu) => ({ prod, prenda, marca:"VITUMA", categoria:"Playeras sublimadas", modelo, color:"", qty, cant: Object.values(qty).reduce((a,b)=>a+b,0), pu, ant:"60" });
+  const E = [
+    ["MAZ",6,["Ana Karen Castro","6691002030"],"Clínica Dental Sonrisas",[polo("polo_lv","Polo Level Prime Dry Fit","Level Prime","Dama","Blanco",{CH:2,M:3},240,150,"Bordado de logo (1 a 5 colores)")],true,"produccion",[["Anticipo",900,"Transferencia",5]]],
+    ["MAZ",5,["Roberto Ledezma","6692223344"],"Taller Ledezma",[polo("polo_spa","Polo Sparviero Dry & Cool","Sparviero","Caballero","Azul rey",{M:4,G:6,XL:3},214.6,122,"Bordado de logo (1 a 5 colores)")],true,"diseno",[["Anticipo",1586,"Transferencia",4]]],
+    ["ESCUI",4,["Ariel Astorga","6951234567"],"Liga de Béisbol Escuinapa",[sub("sub_cas","Casaca sublimada","Caballero",{M:5,G:5,XL:2},350)],false,"autorizacion",[["Anticipo",2520,"Efectivo",4]]],
+    ["MAZ",3,["Claudia Gómez","6693334455"],"",[sub("sub_mc","Playera sublimada manga corta","Dama",{CH:2,M:2},295)],false,"listo",[["Anticipo",708,"Transferencia",3],["Abono",200,"Efectivo",1]]],
+    ["MAZ",2,["Eduardo Ramírez","6694445566"],"Ferretería El Faro",[polo("polo_dk","Polo DKPS Premium","DKPS","Caballero","Negro",{G:3,XL:3},343.2,177,"Estampado DTF: pecho 10 cm")],false,"diseno",[["Anticipo",1062,"Tarjeta de débito",2]]],
+    ["ESCUI",2,["Gerardo Gil","6955556677"],"Escuela Primaria Benito Juárez",[polo("polo_lv","Polo Level Prime Dry Fit","Level Prime","Caballero","Azul marino",{M:6,G:6,XL:2},255,150,"Bordado de logo (6 a 10 colores)"),polo("polo_lv","Polo Level Prime Dry Fit","Level Prime","Dama","Azul marino",{CH:4,M:4},255,150,"Bordado de logo (6 a 10 colores)")],true,"cotizacion",[["Anticipo",3300,"Transferencia",1,"por_validar"]]],
+    ["MAZ",1,["Iliana Zamora","6696667788"],"",[sub("sub_ml","Playera sublimada manga larga","Caballero",{M:2,G:2},305)],false,"cotizacion",[]],
+    ["MAZ",0,["Javier Cornejo","6697778899"],"Pescadores Unidos",[polo("polo_lvml","Polo Level Prime manga larga","Level Prime","Caballero","Gris oxford",{G:4,XL:4},290,150,"Bordado de logo (1 a 5 colores)")],true,"cotizacion",[["Anticipo",1350,"Transferencia",0,"por_validar"]]],
+    ["MAZ",8,["Saúl Quintero","6698889900"],"",[sub("sub_mc","Playera sublimada manga corta","Caballero",{G:1},350)],false,"entregado",[["Anticipo",210,"Efectivo",8],["Liquidación",140,"Tarjeta de crédito",6]]]
+  ];
+  E.forEach(([s, d, [nombre, tel], trabajo, its, bordado, estado, pagos]) => {
+    const fecha = hace(d, 10 + (d % 6));
+    const folio = VT.siguienteFolio(DB, s);
+    const items = its.map(i => { const imp = Math.round(i.pu * i.cant * 100) / 100;
+      return { desc:`${i.prenda} ${i.modelo.toLowerCase()}${i.color?", "+i.color:""}. Tallas: ${Object.entries(i.qty).map(([t,n])=>`${t}×${n}`).join(", ")}.${i.extra?" "+i.extra+".":""}`,
+        cant:i.cant, punit:i.pu, importe:imp, prod:i.prod, prenda:i.prenda, marca:i.marca, categoria:i.categoria, modelo:i.modelo, color:i.color, qty:i.qty, bordado,
+        anticipo: i.ant === "60" ? Math.round(imp*.6*100)/100 : i.ant * i.cant }; });
+    const pz = items.reduce((a,i)=>a+i.cant,0);
+    const ponchado = bordado ? { aplica:true, logos:1, ya:false, monto: pz >= 12 ? 0 : 150, nota: pz >= 12 ? "gratis por 12 piezas o más" : "" } : { aplica:false, logos:0, monto:0 };
+    if (ponchado.aplica) items.push({ desc:`Ponchado de logotipo${ponchado.nota?" ("+ponchado.nota+")":""}`, cant:1, punit:ponchado.monto, importe:ponchado.monto, prenda:"Ponchado", categoria:"Ponchado", marca:"VITUMA", qty:{} });
+    const total = items.reduce((a,i)=>a+i.importe,0), anticipoReq = items.reduce((a,i)=>a+(i.anticipo||i.importe*(i.categoria==="Ponchado"?1:0)),0);
+    const v = { folio, sucursal:s, fecha, cliente:{nombre, tel}, trabajo, items, bordado, ponchado,
+      descBordado: bordado ? items.filter(i=>i.bordado).map(i=>`${i.prenda} (${i.color})`).join(" | ") + ": bordado de logo en pecho" : "",
+      total, anticipoReq, pagos:[], estado, entregaMin: VT.sumarHabiles(fecha, 10), entregaMax: VT.sumarHabiles(fecha, 15),
+      vendedor: d % 3 === 0 ? "Patricia Rivera" : "App (cliente)", origen:"ejemplo", politicasAceptadas: fecha, enBodega:null };
+    pagos.forEach(([tipo, monto, forma, dd, est], j) => { const f = hace(dd, 12 + j);
+      v.pagos.push({ id:"P"+folio+j, fecha:f, tipo, monto, forma, estado: est || "validado", registro: forma==="Transferencia" ? "Cliente (app)" : "Mostrador",
+        validadoPor: est ? null : "admin", validadoEl: est ? null : f, comprobante: forma==="Transferencia" ? compImg(`${folio} · ${money(monto)}`) : null }); });
+    DB.ventas.unshift(v);
+    let cl = DB.clientes.find(c=>c.tel===tel);
+    if (!cl){ cl = { id:"C"+tel, nombre, tel, sucursal:s, alta:fecha, logosPonchados:[], folios:[] }; DB.clientes.push(cl); }
+    cl.folios.unshift(folio);
+    if (ponchado.aplica && v.pagos.some(p=>p.estado==="validado")) cl.logosPonchados.push({ folio, logos:1, fecha });
+  });
+  DB.ventas.sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const g = (c, m, d, s, f) => DB.gastos.push({ id:"G"+c.length+m, concepto:c, monto:m, fecha:hace(d,13), sucursal:s, forma:f });
+  g("Envío a Escuinapa",165,1,"ESCUI","Efectivo"); g("Hilos para bordar",480,3,"MAZ","Tarjeta de débito"); g("Papel para sublimación",650,4,"MAZ","Transferencia"); g("Comida del personal",220,2,"MAZ","Efectivo");
+  const vb = DB.ventas.find(v => v.cliente.nombre === "Ana Karen Castro");
+  DB.compras.push({ id:"B0001", fecha:hace(5,17), sucursal:"MAZ", folios:[vb.folio], filas: vb.items.filter(i=>i.categoria==="Playeras polo").flatMap(i=>Object.entries(i.qty).map(([t,n])=>({marca:i.marca,prenda:i.prenda,modelo:i.modelo,color:i.color,talla:t,cant:n,folios:[vb.folio]}))), estado:"Recibido", costo:820, pagado:false });
+  vb.enBodega = "B0001";
+  save();
+}
+
+/* ---------- inicio ---------- */
+try { if (sessionStorage.getItem("vituma_ses")) iniciar(); } catch(e){}
+</script>
+</body>
+</html>
