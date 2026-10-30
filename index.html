@@ -325,6 +325,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 
       <div class="card">
         <h3>Vista previa</h3>
+        <div class="seg" id="dzTallaVista" style="align-items:center;margin-bottom:10px"></div>
         <div class="mock" id="dzMock"></div>
         <p class="muted" style="margin:8px 0 10px">Vista aproximada. El tamaño y la posición final los ajusta VITUMA en la vista previa que te enviamos para autorizar.</p>
         <button class="btn ghost" id="dzDown" style="width:100%">⬇ Descargar vista previa</button>
@@ -1281,14 +1282,13 @@ const ZONAS = {
     {id:"espalda", nombre:"Espalda", bloqueada:NO_ESPALDA_POLO}
   ],
   tee_mc_dtf: [
-    {id:"pecho", nombre:"Pecho (logo pequeño)", pos:"pecho", excluye:"frente", opciones:DTF_PECHO10},
-    {id:"frente", nombre:"Frente (diseño grande)", pos:"centro", excluye:"pecho", opciones:DTF_GRANDES},
+    {id:"frente", nombre:"Frente / pecho", pos:"centro", opciones:DTF_GRANDES},
     {id:"espalda", nombre:"Espalda", pos:"espalda", opciones:DTF_GRANDES},
     {id:"manga", nombre:"Manga", pos:"manga", lado:true, opciones:DTF_MANGA_C}
   ],
   tee_ml_dtf: [
-    {id:"pecho", nombre:"Pecho (logo pequeño)", pos:"pecho", excluye:"frente", opciones:DTF_PECHO10},
-    {id:"frente", nombre:"Frente (diseño grande)", pos:"centro", excluye:"pecho", opciones:DTF_GRANDES},
+    {id:"pecho", nombre:"Frente, logo pequeño (10 cm)", pos:"pecho", excluye:"frente", opciones:DTF_PECHO10},
+    {id:"frente", nombre:"Frente / pecho (diseño grande)", pos:"centro", excluye:"pecho", opciones:DTF_GRANDES},
     {id:"espalda", nombre:"Espalda", pos:"espalda", opciones:DTF_GRANDES},
     {id:"manga", nombre:"Manga (a lo largo)", pos:"manga", lado:true, opciones:DTF_MANGA_L}
   ],
@@ -1358,11 +1358,17 @@ function camisaSVG(o){
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-110 10 1020 790">${g}</svg>`;
 }
 
-/* posición de cada zona sobre el dibujo (1 cm = 10 unidades) */
+/* escala del dibujo según la talla: el pecho del dibujo mide 560 unidades = ancho real de la talla */
+function anchoTalla(p, modelo, talla){
+  const tabla = (MEDIDAS[p.medidas || "cr"] || MEDIDAS.cr)[modelo] || MEDIDAS.cr.Caballero;
+  return (tabla[talla] || tabla.M || Object.values(tabla)[0])[0];
+}
+const escalaTalla = () => { const p = byId(DZ.prod); return p ? 560 / anchoTalla(p, DZ.modelo, DZ.tallaVista) : 10; };
+/* posición de cada zona sobre el dibujo (en unidades de la talla elegida) */
 function cajasZona(z, st, p){
-  const larga = p.manga === "larga";
+  const larga = p.manga === "larga", k = escalaTalla();
   const o = z.opciones ? z.opciones.find(x => x.id === st.opcion) : null;
-  const s = (o ? o.cm : z.cm) * 10, out = [];
+  const s = (o ? o.cm : z.cm) * k, out = [];
   if (z.pos === "pecho")   out.push({vista:"frente", cx:515, cy:170 + s/2, w:s, h:s, rot:0});
   if (z.pos === "centro")  out.push({vista:"frente", cx:400, cy:150 + s/2, w:s, h:s, rot:0});
   if (z.pos === "espalda") out.push({vista:"espalda", cx:400, cy:120 + s/2, w:s, h:s, rot:0});
@@ -1370,7 +1376,7 @@ function cajasZona(z, st, p){
     const lados = st.lado === "ambas" ? ["derecha","izquierda"] : [st.lado];
     lados.forEach(l => {
       let c;
-      if (larga && o && o.largo) c = {cx:37.5, cy:426, w:o.largo*10, h:s, rot:111.8};
+      if (larga && o && o.largo) c = {cx:37.5, cy:426, w:Math.min(560, o.largo*k), h:s, rot:111.8};
       else if (larga)            c = {cx:86,   cy:304, w:s, h:s, rot:21.8};
       else                       c = {cx:105,  cy:249, w:s, h:s, rot:23};
       // vista de frente: la manga derecha de quien la viste queda del lado izquierdo del dibujo
@@ -1556,6 +1562,7 @@ function itemDiseno(){
 function dzElegir(id){
   const p = byId(id);
   DZ.prod = id; DZ.modelo = Object.keys(p.modelos)[0]; DZ.color = p.colores[0];
+  DZ.tallaVista = p.modelos[DZ.modelo].includes("M") ? "M" : p.modelos[DZ.modelo][0];
   DZ.tecnica = p.tipoPrenda === "polo" && p.bordadoIncluido ? "bordado" : "dtf";
   DZ.qty = {}; DZ.zonas = {};
   if (DISENOS.main){ const z0 = zonasActuales().find(z => !z.bloqueada); estadoZona(z0).on = true; }
@@ -1568,7 +1575,7 @@ function dzRender(){
   $("#dzProds").innerHTML = lista.map(p => `
     <button class="dzp${DZ.prod===p.id?" on":""}" data-id="${p.id}">
       ${camisaSVG({polo:p.tipoPrenda==="polo", larga:p.manga==="larga", vista:"frente", color: DZ.prod===p.id ? DZ.color : (p.tipoPrenda==="polo" ? "Azul rey" : "Blanco")})}
-      <b>${p.nombre.replace("Playera cuello redondo","Cuello redondo")}</b><span>${p.tipoPrenda==="polo" ? "DTF o bordado" : "Estampado DTF"}</span>
+      <b>${p.nombre.replace("Playera cuello redondo","Cuello redondo")}</b><span>${p.tipoPrenda==="polo" ? "Marca " + ({polo_spa:"Sparviero",polo_dk:"DKPS",polo_lv:"Level Prime",polo_lvml:"Level Prime"}[p.id]) + " · DTF o bordado" : "Estampado DTF"}</span>
     </button>`).join("");
   document.querySelectorAll(".dzp").forEach(b => b.onclick = () => dzElegir(b.dataset.id));
   if (!DZ.prod){ $("#dzRest").style.display = "none"; return; }
@@ -1576,7 +1583,7 @@ function dzRender(){
   const p = byId(DZ.prod);
 
   $("#dzGender").innerHTML = Object.keys(p.modelos).map(m => `<button class="${m===DZ.modelo?"on":""}" data-m="${m}">${m}</button>`).join("");
-  document.querySelectorAll("#dzGender button").forEach(b => b.onclick = () => { DZ.modelo = b.dataset.m; DZ.qty = {}; dzRender(); });
+  document.querySelectorAll("#dzGender button").forEach(b => b.onclick = () => { DZ.modelo = b.dataset.m; DZ.qty = {}; if (!p.modelos[DZ.modelo].includes(DZ.tallaVista)) DZ.tallaVista = p.modelos[DZ.modelo].includes("M") ? "M" : p.modelos[DZ.modelo][0]; dzRender(); });
   $("#dzColorName").textContent = DZ.color;
   $("#dzFicha").innerHTML = fichaHTML(p, false);
   $("#dzColors").innerHTML = p.colores.map(c => `<button class="sw${c===DZ.color?" on":""}" title="${c}" aria-label="${c}" data-c="${c}" style="background:${COLOR_HEX[c]||"#ccc"}"></button>`).join("");
@@ -1590,7 +1597,7 @@ function dzRender(){
   document.querySelectorAll("#dzTec button").forEach(b => b.onclick = () => { if (DZ.tecnica === b.dataset.v) return; DZ.tecnica = b.dataset.v; DZ.zonas = {}; if (DISENOS.main){ const z0 = zonasActuales().find(z=>!z.bloqueada); estadoZona(z0).on = true; } dzRender(); });
   $("#dzTecNote").innerHTML = DZ.tecnica === "bordado"
     ? `<b>Bordado:</b> elegante y duradero. Funciona mejor con logos de pocos colores y formas sencillas; los detalles muy pequeños no se pueden bordar. Revisamos tu logo en automático.`
-    : `<b>Estampado DTF:</b> imprime cualquier diseño, con todos sus colores, degradados y detalles.` + (p.tipoPrenda === "polo" ? ` En polos solo va en <b>pecho o manga</b> (la espalda no está disponible).` : ` En cuello redondo puede ir en pecho, frente, espalda y manga.`);
+    : `<b>Estampado DTF:</b> imprime cualquier diseño, con todos sus colores, degradados y detalles.` + (p.tipoPrenda === "polo" ? ` En polos solo va en <b>pecho o manga</b> (la espalda no está disponible).` : (p.manga === "larga" ? ` En cuello redondo manga larga puede ir al frente (logo de 10 cm o diseño grande), en la espalda y a lo largo de la manga.` : ` En cuello redondo manga corta puede ir al frente o pecho, en la espalda (15 a 32 cm) y en la manga.`));
 
   // carga
   const d = DISENOS.main;
@@ -1663,6 +1670,12 @@ function semaforo(a, z, p){
 }
 
 function dzVista(p){
+  const tallas = p.modelos[DZ.modelo];
+  if (!tallas.includes(DZ.tallaVista)) DZ.tallaVista = tallas.includes("M") ? "M" : tallas[0];
+  const ancho = anchoTalla(p, DZ.modelo, DZ.tallaVista);
+  $("#dzTallaVista").innerHTML = `<span class="label" style="margin:0">Ver en talla:</span>${tallas.map(t=>`<button class="${t===DZ.tallaVista?"on":""}" data-tv="${t}">${t}</button>`).join("")}
+    <span class="muted" style="width:100%">Pecho de la talla ${DZ.tallaVista} (${DZ.modelo.toLowerCase()}): ${ancho} cm de ancho. El estampado mide lo mismo en todas las tallas; en tallas chicas se ve más grande.</span>`;
+  document.querySelectorAll("[data-tv]").forEach(b => b.onclick = () => { DZ.tallaVista = b.dataset.tv; dzVista(p); });
   const zs = preciosZonas(p), logos = { frente:[], espalda:[] };
   zs.forEach(r => {
     const src = srcVista(DISENOS[r.st.diseno] || (r.st.diseno === "main" ? null : DISENOS.main));
@@ -1680,7 +1693,8 @@ function dzTallas(p){
       <div class="ctl"><button data-d="-1" aria-label="menos">−</button><input inputmode="numeric" value="${DZ.qty[t]||0}" aria-label="piezas ${t}"><button data-d="1" aria-label="más">+</button></div></div>`).join("");
   document.querySelectorAll("#dzSizes .size").forEach(box => {
     const t = box.dataset.t, inp = box.querySelector("input");
-    const set = v => { v = Math.max(0, Math.min(999, parseInt(v)||0)); DZ.qty[t] = v; inp.value = v; box.classList.toggle("has", v>0); dzPrecio(p); };
+    const set = v => { v = Math.max(0, Math.min(999, parseInt(v)||0)); const antes = DZ.qty[t]||0; DZ.qty[t] = v; inp.value = v; box.classList.toggle("has", v>0); dzPrecio(p);
+      if (v > antes && DZ.tallaVista !== t){ DZ.tallaVista = t; dzVista(p); } };
     box.querySelectorAll("button").forEach(b => b.onclick = () => set((DZ.qty[t]||0) + +b.dataset.d));
     inp.oninput = () => set(inp.value); inp.onfocus = () => inp.select();
   });
