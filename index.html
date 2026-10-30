@@ -18,7 +18,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.45;padding-bottom:110px}
 button,input,select,textarea{font-family:inherit;font-size:16px}
-.wrap{max-width:820px;margin:0 auto;padding:0 16px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
 
 /* Encabezado */
 header{background:var(--navy);color:#fff;padding:22px 0 0;position:relative;overflow:hidden}
@@ -42,7 +42,7 @@ h3{font-size:15px;font-weight:700;margin:0 0 8px}
 
 /* Selector de producto */
 .group-title{font-size:12px;font-weight:800;letter-spacing:2px;color:var(--orange);margin:6px 0 8px;text-transform:uppercase}
-.prods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:14px}
 .prod{background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px;text-align:left;cursor:pointer;transition:.15s}
 .prod b{display:block;font-size:14px;line-height:1.25}
 .prod span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
@@ -100,13 +100,13 @@ img[data-zoom]{cursor:zoom-in}
 .seg button.on{border-color:var(--navy);background:var(--navy);color:#fff}
 select,input[type=text],textarea{width:100%;border:2px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
 textarea{min-height:64px;resize:vertical}
-.sizes{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
-.size{border:2px solid var(--line);border-radius:10px;padding:8px;display:flex;align-items:center;justify-content:space-between;gap:4px}
+.sizes{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:8px}
+.size{border:2px solid var(--line);border-radius:10px;padding:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
 .size.has{border-color:var(--orange);background:#FFF5F0}
 .size b{font-size:14px;min-width:34px}
-.size .ctl{display:flex;align-items:center;gap:4px}
-.size button{width:30px;height:30px;border-radius:8px;border:0;background:var(--bg);font-weight:800;font-size:18px;cursor:pointer;line-height:1}
-.size input{width:36px;text-align:center;border:0;background:transparent;font-weight:700;padding:0}
+.size .ctl{display:flex;align-items:center;gap:4px;flex:none}
+.size button{flex:none;width:30px;height:30px;border-radius:8px;border:0;background:var(--bg);font-weight:800;font-size:18px;cursor:pointer;line-height:1}
+.size input{width:34px;flex:none;text-align:center;border:0;background:transparent;font-weight:700;padding:0}
 .chk{display:flex;align-items:flex-start;gap:10px;padding:10px;border:2px solid var(--line);border-radius:10px;cursor:pointer}
 .chk input{width:20px;height:20px;margin-top:2px;accent-color:var(--orange)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -200,7 +200,17 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 .ia .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .ia .links a{font-size:13px;font-weight:700;color:var(--navy);border:2px solid var(--line);border-radius:10px;padding:7px 10px;text-decoration:none}
 
-@media(max-width:420px){.prods{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+@media(max-width:520px){.prods{grid-template-columns:1fr 1fr}.prod span{display:none}}
+@media(max-width:420px){.grid2{grid-template-columns:1fr}}
+@media(min-width:700px){.covers img{aspect-ratio:16/9}.hero{font-size:16px}}
+@media(min-width:900px){
+  #config{display:grid;grid-template-columns:minmax(300px,420px) 1fr;column-gap:28px;align-items:start}
+  #config > *{grid-column:2}
+  #config > #cfgMedia{grid-column:1;grid-row:1 / span 8;position:sticky;top:16px}
+  #cfgMedia .cfgimg{max-height:460px}
+  .mock{max-width:760px;margin:0 auto}
+  .bar .wrap{max-width:1120px}
+}
 </style>
 </head>
 <body>
@@ -238,8 +248,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
       <h2 id="cfgTitle" style="margin-top:0">2. Personaliza</h2>
       <p class="muted" id="cfgDesc"></p>
       <div style="height:10px"></div>
-      <img class="cfgimg" id="cfgImg" alt="" data-zoom>
-      <div id="cfgFan"></div>
+      <div id="cfgMedia"><img class="cfgimg" id="cfgImg" alt="" data-zoom>
+      <div id="cfgFan"></div></div>
       <div id="cfgFicha"></div>
       <div class="row" id="cfgPrecios" style="margin-top:14px"></div>
       <div style="height:12px"></div>
@@ -1013,7 +1023,7 @@ function elegir(id){
   $("#notes").value = "";
   pintarProductos();
   pintarConfig();
-  $("#config").style.display = "block";
+  $("#config").style.display = "";
   setTimeout(()=> $("#config").scrollIntoView({behavior:"smooth",block:"start"}), 50);
 }
 
