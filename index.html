@@ -966,7 +966,8 @@ const piezas = q => Object.values(q).reduce((a,b)=>a+(b||0),0);
 
 let carrito = [];
 try { carrito = JSON.parse(localStorage.getItem("vituma_carrito")||"[]"); } catch(e) { carrito = []; }
-const guardar = () => { try { localStorage.setItem("vituma_carrito", JSON.stringify(carrito)); } catch(e){} };
+const guardarOk = () => { try { localStorage.setItem("vituma_carrito", JSON.stringify(carrito)); return true; } catch(e){ return false; } };
+const guardar = () => { guardarOk(); };
 
 let actual = null; // prenda que se está configurando
 
@@ -1816,9 +1817,17 @@ function dzPrecio(p){
 /* ---------- acciones ---------- */
 $("#dzFile").onchange = e => cargarDiseno(e.target.files[0], "main");
 
-$("#dzAdd").onclick = () => {
+$("#dzAdd").onclick = async () => {
   const it = itemDiseno(); if (!piezas(it.qty)) return;
-  carrito.push(it); guardar(); pintarCarrito();
+  const b = $("#dzAdd"); b.disabled = true; b.textContent = "Agregando…";
+  try {
+    it.diseno.mockup = await mockupJPG();
+    it.diseno.logos = Object.values(DISENOS).map(logoChico);
+    it.diseno.zonas = preciosZonas(byId(DZ.prod)).map(z => z.texto);
+  } catch(e){}
+  b.disabled = false; b.textContent = "Agregar a mi pedido";
+  carrito.push(it); if (!guardarOk()){ it.diseno.mockup = null; it.diseno.logos = []; guardar(); }
+  pintarCarrito();
   DZ.qty = {}; dzRender();
   const t = $("#toast"); t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1600);
 };
@@ -1832,7 +1841,8 @@ $("#dzWa").onclick = () => {
   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(m)}`, "_blank");
 };
 
-$("#dzDown").onclick = () => {
+/* dibuja la vista previa (frente y espalda) en un canvas */
+function mockupCanvas(cb){
   const p = byId(DZ.prod); if (!p) return;
   const { o, logos } = dzVista(p);
   const anidar = (svg, x) => svg.replace("<svg ", `<svg x="${x}" y="150" width="760" height="590" `);
@@ -1850,16 +1860,28 @@ $("#dzDown").onclick = () => {
     <text x="800" y="800" text-anchor="middle" font-family="Montserrat,Arial" font-weight="700" font-size="24" fill="#1C2340">${esc(zs)}</text>
     <text x="800" y="845" text-anchor="middle" font-family="Montserrat,Arial" font-size="20" fill="#6B7088">Vista aproximada · Pedidos: (669) 161 67 89</text></svg>`;
   const img = new Image();
-  img.onload = () => {
-    const c = document.createElement("canvas"); c.width = 1600; c.height = 900;
-    c.getContext("2d").drawImage(img, 0, 0);
-    c.toBlob(b => {
-      const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "diseno-vituma.png";
-      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    }, "image/png");
-  };
+  img.onload = () => { const c = document.createElement("canvas"); c.width = 1600; c.height = 900; c.getContext("2d").drawImage(img, 0, 0); cb(c); };
+  img.onerror = () => cb(null);
   img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-};
+}
+const mockupJPG = () => new Promise(ok => mockupCanvas(c => {
+  if (!c) return ok(null);
+  const d = document.createElement("canvas"); d.width = 1200; d.height = 675; d.getContext("2d").drawImage(c, 0, 0, 1200, 675);
+  ok(d.toDataURL("image/jpeg", .72));
+}));
+function logoChico(d){
+  const c = d.lienzo, k = Math.min(1, 700 / Math.max(c.width, c.height));
+  const x = document.createElement("canvas"); x.width = Math.round(c.width*k); x.height = Math.round(c.height*k);
+  x.getContext("2d").drawImage(c, 0, 0, x.width, x.height);
+  return { nombre: d.nombre, src: d.src.startsWith("data:image/png") ? x.toDataURL("image/png") : x.toDataURL("image/jpeg", .85) };
+}
+$("#dzDown").onclick = () => mockupCanvas(c => {
+  if (!c) return;
+  c.toBlob(b => {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "diseno-vituma.png";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, "image/png");
+});
 
 /* ---------- instrucciones para la IA ---------- */
 $("#iaGen").onclick = () => {
@@ -1895,6 +1917,12 @@ const misFolios = () => { try { return JSON.parse(localStorage.getItem(MIS_KEY) 
 const agregarMiFolio = f => { try { const l = misFolios().filter(x => x !== f); l.unshift(f); localStorage.setItem(MIS_KEY, JSON.stringify(l.slice(0, 30))); } catch(e){} };
 
 const esBordado = f => f.it.diseno ? f.it.diseno.tecnica === "bordado" : !!(f.it.per && f.it.per.tipo === "bordado");
+const tecnicaDe = f => {
+  if (f.it.diseno) return f.it.diseno.tecnica;
+  if (f.p.persona === "sublimado") return "sublimado";
+  if (f.it.per && (f.it.per.tipo === "bordado" || f.it.per.tipo === "dtf")) return f.it.per.tipo;
+  return "lisa";
+};
 const marcaDe = p => ({ polo_spa:"Sparviero", polo_dk:"DKPS", polo_lv:"Level Prime", polo_lvml:"Level Prime" })[p.id] || "VITUMA";
 
 $("#cPol").innerHTML = VT.POLITICAS.map(([t,x]) => `<p style="margin-bottom:6px"><b>${t}:</b> ${x}</p>`).join("");
@@ -1945,7 +1973,12 @@ function generarNota(){
       desc: `${f.p.nombre} ${f.it.modelo.toLowerCase()}${f.it.color ? ", " + f.it.color : ""}. Tallas: ${tallas}.${per ? " " + per + "." : ""}${conf ? " (Precio de la playera por confirmar.)" : ""}${f.it.notas ? " Notas: " + f.it.notas : ""}`,
       cant: f.n, punit: Math.round(f.subtotal / f.n * 100) / 100, importe: Math.round(f.subtotal * 100) / 100,
       prod: f.p.id, prenda: f.p.nombre, marca: marcaDe(f.p), categoria: f.p.grupo, modelo: f.it.modelo, color: f.it.color || "",
-      qty: f.it.qty, bordado: esBordado(f), anticipo: Math.round(f.anticipo * 100) / 100
+      qty: f.it.qty, bordado: esBordado(f), anticipo: Math.round(f.anticipo * 100) / 100,
+      tecnica: tecnicaDe(f), personalizacion: per, notas: f.it.notas || "",
+      zonas: f.it.diseno ? (f.it.diseno.zonas || []) : [],
+      logos: f.it.diseno ? (f.it.diseno.logos || []) : [],
+      mockup: (f.it.diseno && f.it.diseno.mockup) || fotoColor(f.p, f.it.color, f.it.modelo) || imgDe(f.p, f.it.modelo) || null,
+      mockupTipo: (f.it.diseno && f.it.diseno.mockup) ? "diseno" : "foto"
     };
   });
   if (ponchado.aplica) items.push({ desc: `Ponchado de logotipo${ponchado.logos > 1 ? "s" : ""}${ponchado.nota ? " (" + ponchado.nota + ")" : ""}`,
