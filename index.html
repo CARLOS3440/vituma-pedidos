@@ -1535,6 +1535,18 @@ function cajasZona(z, st, p){
 }
 
 /* ---------- análisis del logo ---------- */
+/* ¿el fondo es un patrón de cuadros (dos tonos de gris) dibujado: transparencia falsa? Devuelve los dos tonos */
+function esCuadricula(d, w, h){
+  const ls = [];
+  const muestra = (x, y) => { const i = (y*w + x)*4; if (Math.max(d[i],d[i+1],d[i+2]) - Math.min(d[i],d[i+1],d[i+2]) > 14) { ls.push(-1); return; } ls.push((d[i]+d[i+1]+d[i+2])/3); };
+  for (let x = 0; x < w; x += 2){ muestra(x, 2); muestra(x, h-3); }
+  for (let y = 0; y < h; y += 2){ muestra(2, y); muestra(w-3, y); }
+  const neu = ls.filter(l => l >= 0); if (neu.length < ls.length * .85) return null;
+  const orden = neu.slice().sort((a,b) => a-b), a = orden[Math.floor(orden.length*.2)], b = orden[Math.floor(orden.length*.8)];
+  if (b - a < 25) return null;
+  const cerca = neu.filter(l => Math.abs(l-a) < 14 || Math.abs(l-b) < 14).length;
+  return cerca > neu.length * .85 ? [a, b] : null;
+}
 function colorFondo(d, w, h){
   const px = [];
   for (let x = 0; x < w; x++){ px.push((0*w+x)*4, ((h-1)*w+x)*4); }
@@ -1638,18 +1650,36 @@ function cargarDiseno(file, key){
       const x = c.getContext("2d", {willReadFrequently:true}); x.drawImage(im, 0, 0, c.width, c.height);
       const src = c.toDataURL(file.type === "image/png" ? "image/png" : "image/jpeg", .92);
       const datos = x.getImageData(0, 0, c.width, c.height);
-      const bg = colorFondo(datos.data, c.width, c.height);
-      let sinFondo = null;
+      const tonos = esCuadricula(datos.data, c.width, c.height);
+      const bg = tonos ? [230,230,230] : colorFondo(datos.data, c.width, c.height);
+      let sinFondo = null, cuadros = false, cubre = 0;
       if (bg){
-        const c2 = document.createElement("canvas"); c2.width = c.width; c2.height = c.height;
-        const x2 = c2.getContext("2d"); const dd = new ImageData(new Uint8ClampedArray(datos.data), c.width, c.height);
-        for (let j = 0; j < dd.data.length; j += 4){
-          const dist = Math.hypot(dd.data[j]-bg[0], dd.data[j+1]-bg[1], dd.data[j+2]-bg[2]);
-          if (dist < 40) dd.data[j+3] = 0; else if (dist < 70) dd.data[j+3] = Math.round(dd.data[j+3] * (dist-40)/30);
+        const W = c.width, H = c.height, s = datos.data;
+        cuadros = !!tonos;
+        const esFondo = j => cuadros
+          ? (Math.max(s[j],s[j+1],s[j+2]) - Math.min(s[j],s[j+1],s[j+2]) < 16 && (s[j]+s[j+1]+s[j+2])/3 > tonos[0] - 16 && (s[j]+s[j+1]+s[j+2])/3 < tonos[1] + 16)
+          : Math.hypot(s[j]-bg[0], s[j+1]-bg[1], s[j+2]-bg[2]) < 45;
+        /* relleno desde los bordes: solo quita el fondo que toca la orilla, no los blancos del diseño */
+        const fuera = new Uint8Array(W*H), pila = [];
+        for (let x = 0; x < W; x++){ pila.push(x, (H-1)*W + x); }
+        for (let y = 0; y < H; y++){ pila.push(y*W, y*W + W - 1); }
+        while (pila.length){
+          const i = pila.pop(); if (fuera[i] || !esFondo(i*4)) continue;
+          fuera[i] = 1; const x = i % W;
+          if (x > 0) pila.push(i-1); if (x < W-1) pila.push(i+1); if (i >= W) pila.push(i-W); if (i < W*(H-1)) pila.push(i+W);
         }
+        const c2 = document.createElement("canvas"); c2.width = W; c2.height = H;
+        const x2 = c2.getContext("2d"); const dd = new ImageData(new Uint8ClampedArray(s), W, H);
+        let op = 0;
+        for (let i = 0; i < W*H; i++){
+          if (fuera[i]) dd.data[i*4+3] = 0;
+          else { op++; const x = i % W, y = (i / W) | 0;   // suavizar la orilla
+            if ((x > 0 && fuera[i-1]) || (x < W-1 && fuera[i+1]) || (y > 0 && fuera[i-W]) || (y < H-1 && fuera[i+W])) dd.data[i*4+3] = Math.round(dd.data[i*4+3] * .55); }
+        }
+        cubre = op / (W*H);
         x2.putImageData(dd, 0, 0); sinFondo = c2.toDataURL("image/png");
       }
-      DISENOS[key] = { nombre:file.name, src, sinFondo, quitarFondo: !!bg, lienzo:c, esPng: file.type === "image/png", ext: (file.name.split(".").pop() || "").toUpperCase(), anchoOrig: im.width, altoOrig: im.height };
+      DISENOS[key] = { nombre:file.name, src, sinFondo, quitarFondo: !!bg, lienzo:c, cuadros, cubre, esPng: file.type === "image/png", ext: (file.name.split(".").pop() || "").toUpperCase(), anchoOrig: im.width, altoOrig: im.height };
       Object.keys(ANALISIS).forEach(a => { if (a.startsWith(key + "@")) delete ANALISIS[a]; });
       Object.values(DZ.zonas).forEach(st => st.hilosManual = false);
       // si es el primer diseño, activar una ubicación sugerida
@@ -1754,8 +1784,10 @@ function dzRender(){
   $("#dzUp").innerHTML = d ? `<img src="${srcVista(d)}" alt=""><div><b>${d.nombre}</b><span class="muted" style="font-size:12px">Toca para cambiar el diseño</span></div>`
                            : `<span>⬆️</span><div><b>Carga tu diseño</b><span class="muted" style="font-size:12px">Para DTF: PNG con fondo transparente, en alta resolución</span></div>`;
   const avisoPng = d && DZ.tecnica === "dtf" && !d.esPng ? `<div class="warn" style="margin-top:8px">Para estampado <b>DTF</b> el archivo debe ser <b>PNG con fondo transparente</b>. Subiste un ${VT.esc(d.ext || "JPG")}: la vista previa le quita el fondo blanco, pero VITUMA podría pedirte el archivo en PNG para imprimir.</div>` : "";
+  const avisoCuad = d && d.cuadros ? `<div class="warn" style="margin-top:8px">Tu imagen traía un <b>fondo de cuadritos dibujado</b> (no es transparente de verdad). Ya se lo quitamos para la vista previa; para imprimir, VITUMA puede pedirte el archivo con fondo transparente real.</div>` : "";
+  const avisoPlay = d && d.cubre > .55 ? `<div class="warn" style="margin-top:8px">¿Tu imagen trae una <b>playera dibujada</b> alrededor del diseño? Si es así, sube <b>solo el diseño</b>, sin la prenda, o se imprimiría también la silueta de la playera.</div>` : "";
   const avisoRes = d && DZ.tecnica === "dtf" && d.anchoOrig && d.anchoOrig < 1500 ? `<div class="warn" style="margin-top:8px">Tu imagen mide ${d.anchoOrig} × ${d.altoOrig} px, una resolución baja que puede verse pixelada al imprimir. Lo ideal para DTF es de 2000 px o más por lado.</div>` : "";
-  $("#dzUpInfo").innerHTML = avisoPng + avisoRes + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
+  $("#dzUpInfo").innerHTML = avisoPlay + avisoCuad + avisoPng + avisoRes + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
   if ($("#dzBg")) $("#dzBg").onchange = e => { d.quitarFondo = e.target.checked; dzRender(); };
 
   dzZonas(p); dzVista(p); dzTallas(p); dzPrecio(p);
@@ -1961,11 +1993,11 @@ $("#iaGen").onclick = () => {
     out = `Crea un logotipo para BORDAR en una ${prenda} de color ${color}. Contenido: ${txt}.\n\nEspecificaciones técnicas obligatorias:\n- Máximo 5 colores sólidos y planos.\n- Sin degradados, sombras, brillos, texturas ni efectos 3D.\n- Formas simples y pocos elementos.\n- Líneas y contornos gruesos: mínimo 1 mm a un tamaño final de ${cm} cm.\n- Texto grande y legible, sin letras pequeñas ni frases largas.\n- Sin detalles diminutos.\n- Colores que contrasten con el color ${color} de la playera.\n- Fondo blanco liso.\n- Imagen cuadrada en alta resolución (mínimo 1000 × 1000 px), en formato JPG.`;
   } else {
     const o = zr && zr.z.opciones ? zr.z.opciones.find(x => x.id === zr.st.opcion) : null;
-    const medida = o ? o.t : "el tamaño elegido";
-    const donde = zr ? nombreZona(zr.z, zr.st) : "la playera";
+    const medida = o ? o.t : "28 × 28 cm";
+    const donde = zr ? nombreZona(zr.z, zr.st) : "el frente";
     const lado = o ? (o.largo ? Math.max(o.cm, o.largo) : o.cm) : 28;
     const px = Math.round(lado / 2.54 * 300);
-    out = `Crea un diseño para ESTAMPADO DTF en una ${prenda} de color ${color}, que se imprimirá a ${medida} en ${donde}. Contenido: ${txt}.\n\nEspecificaciones técnicas obligatorias:\n- Entrégalo en formato PNG con FONDO TRANSPARENTE (sin fondo blanco ni de color, sin marcos ni sombras de fondo).\n- Resolución de impresión: 300 ppp a tamaño real, es decir, mínimo ${px} × ${px} píxeles.\n- Puede llevar muchos colores, degradados y detalles.\n- Colores vivos que contrasten con el color ${color} de la playera.\n- Diseño centrado y completo, sin cortarse en los bordes.\n- Bordes limpios y bien definidos, sin halos ni pixeles sueltos alrededor del diseño.`;
+    out = `Crea un diseño para ESTAMPADO DTF en una ${prenda} de color ${color}, que se imprimirá a ${medida} en ${donde}. Contenido: ${txt}.\n\nEspecificaciones técnicas obligatorias:\n- Entrega SOLO el diseño, aislado. NO lo coloques sobre una playera, prenda, maniquí ni mockup.\n- Formato PNG con FONDO TRANSPARENTE real. NO dibujes el patrón de cuadros gris y blanco: si no puedes hacer el fondo transparente, usa fondo blanco liso.\n- Escribe el texto exactamente como se indica, sin repetirlo ni cambiar letras.\n- Resolución de impresión: 300 ppp a tamaño real, es decir, mínimo ${px} × ${px} píxeles.\n- Puede llevar muchos colores, degradados y detalles.\n- Colores vivos que contrasten con el color ${color} de la playera.\n- Diseño centrado y completo, sin cortarse en los bordes.\n- Bordes limpios y bien definidos, sin halos ni pixeles sueltos alrededor del diseño.`;
   }
   $("#iaOut").value = out;
 };
