@@ -96,6 +96,8 @@ h3{font-size:15px;font-weight:700;margin:0 0 8px}
 .lupa-hint{font-size:12px;color:var(--muted);text-align:center;margin:-8px 0 12px}
 @media(hover:hover){.lupa-hint .t{display:none}}@media(hover:none){.lupa-hint .m{display:none}}
 img[data-lupa]{cursor:crosshair;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.grid3q{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:700px){.grid3q{grid-template-columns:1fr}}
 .zoom{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
 .zoom.on{display:flex}
 .zoom img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
@@ -371,7 +373,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
       <h3>Finalizar compra</h3>
       <p class="muted" style="margin-bottom:12px">Con tus datos generamos tu <b>nota de venta</b> y te mostramos cómo pagar tu anticipo por transferencia.</p>
       <div class="grid2">
-        <div><span class="label">Nombre completo *</span><input type="text" id="cName" autocomplete="name"></div>
+        <div><span class="label">Nombre y apellido *</span><input type="text" id="cName" autocomplete="name" placeholder="Ej. Juan Pérez López"></div>
         <div><span class="label">Teléfono (10 dígitos) *</span><input type="text" id="cTel" inputmode="tel" autocomplete="tel" maxlength="14"></div>
       </div>
       <div style="height:10px"></div>
@@ -397,9 +399,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
       <div class="card" id="misLista"></div>
       <div class="card">
         <h3>Consultar un pedido</h3>
-        <p class="muted" style="margin-bottom:10px">Escribe el folio de tu nota de venta y tu teléfono.</p>
-        <div class="grid2"><input type="text" id="qFolio" placeholder="Folio (ej. MAZ0001)"><input type="text" id="qTel" inputmode="tel" placeholder="Teléfono"></div>
+        <p class="muted" style="margin-bottom:10px">Llena <b>cualquiera</b> de estos datos; no es necesario llenar los tres.</p>
+        <div class="grid3q">
+          <div><span class="label">Folio</span><input type="text" id="qFolio" placeholder="Ej. MAZ0001" autocapitalize="characters"></div>
+          <div><span class="label">Teléfono</span><input type="text" id="qTel" inputmode="tel" placeholder="10 dígitos"></div>
+          <div><span class="label">Nombre y apellido</span><input type="text" id="qNom" placeholder="Ej. Juan Pérez" autocomplete="name"></div>
+        </div>
         <div id="qErr"></div>
+        <div id="qRes"></div>
         <button class="btn pri" id="qBtn" style="width:100%;margin-top:10px">Consultar</button>
       </div>
     </div>
@@ -1916,7 +1923,7 @@ function generarNota(){
   const err = m => { $("#cErr").innerHTML = `<div class="warn" style="margin-top:10px">${m}</div>`; };
   if (!pz) return;
   const nombre = $("#cName").value.trim(), tel = $("#cTel").value.replace(/\D/g, ""), trabajo = $("#cTeam").value.trim();
-  if (nombre.length < 3) return err("Escribe tu nombre completo.");
+  if (nombre.split(/\s+/).filter(w => w.length >= 2).length < 2) return err("Escribe tu nombre y al menos un apellido.");
   if (tel.length !== 10) return err("Escribe tu teléfono a 10 dígitos.");
   if (!sucursalElegida) return err("Elige la sucursal donde recogerás tu pedido.");
   if (!$("#cAcepto").checked) return err("Para continuar acepta las políticas de pedido y producción.");
@@ -2067,15 +2074,32 @@ function pintarMisPedidos(){
     ? `<h3>Hechos en este celular</h3>` + lista.map(v => { const c = VT.cuentas(v); return `<div class="item" style="cursor:pointer" data-folio="${v.folio}">
         <div><b>${v.folio}</b><div class="det">${VT.fechaHora(v.fecha)} · ${c.piezas} pzs</div><div style="margin-top:4px"><span class="badge ${VT.ESTADOS[v.estado].c}">${VT.ESTADOS[v.estado].t}</span> <span class="badge ${c.pago.c}">${c.pago.t}</span></div></div>
         <div class="r"><b>${money(v.total)}</b><span class="muted">Saldo ${money(c.saldo)}</span></div></div>`; }).join("")
-    : `<div class="empty">Aquí aparecerán tus pedidos.<br>Si hiciste tu pedido en otro celular, consúltalo con tu folio y teléfono.</div>`;
+    : `<div class="empty">Aquí aparecerán tus pedidos.<br>Si hiciste tu pedido en otro celular, búscalo abajo con tu folio, tu teléfono o tu nombre y apellido.</div>`;
   document.querySelectorAll("#misLista [data-folio]").forEach(x => x.onclick = () => abrirPedido(x.dataset.folio));
 }
-$("#qBtn").onclick = () => {
-  const f = $("#qFolio").value.trim().toUpperCase().replace(/\s/g, ""), t = $("#qTel").value.replace(/\D/g, "");
-  const v = VT.cargar().ventas.find(x => x.folio === f && x.cliente.tel === t);
-  if (!v){ $("#qErr").innerHTML = `<div class="warn" style="margin-top:10px">No encontramos un pedido con ese folio y teléfono.</div>`; return; }
-  $("#qErr").innerHTML = ""; agregarMiFolio(v.folio); abrirPedido(v.folio);
-};
+const normal = t => String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+function buscarPedidos(){
+  const err = m => { $("#qRes").innerHTML = ""; $("#qErr").innerHTML = `<div class="warn" style="margin-top:10px">${m}</div>`; };
+  const f = $("#qFolio").value.trim().toUpperCase().replace(/\s/g, ""), t = $("#qTel").value.replace(/\D/g, ""), n = normal($("#qNom").value);
+  if (!f && !t && !n) return err("Escribe tu folio, tu teléfono o tu nombre y apellido.");
+  if (t && t.length !== 10) return err("El teléfono debe tener 10 dígitos.");
+  const palabras = n ? n.split(" ").filter(w => w.length >= 2) : [];
+  if (n && palabras.length < 2) return err("Para buscar por nombre escribe tu nombre y al menos un apellido.");
+  const ventas = VT.cargar().ventas.filter(v =>
+    (!f || v.folio === f) && (!t || v.cliente.tel === t) &&
+    (!palabras.length || palabras.every(w => normal(v.cliente.nombre).split(" ").includes(w))));
+  if (!ventas.length) return err("No encontramos pedidos con esos datos. Revisa que estén bien escritos.");
+  $("#qErr").innerHTML = "";
+  ventas.forEach(v => agregarMiFolio(v.folio));
+  if (ventas.length === 1){ $("#qRes").innerHTML = ""; abrirPedido(ventas[0].folio); return; }
+  $("#qRes").innerHTML = `<p class="muted" style="margin:12px 0 4px">Encontramos ${ventas.length} pedidos:</p>` + ventas.map(v => { const c = VT.cuentas(v);
+    return `<div class="item" style="cursor:pointer" data-qf="${v.folio}"><div><b>${v.folio}</b><div class="det">${VT.fechaHora(v.fecha)} · ${c.piezas} pzs</div>
+      <div style="margin-top:4px"><span class="badge ${VT.ESTADOS[v.estado].c}">${VT.ESTADOS[v.estado].t}</span></div></div>
+      <div class="r"><b>${money(v.total)}</b><span class="muted">Saldo ${money(c.saldo)}</span></div></div>`; }).join("");
+  document.querySelectorAll("[data-qf]").forEach(x => x.onclick = () => abrirPedido(x.dataset.qf));
+}
+$("#qBtn").onclick = buscarPedidos;
+["#qFolio","#qTel","#qNom"].forEach(id => $(id).onkeydown = e => { if (e.key === "Enter") buscarPedidos(); });
 
 /* ---------- Lupa: recuadro que amplía la zona de la foto bajo el cursor o el dedo ---------- */
 (() => {
