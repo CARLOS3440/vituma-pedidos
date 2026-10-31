@@ -511,8 +511,9 @@ function abrirVenta(folio){
       <div><b>${p.tipo} · ${money(p.monto)}</b><div class="muted">${p.forma} · ${VT.fechaHora(p.fecha)} · ${esc(p.registro||"")}</div>
         ${p.montoReportado != null ? `<div class="muted" style="color:#B4400F;font-weight:700">El cliente reportó ${money(p.montoReportado)}; llegaron ${money(p.monto)}</div>` : ""}
         ${p.estado==="validado" ? `<div class="muted">Validado por ${esc(p.validadoPor||"admin")} el ${VT.fechaHora(p.validadoEl||p.fecha)}</div>` : ""}
-        ${p.estado==="rechazado" ? `<div class="muted" style="color:#B42318">Rechazado por ${esc(p.validadoPor||"")}: ${esc(p.motivo||"")}</div>` : ""}</div>
-      <div class="acts">${p.estado==="por_validar" ? (can("validar_pagos") && !cancel ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar ${money(p.monto)}</button><button class="btn sec sm" data-valotro="${p.id}">Validar otro monto</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge("Por validar","amarillo")) : badge(p.estado==="validado"?"Validado":"Rechazado", p.estado==="validado"?"verde":"rojo")}</div>
+        ${p.estado==="rechazado" ? `<div class="muted" style="color:#B42318">Rechazado por ${esc(p.validadoPor||"")}: ${esc(p.motivo||"")}</div>` : ""}
+        ${p.estado==="anulado" ? `<div class="muted" style="color:#B42318">Anulado por ${esc(p.anuladoPor||"")} el ${VT.fechaHora(p.anuladoEl)}: ${esc(p.motivo||"")}</div>` : ""}</div>
+      <div class="acts">${p.estado==="por_validar" ? (can("validar_pagos") && !cancel ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar ${money(p.monto)}</button><button class="btn sec sm" data-valotro="${p.id}">Validar otro monto</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge("Por validar","amarillo")) : (p.estado==="validado" ? `${badge("Validado","verde")}${can("validar_pagos") && !cancel ? `<button class="btn no sm" data-anu="${p.id}">Anular</button>` : ""}` : badge(p.estado==="anulado"?"Anulado":"Rechazado","rojo"))}</div>
     </div>`).join("") || `<div class="muted">Sin pagos registrados.</div>`;
   const hist = (v.historial || []).map(h => `<div class="li"><span><b>${esc(h.accion)}</b>${h.detalle?` · ${esc(h.detalle)}`:""}<div class="muted">${esc(h.usuario)} · ${VT.fechaHora(h.fecha)}</div></span></div>`).join("");
   $("#dBody").innerHTML = `
@@ -534,10 +535,10 @@ function abrirVenta(folio){
         ${can("cancelar_ventas") && !cancel && v.estado !== "entregado" ? `<button class="btn no sm" id="canBtn">Cancelar venta</button>` : ""}
         ${["Administrador","Encargado","Diseño"].includes(SES.rol) && ["diseno","autorizacion"].includes(v.estado) ? `<a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none">Ajustador de tallas ↗</a>` : ""}</div></div>
     <div class="card"><h3>Prendas</h3><table class="t"><tr><th>Cant.</th><th>Descripción</th>${mon?`<th class="n">P. unit.</th><th class="n">Importe</th>`:""}</tr>${items}</table>
-      ${mon ? `<div class="kv" style="margin-top:12px;justify-content:end"><b>Total</b><span><b>${money(v.total)}</b></span><b>Anticipo requerido</b><span>${money(v.anticipoReq)}</span><b>Pagado</b><span>${money(k.pagado)}</span>${k.porValidar?`<b>Por validar</b><span>${money(k.porValidar)}</span>`:""}<b>Saldo</b><span style="color:#B42318;font-weight:800">${money(k.saldo)}</span></div>` : ""}</div>
+      ${mon ? `<div class="kv" style="margin-top:12px;justify-content:end"><b>Total</b><span><b>${money(v.total)}</b></span><b>Anticipo requerido</b><span>${money(v.anticipoReq)}</span><b>Pagado</b><span>${money(k.pagado)}</span>${k.pagado > 0 && k.pagado + 0.009 < v.anticipoReq ? `<b>Falta para el anticipo</b><span style="color:#B4400F;font-weight:800">${money(v.anticipoReq - k.pagado)}</span>` : ""}${k.porValidar?`<b>Por validar</b><span>${money(k.porValidar)}</span>`:""}<b>Saldo</b><span style="color:#B42318;font-weight:800">${money(k.saldo)}</span></div>` : ""}</div>
     ${mon ? `<div class="card"><h3>Pagos</h3>${pagos}
       ${k.saldo > 0 && !cancel && can("registrar_pagos") ? `<h3 style="margin-top:16px">Registrar pago en mostrador</h3>
-      <div class="row3"><div><label class="l">Monto</label><input id="rMonto" inputmode="decimal" value="${k.saldo.toFixed(2)}"></div>
+      <div class="row3"><div><label class="l">Monto</label><input id="rMonto" inputmode="decimal" placeholder="Saldo: ${money(k.saldo)}"></div>
         <div><label class="l">Forma de pago</label><select id="rForma">${VT.FORMAS.map(f=>`<option>${f}</option>`).join("")}</select></div>
         <div><label class="l">&nbsp;</label><button class="btn pri" id="rBtn" style="width:100%">Registrar</button></div></div>
       <p class="muted" style="margin-top:6px">Para anticipos, abonos y la liquidación al recoger. Queda registrado a tu nombre.</p>` : ""}</div>` : ""}
@@ -558,6 +559,14 @@ function abrirVenta(folio){
   if ($("#verNota")) $("#verNota").onclick = () => { const z = $("#zoom"); z.innerHTML = `<div class="nbox">${VT.notaHTML(VT.cargar().ventas.find(x=>x.folio===folio))}</div>`; z.classList.add("on"); };
   if ($("#pdfNota")) $("#pdfNota").onclick = () => VT.notaPDF(VT.cargar().ventas.find(x=>x.folio===folio));
   document.querySelectorAll("[data-val]").forEach(b => b.onclick = () => validar(folio, b.dataset.val));
+  document.querySelectorAll("[data-anu]").forEach(b => b.onclick = () => {
+    const vv = DB.ventas.find(x=>x.folio===folio), p = vv.pagos.find(x=>x.id===b.dataset.anu);
+    const motivo = window.prompt(`¿Anular el pago "${p.tipo} ${money(p.monto)}" (${p.forma})?\nSe quitará de lo pagado. Escribe el motivo:`, "Registrado por error");
+    if (motivo === null) return; if (!motivo.trim()) return toast("Escribe el motivo", true);
+    p.estado = "anulado"; p.motivo = motivo.trim(); p.anuladoPor = SES.nombre; p.anuladoEl = new Date().toISOString();
+    log(vv, "Pago anulado", `${p.tipo} ${money(p.monto)} · ${p.forma} · ${motivo.trim()}`);
+    save(); toast("Pago anulado", true); abrirVenta(folio); refrescar();
+  });
   document.querySelectorAll("[data-valotro]").forEach(b => b.onclick = () => {
     const vv = DB.ventas.find(x=>x.folio===folio), p = vv.pagos.find(x=>x.id===b.dataset.valotro);
     const r = window.prompt(`El cliente reportó ${money(p.monto)}.\nEscribe el monto que REALMENTE llegó a la cuenta:`, "");
@@ -577,10 +586,12 @@ function abrirVenta(folio){
     log(vv, "Pago rechazado", `${p.tipo} ${money(p.monto)} · ${motivo}`); save(); toast("Pago rechazado", true); abrirVenta(folio); refrescar();
   });
   if ($("#rBtn")) $("#rBtn").onclick = () => {
-    const monto = Math.round(parseFloat($("#rMonto").value.replace(/[^\d.]/g,""))*100)/100; if (!(monto>0)) return toast("Escribe un monto válido", true);
+    const monto = Math.round(parseFloat($("#rMonto").value.replace(/[^\d.]/g,""))*100)/100; if (!(monto>0)) return toast("Escribe el monto que recibiste", true);
     const vv = DB.ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv);
-    const tipo = kk.pagado <= 0 ? "Anticipo" : (monto >= kk.saldo ? "Liquidación" : "Abono");
+    if (monto > kk.saldo + 0.009) return toast(`El monto es mayor al saldo (${money(kk.saldo)})`, true);
+    const tipo = kk.pagado <= 0 ? (monto + 0.009 < vv.anticipoReq ? "Anticipo parcial" : "Anticipo") : (monto + 0.009 >= kk.saldo ? "Liquidación" : "Abono");
     const ahora = new Date().toISOString(), forma = $("#rForma").value;
+    if (!window.confirm(`¿Registrar ${tipo.toLowerCase()} de ${money(monto)} en ${forma.toLowerCase()} para ${folio}?\n\nSaldo después del pago: ${money(kk.saldo - monto)}`)) return;
     vv.pagos.push({ id:"P"+Date.now(), fecha:ahora, tipo, monto, forma, estado:"validado", registro:`Mostrador (${SES.nombre})`, validadoPor:SES.nombre, validadoEl:ahora });
     log(vv, `${tipo} registrado`, `${money(monto)} · ${forma}`);
     trasValidar(vv); save(); toast(`${tipo} registrado`); abrirVenta(folio); refrescar();
