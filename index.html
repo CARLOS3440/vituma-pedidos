@@ -319,16 +319,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
         <div id="dzUpInfo"></div>
         <details class="ia" id="dzIA">
           <summary>¿No tienes logo? Créalo con inteligencia artificial</summary>
-          <p class="muted" style="margin-top:8px">Usa la IA de tu preferencia (ChatGPT, Gemini, Copilot…). Escribe qué quieres que lleve y te damos las instrucciones técnicas para que salga listo para tu camisa. Después descarga la imagen en JPG y súbela aquí arriba.</p>
+          <p class="muted" style="margin-top:8px">Usa la IA de tu preferencia (Gemini o ChatGPT). Escribe qué quieres que lleve y te damos las instrucciones técnicas para que salga listo para tu camisa. Después descárgala en <b>PNG</b> (para DTF, con fondo transparente) y súbela aquí arriba.</p>
           <textarea id="iaTxt" placeholder="Ej. Logo para 'Taller El Güero': una llave inglesa y un engrane, letras en azul y naranja."></textarea>
           <button class="btn pri" id="iaGen" style="margin-top:8px">Generar instrucciones para la IA</button>
           <textarea id="iaOut" readonly placeholder="Aquí aparecerán las instrucciones para copiar."></textarea>
           <div class="links">
             <button class="btn ghost" id="iaCopy" style="padding:7px 12px;font-size:13px">📋 Copiar</button>
-            <a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a>
             <a href="https://gemini.google.com/" target="_blank" rel="noopener">Gemini</a>
-            <a href="https://copilot.microsoft.com/" target="_blank" rel="noopener">Copilot</a>
+            <a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a>
           </div>
+          <p class="muted" style="margin-top:8px">ℹ️ Para crear imágenes estas herramientas piden <b>iniciar sesión con una cuenta gratuita</b>. En <b>Gemini</b> puedes entrar con tu cuenta de Google (la de tu Gmail o tu celular Android). Pega las instrucciones, pídele la imagen, descárgala y súbela aquí.</p>
         </details>
       </div>
 
@@ -946,18 +946,21 @@ const BORDADO = [
   { id:"11-15", texto:"11 a 15 colores", normal:92.8, incluido:30 }
 ];
 
-/* Estampado DTF por pieza */
+/* Estampado DTF por pieza: se cobra por área (ancho × alto en cm), ya estampado en la camisa.
+   Para cambiar el precio solo modifica DTF_PRECIO_M2. Al cliente solo se le muestra el precio final. */
+const DTF_PRECIO_M2 = 400;
+const precioDTF = (ancho, alto) => Math.round(ancho * alto / 10000 * DTF_PRECIO_M2 * 100) / 100;
 const DTF_FRENTE = [
   { id:"", texto:"Sin estampado", precio:0 },
-  { id:"10", texto:"Logo pequeño 10 cm", precio:30 },
-  { id:"15", texto:"15 × 15 cm", precio:35 },
-  { id:"20", texto:"20 × 20 cm", precio:50 },
-  { id:"22", texto:"22 × 22 cm", precio:55 },
-  { id:"28", texto:"28 × 28 cm", precio:69 },
-  { id:"32", texto:"32 × 32 cm", precio:80 }
+  { id:"10", texto:"Logo pequeño 10 cm", precio:precioDTF(10,10) },
+  { id:"15", texto:"15 × 15 cm", precio:precioDTF(15,15) },
+  { id:"20", texto:"20 × 20 cm", precio:precioDTF(20,20) },
+  { id:"22", texto:"22 × 22 cm", precio:precioDTF(22,22) },
+  { id:"28", texto:"28 × 28 cm", precio:precioDTF(28,28) },
+  { id:"32", texto:"32 × 32 cm", precio:precioDTF(32,32) }
 ];
 const DTF_ESPALDA = DTF_FRENTE.filter(o => o.id !== "10");
-const DTF_MANGA = { corta:{ texto:"Manga (5 a 7 cm)", precio:27 }, larga:{ texto:"Manga larga (hasta 40 cm)", precio:45 } };
+const DTF_MANGA = { corta:{ texto:"Manga (5 a 7 cm)", precio:precioDTF(7,7) }, larga:{ texto:"Manga larga (hasta 40 cm)", precio:precioDTF(7,40) } };
 
 /* Medidas en cm (ancho × largo) */
 const MEDIDAS = {
@@ -1039,8 +1042,8 @@ function costoPersona(p, per){
   }
   if (per.tipo === "dtf"){
     let c = 0;
-    if (per.frente) c += 30;            // polo: solo logo de 10 cm en pecho
-    if (per.manga) c += DTF_MANGA.corta.precio; // polo: manga 5 a 7 cm
+    if (per.frente) c += precioDTF(10,10);                 // polo: logo de 10 × 10 cm en pecho
+    if (per.manga){ const m = parseInt(per.manga) || 7; c += precioDTF(m,m); } // polo: manga de 5 a 7 cm
     return c;
   }
   return 0;
@@ -1056,8 +1059,8 @@ function textoPersona(p, per){
   }
   if (per.tipo === "dtf"){
     const partes = [];
-    if (per.frente) partes.push("pecho 10 cm");
-    if (per.manga) partes.push("manga 5 a 7 cm");
+    if (per.frente) partes.push("pecho 10 × 10 cm");
+    if (per.manga) partes.push(`manga ${parseInt(per.manga) || 7} × ${parseInt(per.manga) || 7} cm`);
     return partes.length ? "Estampado DTF: " + partes.join(", ") : "";
   }
   return p.bordadoIncluido ? "" : "Sin personalización";
@@ -1214,17 +1217,16 @@ function pintarPersona(p){
   }
   if (per.tipo === "dtf"){
     html += `<div style="height:10px"></div>
-      <label class="chk"><input type="checkbox" id="dFr"${per.frente?" checked":""}><span><b>Pecho, logo de 10 cm</b> · +${money(30)} c/u</span></label>
+      <label class="chk"><input type="checkbox" id="dFr"${per.frente?" checked":""}><span><b>Pecho, logo de 10 × 10 cm</b> · +${money(precioDTF(10,10))} c/u</span></label>
       <div style="height:8px"></div>
-      <label class="chk"><input type="checkbox" id="dMa"${per.manga?" checked":""}><span><b>Manga, 5 a 7 cm</b> · +${money(27)} c/u</span></label>
-      <details style="margin-top:8px"><summary>Ver guía de medidas DTF</summary><img class="guide" src="${IMG.dtf_corta||""}" alt="Guía DTF" data-zoom></details>
+      <span class="label">Manga</span><select id="dMa"><option value="">Sin estampado en manga</option>${[5,6,7].map(n=>`<option value="${n}"${String(per.manga)===String(n)?" selected":""}>${n} × ${n} cm · +${money(precioDTF(n,n))} c/u</option>`).join("")}</select>
       <div class="note">En playeras polo el DTF solo va en pecho o manga; la espalda no está disponible. Para ver tu logo sobre la camisa usa <a href="#" onclick="irA('disena');return false">Diseña tu camisa</a>.</div>`;
   }
   box.innerHTML = html;
   document.querySelectorAll("#perSeg button").forEach(b => b.onclick = () => { per.tipo = b.dataset.v; pintarPersona(p); actualizarPreview(); });
   if ($("#hilos")) $("#hilos").onchange = e => { per.hilos = e.target.value; actualizarPreview(); };
   if ($("#dFr")) $("#dFr").onchange = e => { per.frente = e.target.checked ? "10" : ""; actualizarPreview(); };
-  if ($("#dMa")) $("#dMa").onchange = e => { per.manga = e.target.checked; actualizarPreview(); };
+  if ($("#dMa")) $("#dMa").onchange = e => { per.manga = e.target.value; actualizarPreview(); };
 }
 
 function actualizarPreview(){
@@ -1394,14 +1396,10 @@ function pintarCatalogo(){
    DISEÑA TU CAMISA
    Medidas y precios de DTF tomados del catálogo.
    ===================================================================== */
-const DTF_GRANDES = [
-  {id:"15",t:"15 × 15 cm",cm:15,precio:35},{id:"20",t:"20 × 20 cm",cm:20,precio:50},
-  {id:"22",t:"22 × 22 cm",cm:22,precio:55},{id:"28",t:"28 × 28 cm",cm:28,precio:69},
-  {id:"32",t:"32 × 32 cm",cm:32,precio:80}
-];
-const DTF_PECHO10 = [{id:"10",t:"10 cm",cm:10,precio:30}];
-const DTF_MANGA_C = [{id:"5",t:"5 cm",cm:5,precio:27},{id:"6",t:"6 cm",cm:6,precio:27},{id:"7",t:"7 cm",cm:7,precio:27}];
-const DTF_MANGA_L = [{id:"5x40",t:"5 × 40 cm",cm:5,largo:40,precio:45},{id:"6x40",t:"6 × 40 cm",cm:6,largo:40,precio:45},{id:"7x40",t:"7 × 40 cm",cm:7,largo:40,precio:45}];
+const DTF_GRANDES = [15,20,22,28,32].map(n => ({ id:String(n), t:`${n} × ${n} cm`, cm:n, precio:precioDTF(n,n) }));
+const DTF_PECHO10 = [{ id:"10", t:"10 × 10 cm", cm:10, precio:precioDTF(10,10) }];
+const DTF_MANGA_C = [5,6,7].map(n => ({ id:String(n), t:`${n} × ${n} cm`, cm:n, precio:precioDTF(n,n) }));
+const DTF_MANGA_L = [5,6,7].map(n => ({ id:`${n}x40`, t:`${n} × 40 cm`, cm:n, largo:40, precio:precioDTF(n,40) }));
 const NO_ESPALDA_POLO = "En playeras polo el estampado DTF solo se coloca en pecho o manga. Para la espalda elige bordado o una playera cuello redondo.";
 
 const ZONAS = {
@@ -1651,7 +1649,7 @@ function cargarDiseno(file, key){
         }
         x2.putImageData(dd, 0, 0); sinFondo = c2.toDataURL("image/png");
       }
-      DISENOS[key] = { nombre:file.name, src, sinFondo, quitarFondo: !!bg, lienzo:c };
+      DISENOS[key] = { nombre:file.name, src, sinFondo, quitarFondo: !!bg, lienzo:c, esPng: file.type === "image/png", ext: (file.name.split(".").pop() || "").toUpperCase(), anchoOrig: im.width, altoOrig: im.height };
       Object.keys(ANALISIS).forEach(a => { if (a.startsWith(key + "@")) delete ANALISIS[a]; });
       Object.values(DZ.zonas).forEach(st => st.hilosManual = false);
       // si es el primer diseño, activar una ubicación sugerida
@@ -1754,8 +1752,10 @@ function dzRender(){
   const d = DISENOS.main;
   $("#dzUp").className = "upload" + (d ? " has" : "");
   $("#dzUp").innerHTML = d ? `<img src="${srcVista(d)}" alt=""><div><b>${d.nombre}</b><span class="muted" style="font-size:12px">Toca para cambiar el diseño</span></div>`
-                           : `<span>⬆️</span><div><b>Carga tu diseño</b><span class="muted" style="font-size:12px">Imagen JPG o PNG de buena calidad</span></div>`;
-  $("#dzUpInfo").innerHTML = d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "";
+                           : `<span>⬆️</span><div><b>Carga tu diseño</b><span class="muted" style="font-size:12px">Para DTF: PNG con fondo transparente, en alta resolución</span></div>`;
+  const avisoPng = d && DZ.tecnica === "dtf" && !d.esPng ? `<div class="warn" style="margin-top:8px">Para estampado <b>DTF</b> el archivo debe ser <b>PNG con fondo transparente</b>. Subiste un ${VT.esc(d.ext || "JPG")}: la vista previa le quita el fondo blanco, pero VITUMA podría pedirte el archivo en PNG para imprimir.</div>` : "";
+  const avisoRes = d && DZ.tecnica === "dtf" && d.anchoOrig && d.anchoOrig < 1500 ? `<div class="warn" style="margin-top:8px">Tu imagen mide ${d.anchoOrig} × ${d.altoOrig} px, una resolución baja que puede verse pixelada al imprimir. Lo ideal para DTF es de 2000 px o más por lado.</div>` : "";
+  $("#dzUpInfo").innerHTML = avisoPng + avisoRes + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
   if ($("#dzBg")) $("#dzBg").onchange = e => { d.quitarFondo = e.target.checked; dzRender(); };
 
   dzZonas(p); dzVista(p); dzTallas(p); dzPrecio(p);
@@ -1963,7 +1963,9 @@ $("#iaGen").onclick = () => {
     const o = zr && zr.z.opciones ? zr.z.opciones.find(x => x.id === zr.st.opcion) : null;
     const medida = o ? o.t : "el tamaño elegido";
     const donde = zr ? nombreZona(zr.z, zr.st) : "la playera";
-    out = `Crea un diseño para ESTAMPADO DTF en una ${prenda} de color ${color}, que se imprimirá a ${medida} en ${donde}. Contenido: ${txt}.\n\nEspecificaciones:\n- Puede llevar muchos colores, degradados y detalles.\n- Colores vivos que contrasten con el color ${color} de la playera.\n- Diseño centrado y completo, sin cortarse en los bordes.\n- Fondo blanco liso, sin marcos ni sombras de fondo, para poder recortarlo.\n- Alta resolución (mínimo 2000 px por lado), formato JPG.`;
+    const lado = o ? (o.largo ? Math.max(o.cm, o.largo) : o.cm) : 28;
+    const px = Math.round(lado / 2.54 * 300);
+    out = `Crea un diseño para ESTAMPADO DTF en una ${prenda} de color ${color}, que se imprimirá a ${medida} en ${donde}. Contenido: ${txt}.\n\nEspecificaciones técnicas obligatorias:\n- Entrégalo en formato PNG con FONDO TRANSPARENTE (sin fondo blanco ni de color, sin marcos ni sombras de fondo).\n- Resolución de impresión: 300 ppp a tamaño real, es decir, mínimo ${px} × ${px} píxeles.\n- Puede llevar muchos colores, degradados y detalles.\n- Colores vivos que contrasten con el color ${color} de la playera.\n- Diseño centrado y completo, sin cortarse en los bordes.\n- Bordes limpios y bien definidos, sin halos ni pixeles sueltos alrededor del diseño.`;
   }
   $("#iaOut").value = out;
 };
