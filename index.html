@@ -1919,8 +1919,15 @@ $("#dzAdd").onclick = async () => {
   const b = $("#dzAdd"); b.disabled = true; b.textContent = "Agregando…";
   try {
     it.diseno.mockup = await mockupJPG();
-    it.diseno.logos = Object.values(DISENOS).map(logoChico);
+    const llaves = Object.keys(DISENOS);
+    it.diseno.logos = await Promise.all(llaves.map(k => logoParaGuardar(DISENOS[k])));
     it.diseno.zonas = preciosZonas(byId(DZ.prod)).map(z => z.texto);
+    /* datos para generar el archivo de impresión de cada ubicación DTF */
+    it.diseno.impresion = DZ.tecnica !== "dtf" ? [] : preciosZonas(byId(DZ.prod)).map(r => {
+      const o = r.z.opciones.find(x => x.id === r.st.opcion);
+      const key = DISENOS[r.st.diseno] ? r.st.diseno : "main";
+      return { zona: nombreZona(r.z, r.st), ancho: o.cm, alto: o.largo || o.cm, piezasPorPrenda: r.mult, logo: llaves.indexOf(key) };
+    });
   } catch(e){}
   b.disabled = false; b.textContent = "Agregar a mi pedido";
   carrito.push(it); if (!guardarOk()){ it.diseno.mockup = null; it.diseno.logos = []; guardar(); }
@@ -1966,6 +1973,24 @@ const mockupJPG = () => new Promise(ok => mockupCanvas(c => {
   const d = document.createElement("canvas"); d.width = 1200; d.height = 675; d.getContext("2d").drawImage(c, 0, 0, 1200, 675);
   ok(d.toDataURL("image/jpeg", .72));
 }));
+/* guarda el logo ya limpio (sin fondo) en PNG transparente.
+   MUESTRA: se reduce a 1200 px para no llenar el navegador; en la versión final se guarda el original completo. */
+function logoParaGuardar(d){
+  return new Promise(ok => {
+    const usar = d.quitarFondo && d.sinFondo ? d.sinFondo : d.src;
+    const im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, 1200 / Math.max(im.width, im.height));
+      const x = document.createElement("canvas"); x.width = Math.round(im.width*k); x.height = Math.round(im.height*k);
+      x.getContext("2d").drawImage(im, 0, 0, x.width, x.height);
+      const png = d.quitarFondo || d.esPng;
+      ok({ nombre: d.nombre, src: png ? x.toDataURL("image/png") : x.toDataURL("image/jpeg", .9), limpio: !!(d.quitarFondo && d.sinFondo),
+           cuadros: !!d.cuadros, anchoOrig: d.anchoOrig, altoOrig: d.altoOrig });
+    };
+    im.onerror = () => ok(logoChico(d));
+    im.src = usar;
+  });
+}
 function logoChico(d){
   const c = d.lienzo, k = Math.min(1, 700 / Math.max(c.width, c.height));
   const x = document.createElement("canvas"); x.width = Math.round(c.width*k); x.height = Math.round(c.height*k);
@@ -2076,6 +2101,7 @@ function generarNota(){
       tecnica: tecnicaDe(f), personalizacion: per, notas: f.it.notas || "",
       zonas: f.it.diseno ? (f.it.diseno.zonas || []) : [],
       logos: f.it.diseno ? (f.it.diseno.logos || []) : [],
+      impresion: f.it.diseno ? (f.it.diseno.impresion || []) : [],
       mockup: (f.it.diseno && f.it.diseno.mockup) || fotoColor(f.p, f.it.color, f.it.modelo) || imgDe(f.p, f.it.modelo) || null,
       mockupTipo: (f.it.diseno && f.it.diseno.mockup) ? "diseno" : "foto"
     };
