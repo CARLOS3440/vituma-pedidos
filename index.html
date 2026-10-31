@@ -527,7 +527,7 @@ const VT = (() => {
     if (v.estado === "cancelada") return { pagado, porValidar: 0, saldo: 0, pago: { k:"cancelada", t:"Cancelada", c:"gris" }, piezas: (v.items||[]).reduce((a,i)=>a+i.cant, 0) };
     if (porValidar > 0) pago = { k:"validar", t:"Comprobante por validar", c:"amarillo" };
     else if (pagado <= 0) pago = { k:"sin", t:"Sin anticipo", c:"rojo" };
-    else if (pagado + 0.009 < v.anticipoReq) pago = { k:"incompleto", t:"Anticipo incompleto", c:"rojo" };
+    else if (pagado + 0.009 < v.anticipoReq) pago = { k:"incompleto", t:"Saldo pendiente · anticipo incompleto", c:"rojo" };
     else if (saldo > 0) pago = { k:"saldo", t:"Saldo pendiente", c:"naranja" };
     else pago = { k:"pagada", t:"Pagada", c:"verde" };
     return { pagado, porValidar, saldo, pago, piezas: (v.items||[]).reduce((a,i)=>a+i.cant, 0) };
