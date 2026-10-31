@@ -1274,13 +1274,13 @@ function mensajeFilas(filas){
 $("#waBtn").onclick = () => {
   const { filas, total, anticipo, pz } = totales();
   if (!pz) return;
-  let m = "¡Hola VITUMA! 👋 Quiero hacer este pedido:\n\n" + mensajeFilas(filas);
+  let m = "¡Hola VITUMA! Quiero hacer este pedido:\n\n" + mensajeFilas(filas);
   if (carrito.some(c => c.diseno && c.diseno.adjunto)) m += "📎 En seguida te envío mi diseño y la vista previa.\n\n";
   m += `*TOTAL: ${money(total)}*\nAnticipo: ${money(anticipo)}\nResto contra entrega: ${money(total-anticipo)}\n`;
   const nom = $("#cName").value.trim(), eq = $("#cTeam").value.trim();
   if (nom || eq) m += `\nNombre: ${nom}${eq ? " ("+eq+")" : ""}\n`;
   m += "\n(Cotización hecha en la app de VITUMA)";
-  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(m)}`, "_blank");
+  window.open(`https://api.whatsapp.com/send?phone=${WHATSAPP}&text=${encodeURIComponent(m)}`, "_blank");
 };
 
 function tablaMedidas(p, mod){
@@ -1835,10 +1835,10 @@ $("#dzAdd").onclick = async () => {
 $("#dzWa").onclick = () => {
   const it = itemDiseno(); if (!piezas(it.qty)) return;
   const sim = calcular([...carrito, it]), f = sim[sim.length-1];
-  let m = "¡Hola VITUMA! 👋 Diseñé mi camisa en la app:\n\n" + mensajeFilas([f]);
+  let m = "¡Hola VITUMA! Diseñé mi camisa en la app:\n\n" + mensajeFilas([f]);
   m += `Anticipo: ${money(f.anticipo)}\nResto contra entrega: ${money(f.subtotal - f.anticipo)}\n\n`;
   m += Object.keys(DISENOS).length ? "📎 En seguida te envío mi logo y la vista previa del diseño." : "📎 Te envío mi logo por este medio.";
-  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(m)}`, "_blank");
+  window.open(`https://api.whatsapp.com/send?phone=${WHATSAPP}&text=${encodeURIComponent(m)}`, "_blank");
 };
 
 /* dibuja la vista previa (frente y espalda) en un canvas */
@@ -2057,6 +2057,7 @@ function abrirPedido(folio, recien){
       <div><span class="label">Monto que transferiste</span><input type="text" id="pMonto" inputmode="decimal" value="${sugerido.toFixed(2)}"></div>
       <div><span class="label">Captura del comprobante</span><label class="upload" for="pFile" id="pUp" style="padding:10px"><span style="font-size:20px">📎</span><div><b style="font-size:13px">Subir captura</b></div></label><input type="file" id="pFile" accept="image/*,application/pdf" hidden></div>
     </div>
+    <div id="pAviso"></div>
     <div id="pErr"></div>
     <button class="btn pri" id="pEnviar" style="width:100%;margin-top:12px">Enviar comprobante</button>
     <p class="muted" style="margin-top:8px">VITUMA revisará que la transferencia haya llegado y validará tu pago.</p></div>`;
@@ -2071,9 +2072,19 @@ function abrirPedido(folio, recien){
   $("#notaPdf").onclick = () => VT.notaPDF(VT.cargar().ventas.find(x => x.folio === folio));
   if ($("#pAvisar")) $("#pAvisar").onclick = () => {
     const vv = VT.cargar().ventas.find(x => x.folio === folio), cc = VT.cuentas(vv);
-    const m = `Hola VITUMA 👋 Subí mi comprobante de pago en la app.\nFolio: ${vv.folio}\nCliente: ${vv.cliente.nombre}\nMonto: ${money(cc.porValidar)}\nTotal del pedido: ${money(vv.total)}`;
-    window.open(`https://wa.me/${VT.WHATSAPP_AVISOS}?text=${encodeURIComponent(m)}`, "_blank");
+    const m = `Hola VITUMA, subí mi comprobante de pago en la app.\nFolio: ${vv.folio}\nCliente: ${vv.cliente.nombre}\nMonto: ${money(cc.porValidar)}\nTotal del pedido: ${money(vv.total)}`;
+    window.open(`https://api.whatsapp.com/send?phone=${VT.WHATSAPP_AVISOS}&text=${encodeURIComponent(m)}`, "_blank");
   };
+  if ($("#pMonto")){
+    const aviso = () => {
+      const m = Math.round(parseFloat(($("#pMonto").value || "").replace(/[^\d.]/g, "")) * 100) / 100;
+      let t = "";
+      if (m > 0 && falta > 0 && m + 0.009 < falta) t = `Tu anticipo pendiente es de <b>${money(falta)}</b>. Si transfieres ${money(m)}, tu pedido <b>no inicia</b> hasta completar el anticipo (te faltarían ${money(falta - m)}).`;
+      else if (m > 0 && m > Math.round((c.saldo - c.porValidar) * 100) / 100 + 0.009) t = `El monto es mayor a lo que debes (${money(c.saldo - c.porValidar)}). Revisa que sea correcto.`;
+      $("#pAviso").innerHTML = t ? `<div class="warn" style="margin-top:10px">${t}</div>` : "";
+    };
+    $("#pMonto").oninput = aviso; aviso();
+  }
   let archivo = null;
   if ($("#pFile")) $("#pFile").onchange = e => {
     archivo = e.target.files[0] || null;

@@ -509,9 +509,10 @@ function abrirVenta(folio){
   const pagos = v.pagos.map(p => `<div class="pago ${p.estado==="por_validar"?"pv":""}">
       ${p.comprobante ? (p.comprobante.tipo==="img" ? `<img src="${p.comprobante.src}" alt="Comprobante" data-zoom>` : `<a class="btn sec sm" href="${p.comprobante.src}" download="${esc(p.comprobante.nombre)}">PDF</a>`) : `<div style="width:64px;text-align:center;font-size:26px">${p.forma==="Efectivo"?"💵":p.forma.startsWith("Tarjeta")?"💳":"🏦"}</div>`}
       <div><b>${p.tipo} · ${money(p.monto)}</b><div class="muted">${p.forma} · ${VT.fechaHora(p.fecha)} · ${esc(p.registro||"")}</div>
+        ${p.montoReportado != null ? `<div class="muted" style="color:#B4400F;font-weight:700">El cliente reportó ${money(p.montoReportado)}; llegaron ${money(p.monto)}</div>` : ""}
         ${p.estado==="validado" ? `<div class="muted">Validado por ${esc(p.validadoPor||"admin")} el ${VT.fechaHora(p.validadoEl||p.fecha)}</div>` : ""}
         ${p.estado==="rechazado" ? `<div class="muted" style="color:#B42318">Rechazado por ${esc(p.validadoPor||"")}: ${esc(p.motivo||"")}</div>` : ""}</div>
-      <div class="acts">${p.estado==="por_validar" ? (can("validar_pagos") && !cancel ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge("Por validar","amarillo")) : badge(p.estado==="validado"?"Validado":"Rechazado", p.estado==="validado"?"verde":"rojo")}</div>
+      <div class="acts">${p.estado==="por_validar" ? (can("validar_pagos") && !cancel ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar ${money(p.monto)}</button><button class="btn sec sm" data-valotro="${p.id}">Validar otro monto</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge("Por validar","amarillo")) : badge(p.estado==="validado"?"Validado":"Rechazado", p.estado==="validado"?"verde":"rojo")}</div>
     </div>`).join("") || `<div class="muted">Sin pagos registrados.</div>`;
   const hist = (v.historial || []).map(h => `<div class="li"><span><b>${esc(h.accion)}</b>${h.detalle?` · ${esc(h.detalle)}`:""}<div class="muted">${esc(h.usuario)} · ${VT.fechaHora(h.fecha)}</div></span></div>`).join("");
   $("#dBody").innerHTML = `
@@ -546,17 +547,28 @@ function abrirVenta(folio){
     <div class="card"><h3>Historial de movimientos</h3><div class="list">${hist || `<div class="muted">Sin movimientos registrados.</div>`}</div></div>`;
   abrir();
   $("#waCli").onclick = () => { const vv = VT.cargar().ventas.find(x=>x.folio===folio), kk = VT.cuentas(vv), n = vv.cliente.nombre.split(" ")[0];
-    const t = { cotizacion:`Hola ${n} 👋, te escribimos de VITUMA por tu pedido ${vv.folio}. Tu anticipo es de ${money(vv.anticipoReq)}; cuando hagas la transferencia sube tu comprobante en la app.`,
-      diseno:`Hola ${n} 👋, recibimos tu pago del pedido ${vv.folio}. ¡Ya estamos trabajando en tu diseño! Saldo pendiente: ${money(kk.saldo)}.`,
-      autorizacion:`Hola ${n} 👋, ya está la vista previa de tu pedido ${vv.folio}. Revísala y autorízanos para pasar a producción.`,
-      produccion:`Hola ${n} 👋, tu pedido ${vv.folio} ya está en producción. Entrega estimada a más tardar el ${VT.fecha(vv.entregaMax)}.`,
-      listo:`Hola ${n} 👋, ¡tu pedido ${vv.folio} está listo! Puedes recogerlo en VITUMA ${suc(vv.sucursal)}. Saldo a liquidar: ${money(kk.saldo)}.`,
-      entregado:`Hola ${n} 👋, gracias por tu compra en VITUMA (pedido ${vv.folio}). ¡Esperamos verte pronto!`,
+    const t = { cotizacion:`Hola ${n}, te escribimos de VITUMA por tu pedido ${vv.folio}. Tu anticipo es de ${money(vv.anticipoReq)}; cuando hagas la transferencia sube tu comprobante en la app.`,
+      diseno:`Hola ${n}, recibimos tu pago del pedido ${vv.folio}. ¡Ya estamos trabajando en tu diseño! Saldo pendiente: ${money(kk.saldo)}.`,
+      autorizacion:`Hola ${n}, ya está la vista previa de tu pedido ${vv.folio}. Revísala y autorízanos para pasar a producción.`,
+      produccion:`Hola ${n}, tu pedido ${vv.folio} ya está en producción. Entrega estimada a más tardar el ${VT.fecha(vv.entregaMax)}.`,
+      listo:`Hola ${n}, ¡tu pedido ${vv.folio} está listo! Puedes recogerlo en VITUMA ${suc(vv.sucursal)}. Saldo a liquidar: ${money(kk.saldo)}.`,
+      entregado:`Hola ${n}, gracias por tu compra en VITUMA (pedido ${vv.folio}). ¡Esperamos verte pronto!`,
       cancelada:`Hola ${n}, te escribimos de VITUMA respecto a tu pedido ${vv.folio}, que fue cancelado.` }[vv.estado];
-    window.open(`https://wa.me/52${vv.cliente.tel}?text=${encodeURIComponent(t)}`, "_blank"); };
+    window.open(`https://api.whatsapp.com/send?phone=52${vv.cliente.tel}&text=${encodeURIComponent(t)}`, "_blank"); };
   if ($("#verNota")) $("#verNota").onclick = () => { const z = $("#zoom"); z.innerHTML = `<div class="nbox">${VT.notaHTML(VT.cargar().ventas.find(x=>x.folio===folio))}</div>`; z.classList.add("on"); };
   if ($("#pdfNota")) $("#pdfNota").onclick = () => VT.notaPDF(VT.cargar().ventas.find(x=>x.folio===folio));
   document.querySelectorAll("[data-val]").forEach(b => b.onclick = () => validar(folio, b.dataset.val));
+  document.querySelectorAll("[data-valotro]").forEach(b => b.onclick = () => {
+    const vv = DB.ventas.find(x=>x.folio===folio), p = vv.pagos.find(x=>x.id===b.dataset.valotro);
+    const r = window.prompt(`El cliente reportó ${money(p.monto)}.\nEscribe el monto que REALMENTE llegó a la cuenta:`, "");
+    if (r === null) return;
+    const real = Math.round(parseFloat(r.replace(/[^\d.]/g,"")) * 100) / 100;
+    if (!(real > 0)) return toast("Escribe un monto válido", true);
+    if (real !== p.monto){ p.montoReportado = p.monto; p.monto = real; log(vv, "Monto corregido al validar", `El cliente reportó ${money(p.montoReportado)}; llegaron ${money(real)}`); }
+    const kk = VT.cuentas(vv);
+    if (p.tipo === "Anticipo" && real + kk.pagado + 0.009 < vv.anticipoReq) p.tipo = "Anticipo parcial";
+    validar(folio, p.id);
+  });
   document.querySelectorAll("[data-rec]").forEach(b => b.onclick = () => {
     const motivo = window.prompt("Motivo del rechazo (se le dirá al cliente):", "No se encontró la transferencia en la cuenta");
     if (motivo === null) return;
@@ -635,7 +647,10 @@ function validar(folio, id){
   const v = DB.ventas.find(x=>x.folio===folio), p = v.pagos.find(x=>x.id===id);
   p.estado = "validado"; p.validadoPor = SES.nombre; p.validadoEl = new Date().toISOString();
   log(v, "Pago validado", `${p.tipo} ${money(p.monto)} · ${p.forma}`);
-  trasValidar(v); save(); toast("Pago validado ✔"); abrirVenta(folio); refrescar();
+  trasValidar(v); save();
+  const k = VT.cuentas(v);
+  toast(v.estado === "cotizacion" && k.pagado < v.anticipoReq ? `Validado. Falta ${money(v.anticipoReq - k.pagado)} para completar el anticipo` : "Pago validado ✔");
+  abrirVenta(folio); refrescar();
 }
 /* al cubrir el anticipo: pasa a diseño, recalcula la entrega y registra el ponchado del cliente */
 function trasValidar(v){
@@ -988,7 +1003,7 @@ function abrirOT(id){
   $("#oEst").onchange = e => cambiarOT(id, "estado", e.target.value, true);
   $("#oPri").onchange = e => cambiarOT(id, "prioridad", e.target.value, true);
   $("#oEtq").onclick = () => imprimirEtiquetas(v, its);
-  $("#oWa").onclick = () => window.open(`https://wa.me/52${v.cliente.tel}?text=${encodeURIComponent(`Hola ${v.cliente.nombre.split(" ")[0]} 👋, te escribimos de VITUMA por tu pedido ${v.folio}. `)}`, "_blank");
+  $("#oWa").onclick = () => window.open(`https://api.whatsapp.com/send?phone=52${v.cliente.tel}&text=${encodeURIComponent(`Hola ${v.cliente.nombre.split(" ")[0]}, te escribimos de VITUMA por tu pedido ${v.folio}. `)}`, "_blank");
   if ($("#oVenta")) $("#oVenta").onclick = () => abrirVenta(v.folio);
   $("#oSend").onclick = () => { const t = $("#oMsg").value.trim(); if (!t) return; ot.updates.push({ fecha:new Date().toISOString(), usuario:SES.nombre, texto:t }); save(); toast("Publicado"); abrirOT(id); };
   $("#oFile").onchange = async e => {
