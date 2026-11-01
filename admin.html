@@ -1239,18 +1239,20 @@ function aCMYK(lut, rgba, W, filas, out){   // RGB → CMYK con la tabla calibra
     out[o+4] = a; out[o+5] = 255 - a;             // tinta plana: 0 = tinta al 100 %
   }
 }
-function cabeceraTIFF(W, H, rip){
-  const sw = new TextEncoder().encode("VITUMA · lienzo DTF\0"), tags = 19;
+/* tiras = null → sin compresión (una sola tira); tiras = [tamaños] → compresión ZIP, una tira cada 256 renglones */
+function cabeceraTIFF(W, H, rip, tiras){
+  const sw = new TextEncoder().encode("VITUMA · lienzo DTF\0"), tags = 19, n = tiras ? tiras.length : 1;
   let o = 8 + 2 + tags * 12 + 4;
   const oBits = o; o += 12; const oXr = o; o += 8; const oYr = o; o += 8; const oSw = o; o += sw.length + (sw.length % 2);
   const oRes = o; o += rip.res.length + (rip.res.length % 2); const oIcc = o; o += rip.icc.length + (rip.icc.length % 2);
+  const oOff = o, oCnt = o + 4 * n; if (n > 1) o += 8 * n;
   const h = new Uint8Array(o), dv = new DataView(h.buffer);
   h.set([73, 73, 42, 0]); dv.setUint32(4, 8, true); dv.setUint16(8, tags, true);
   let p = 10;
   const tag = (id, tipo, n, v, corto) => { dv.setUint16(p, id, true); dv.setUint16(p+2, tipo, true); dv.setUint32(p+4, n, true);
     if (corto) corto(p + 8); else if (tipo === 3 && n === 1) dv.setUint16(p+8, v, true); else dv.setUint32(p+8, v, true); p += 12; };
-  tag(254, 4, 1, 0); tag(256, 4, 1, W); tag(257, 4, 1, H); tag(258, 3, 6, oBits); tag(259, 3, 1, 1); tag(262, 3, 1, 5);
-  tag(273, 4, 1, o); tag(274, 3, 1, 1); tag(277, 3, 1, 6); tag(278, 4, 1, H); tag(279, 4, 1, W * H * 6);
+  tag(254, 4, 1, 0); tag(256, 4, 1, W); tag(257, 4, 1, H); tag(258, 3, 6, oBits); tag(259, 3, 1, tiras ? 8 : 1); tag(262, 3, 1, 5);
+  tag(273, 4, n, n > 1 ? oOff : o); tag(274, 3, 1, 1); tag(277, 3, 1, 6); tag(278, 4, 1, tiras ? 256 : H); tag(279, 4, n, n > 1 ? oCnt : (tiras ? tiras[0] : W * H * 6));
   tag(282, 5, 1, oXr); tag(283, 5, 1, oYr); tag(284, 3, 1, 1); tag(296, 3, 1, 2); tag(305, 2, sw.length, oSw);
   tag(338, 3, 2, 0, q => { dv.setUint16(q, 1, true); dv.setUint16(q + 2, 0, true); });
   tag(34377, 7, rip.res.length, oRes); tag(34675, 7, rip.icc.length, oIcc);
@@ -1258,10 +1260,11 @@ function cabeceraTIFF(W, H, rip){
   for (let i = 0; i < 6; i++) dv.setUint16(oBits + i*2, 8, true);
   dv.setUint32(oXr, 3000000, true); dv.setUint32(oXr+4, 10000, true); dv.setUint32(oYr, 3000000, true); dv.setUint32(oYr+4, 10000, true);
   h.set(sw, oSw); h.set(rip.res, oRes); h.set(rip.icc, oIcc);
+  if (n > 1){ let off = o; tiras.forEach((t, i) => { dv.setUint32(oOff + i*4, off, true); dv.setUint32(oCnt + i*4, t, true); off += t; }); }
   return h;
 }
-async function lienzoTIFF(grupos, W, hoja, nombre){
-  /* en Chrome de computadora se escribe directo al disco (archivos de cientos de MB) */
+async function lienzoTIFF(grupos, W, hoja, nombre, comprimir){
+  /* en Chrome de computadora se escribe directo al disco */
   let disco = null;
   if (window.showSaveFilePicker){
     try { const fh = await showSaveFilePicker({ suggestedName: nombre, types: [{ description: "TIFF", accept: { "image/tiff": [".tif"] } }] }); disco = await fh.createWritable(); }
@@ -1269,10 +1272,21 @@ async function lienzoTIFF(grupos, W, hoja, nombre){
   }
   const rip = await datosRIP(), partes = [], tira = franjas(grupos, W, hoja, true);
   const escribe = async b => { if (disco) await disco.write(b); else partes.push(b); };
-  await escribe(cabeceraTIFF(W, hoja.largo, rip));
-  for (let y = 0; y < hoja.largo; y += 256){
-    const { filas, data } = tira(y), out = new Uint8Array(W * filas * 6);
-    aCMYK(rip.lut, data, W, filas, out); await escribe(out);
+  if (comprimir){   // ZIP dentro del TIFF: mismo archivo para Photoshop y el RIP, mucho más ligero
+    const zs = [];
+    for (let y = 0; y < hoja.largo; y += 256){
+      const { filas, data } = tira(y), out = new Uint8Array(W * filas * 6);
+      aCMYK(rip.lut, data, W, filas, out);
+      zs.push(new Uint8Array(await new Response(new Blob([out]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer()));
+    }
+    await escribe(cabeceraTIFF(W, hoja.largo, rip, zs.map(z => z.length)));
+    for (const z of zs) await escribe(z);
+  } else {
+    await escribe(cabeceraTIFF(W, hoja.largo, rip, null));
+    for (let y = 0; y < hoja.largo; y += 256){
+      const { filas, data } = tira(y), out = new Uint8Array(W * filas * 6);
+      aCMYK(rip.lut, data, W, filas, out); await escribe(out);
+    }
   }
   if (disco){ await disco.close(); return "guardado"; }
   return new Blob(partes, { type:"image/tiff" });
@@ -1309,7 +1323,8 @@ async function panelLienzo(cont, piezas, base){
       ${R.hojas.filter(h => h.piezas.length).map((h, n) => `<div class="lzhoja">
         ${R.hojas.length > 1 ? `<div class="lzt">Hoja ${n + 1} · ${MESA_CM} × ${cmTxt(h.largo)} cm</div>` : ""}
         <div class="lzwrap"><canvas data-prev="${n}"></canvas></div>
-        <div class="lzbtn"><button class="btn sec sm" data-png="${n}">⬇ PNG para la mesa de trabajo</button><button class="btn pri sm" data-tif="${n}">⬇ TIFF para el RIP (CMYK · espejo · tinta plana)</button></div></div>`).join("")}
+        <div class="lzbtn"><button class="btn sec sm" data-png="${n}">⬇ PNG para la mesa de trabajo</button><button class="btn pri sm" data-tif="${n}">⬇ TIFF ligero para el RIP (comprimido ZIP)</button><button class="btn sec sm" data-tifn="${n}">⬇ TIFF sin compresión</button></div>
+        <div class="muted" style="font-size:12px;margin-top:4px">Los dos TIFF son CMYK, en espejo, con transparencia y tinta plana. El ligero pesa mucho menos; usa el sin compresión solo si tu RIP no abre el ligero.</div></div>`).join("")}
       <div class="lzleg">${grupos.map((g, i) => `<span><i style="background:${COLS_LZ[i % COLS_LZ.length]}"></i>${esc(g.nombre)} · ${cmTxt(g.w)} × ${cmTxt(g.h)} cm · ${g.cant} pzs</span>`).join("")}</div>`;
     R.hojas.forEach((h, n) => {
       const cv = cont.querySelector(`[data-prev="${n}"]`); if (!cv) return;
@@ -1324,11 +1339,11 @@ async function panelLienzo(cont, piezas, base){
       }
     });
     cont.querySelectorAll("[data-lz]").forEach(el => el.onchange = () => { const k = el.dataset.lz; opt[k] = el.type === "checkbox" ? el.checked : el.value; pinta(); });
-    const descarga = async (b, fn, ext, n) => {
+    const descarga = async (b, fn, ext, n, comp) => {
       const t = b.textContent; b.disabled = true; b.textContent = "Generando…";
       try {
         const h = R.hojas[n], nom = `${base}_lienzo${R.hojas.length > 1 ? "_hoja" + (n + 1) : ""}_58x${cmTxt(h.largo)}cm_300ppp${ext === "tif" ? "_CMYK_ESPEJO" : ""}.${ext}`;
-        const blob = await fn(grupos, R.W, h, nom);
+        const blob = await fn(grupos, R.W, h, nom, comp);
         if (blob === "cancelado") { b.disabled = false; b.textContent = t; return; }
         if (blob !== "guardado") bajar(blob, nom);
         toast(ext === "tif" ? "TIFF CMYK en espejo con tinta plana listo para el RIP" : "PNG del lienzo descargado");
@@ -1336,7 +1351,8 @@ async function panelLienzo(cont, piezas, base){
       b.disabled = false; b.textContent = t;
     };
     cont.querySelectorAll("[data-png]").forEach(b => b.onclick = () => descarga(b, lienzoPNG, "png", +b.dataset.png));
-    cont.querySelectorAll("[data-tif]").forEach(b => b.onclick = () => descarga(b, lienzoTIFF, "tif", +b.dataset.tif));
+    cont.querySelectorAll("[data-tif]").forEach(b => b.onclick = () => descarga(b, lienzoTIFF, "tif", +b.dataset.tif, true));
+    cont.querySelectorAll("[data-tifn]").forEach(b => b.onclick = () => descarga(b, lienzoTIFF, "tif", +b.dataset.tifn, false));
   };
   pinta();
 }
