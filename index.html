@@ -392,12 +392,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
       </div>
       <div class="card">
         <h3>3. Realiza tu diseño</h3>
-        <div class="servbox" id="sbModo"></div>
-        <div id="sbArch" style="display:none;margin-top:12px">
-          <label class="upload" style="cursor:pointer"><span>⬆️</span><div><b>Sube tus logos o referencias</b><span class="muted" style="font-size:12px">Imágenes o PDF. También puedes mandarlos después por WhatsApp.</span></div><input type="file" id="sbFiles" accept="image/*,application/pdf" multiple hidden></label>
-          <div class="files" id="sbArchList" style="margin-top:8px"></div>
-          <div class="servbox" id="sbServ"></div>
-        </div>
+        <p class="muted" style="margin-bottom:10px">Arma tu playera pieza por pieza: fondo, logos y textos en el frente, la espalda y las mangas. Si ya tienes tu diseño por piezas, súbelo como fondo de cada una. La IA te ayuda a crear fondos y logos.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="btn ghost" id="sbTopFondo" style="padding:8px 12px;font-size:13px">🤖 Crear un fondo con IA</button><button class="btn ghost" id="sbTopLogo" style="padding:8px 12px;font-size:13px">🤖 Crear o redibujar mi logo con IA</button></div>
+        <span class="label">¿Tu logo está listo para imprimir?</span>
+        <div class="servbox" id="sbLogoOp" style="margin-top:4px"></div>
       </div>
       <div class="card" id="sbEditor">
         <h3>4. Diseña cada pieza</h3>
@@ -1272,6 +1270,11 @@ function pintarPersona(p){
     box.innerHTML = `<span class="label">Personalización</span>
       <label class="chk"><input type="checkbox" id="nn"${per.nombreNumero?" checked":""}><span><b>Nombre y número en cada playera</b><br><span class="muted">Ideal para equipos. En notas puedes poner la lista o la enviamos por WhatsApp.</span></span></label>`;
     $("#nn").onchange = e => { per.nombreNumero = e.target.checked; actualizarPreview(); };
+    if (p.id === "sub_mc" || p.id === "sub_ml"){
+      box.insertAdjacentHTML("afterbegin", `<div class="note" style="margin-bottom:12px;border-left-color:var(--orange)"><b>🎨 Realiza tu diseño</b><br>Arma tu playera pieza por pieza (frente, espalda y mangas) con fondo, logos, textos y ayuda de la IA, y mira cómo queda.
+        <button class="btn pri" id="irDiseno" style="width:100%;margin-top:10px">🎨 Realiza tu diseño</button></div>`);
+      $("#irDiseno").onclick = () => { const q = { ...actual.qty }; SB.modelo = actual.modelo; irA("disena"); sbElegir(p.id); SB.qty = q; SB.modelo = actual.modelo; sbRender(); };
+    }
     return;
   }
   const opciones = p.bordadoIncluido ? [["bordado","Bordado (incluido)"],["dtf","Estampado DTF"]] : [["ninguna","Lisa"],["bordado","Bordado"],["dtf","Estampado DTF"]];
@@ -2493,20 +2496,14 @@ function sbRender(){
     inp.oninput = () => set(inp.value); inp.onfocus = () => inp.select();
   });
   $("#sbBaseNota").innerHTML = `Diseñamos en la <b>talla ${app}</b> (la más grande de tu pedido) para que el diseño alcance a cubrir todas las tallas. Frente: <b>${sbCm(m.frente.w)} × ${sbCm(m.frente.h)} cm</b> · Manga: <b>${sbCm(m.mangaD.w)} × ${sbCm(m.mangaD.h)} cm</b>.`;
-  $("#sbModo").innerHTML = [["piezas","Lo hago aquí, pieza por pieza","Eliges el fondo, los logos y los textos de frente, espalda y mangas. Si ya tienes tu diseño por piezas, súbelo como fondo de cada una. La app te ayuda con instrucciones para la IA."],
-    ["disenador","Que un diseñador de VITUMA lo haga","Cuéntanos en las notas qué quieres y sube tus logos o referencias. El diseño de la playera no tiene costo."]]
-    .map(([k, t, x]) => `<label class="chk servop${SB.modo===k?" on":""}"><input type="radio" name="sbModo" value="${k}"${SB.modo===k?" checked":""}><span><b>${t}</b><br><span class="muted">${x}</span></span></label>`).join("");
-  document.querySelectorAll("[name=sbModo]").forEach(r => r.onchange = () => { SB.modo = r.value; sbRender(); });
-  $("#sbEditor").style.display = SB.modo === "piezas" ? "block" : "none";
-  $("#sbMockCard").style.display = SB.modo === "piezas" ? "block" : "none";
-  $("#sbArch").style.display = SB.modo === "piezas" ? "none" : "block";
-  $("#sbServ").innerHTML = SB.modo === "piezas" ? "" : `<span class="label" style="margin-top:12px">¿Necesitas que hagamos tu logo?</span>
-    ${[["ninguno","No, ya tengo mi logo"],["digitalizar",`Deseo que un diseñador digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`],["logo",`Deseo que un diseñador realice mi logo · ${money(SERVICIOS.logo.precio)}`]]
-      .map(([k, t]) => `<label class="chk servop${SB.servicio===k?" on":""}"><input type="radio" name="sbServ" value="${k}"${SB.servicio===k?" checked":""}><span><b>${t}</b></span></label>`).join("")}`;
-  document.querySelectorAll("[name=sbServ]").forEach(r => r.onchange = () => { SB.servicio = r.value; sbRender(); });
-  $("#sbArchList").innerHTML = SB.archivos.map((a, n) => `<div class="file">${a.tipo === "img" ? `<img src="${a.src}" alt="">` : `<div class="pdf">PDF</div>`}<span>${VT.esc(a.nombre)}</span><button class="linkbtn" data-sbdel="${n}">Quitar</button></div>`).join("");
-  document.querySelectorAll("[data-sbdel]").forEach(b => b.onclick = () => { SB.archivos.splice(+b.dataset.sbdel, 1); sbRender(); });
-  if (SB.modo === "piezas"){ sbTabs(); sbPanel(); setTimeout(sbDibujar, 0); }
+  /* el logo: listo, con ayuda de la IA, o que lo haga un diseñador (como en DTF) */
+  $("#sbLogoOp").innerHTML = [["ninguno","Sí, mi logo está listo","Súbelo en la pieza donde va, con el botón ＋ Logo."],
+     ["ia","Lo creo o lo redibujo con IA (gratis)","Te damos las instrucciones para Gemini o ChatGPT; sirve para crear un logo nuevo o limpiar la foto de tu logo."],
+     ["digitalizar",`Deseo que un diseñador digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`,"Ya tengo logo pero en foto o muestra: súbela como logo en su pieza y el diseñador lo deja listo."],
+     ["logo",`Deseo que un diseñador realice mi logo · ${money(SERVICIOS.logo.precio)}`,"Escribe en las notas qué quieres que lleve; el diseñador lo coloca donde lo marques."]]
+    .map(([k, t, x]) => `<label class="chk servop${SB.servicio===k?" on":""}"><input type="radio" name="sbServ" value="${k}"${SB.servicio===k?" checked":""}><span><b>${t}</b><br><span class="muted">${x}</span></span></label>`).join("");
+  document.querySelectorAll("[name=sbServ]").forEach(r => r.onchange = () => { SB.servicio = r.value; if (r.value === "ia") sbAbrirIA("logo"); sbRender(); });
+  sbTabs(); sbPanel(); setTimeout(sbDibujar, 0);
   sbPrecio();
 }
 function sbTabs(){
@@ -2562,6 +2559,7 @@ function sbPanel(){
   if ($("#sbFi")) $("#sbFi").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/jpeg"); P0.fondo.src = r.src; P0.fondo.nombre = f.name; P0.fondo.w = r.w; P0.fondo.h = r.h; cambio(true); };
   if ($("#sbFia")) $("#sbFia").onclick = () => sbAbrirIA("fondo");
   $("#sbLogoIa").onclick = () => sbAbrirIA("logo");
+
   $("#sbCopiar").onclick = () => { SB_PIEZAS.forEach(([q]) => { if (q !== k) SB.piezas[q].fondo = { ...P0.fondo }; }); cambio(true); toast2("Fondo aplicado a todas las piezas"); };
   $("#sbAddLogo").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/png", true);
     P0.els.push({ id: "e" + Date.now(), tipo:"logo", src: r.src, nombre: f.name, asp: r.w / r.h, cm: cuerpo ? 10 : 7, zona:"arriba", lado:"centro" }); cambio(true); };
@@ -2596,9 +2594,9 @@ function sbAbrirIA(que){ SB.iaQue = que; const d = $("#sbIA"); d.style.display =
 function sbIATexto(){
   const k = SB.pieza, nombre = SB_PIEZAS.find(x => x[0] === k)[1], { app, m } = sbBase(), mm = m[k];
   const prenda = `playera sublimada de ${sbLarga() ? "manga larga" : "manga corta"} para ${SB.modelo.toLowerCase()}`;
-  $("#sbIAQue").innerHTML = [["fondo",`Fondo de: ${nombre}`],["logo","Un logo"]].map(([v, t]) => `<button class="${SB.iaQue===v?"on":""}" data-iq="${v}">${t}</button>`).join("");
+  $("#sbIAQue").innerHTML = [["fondo",`Fondo de: ${nombre}`],["logo","Logo nuevo"],["logofoto","Redibujar la foto de mi logo"]].map(([v, t]) => `<button class="${SB.iaQue===v?"on":""}" data-iq="${v}">${t}</button>`).join("");
   document.querySelectorAll("[data-iq]").forEach(b => b.onclick = () => { SB.iaQue = b.dataset.iq; sbIATexto(); });
-  const desc = $("#sbIATxt").value.trim() || (SB.iaQue === "fondo" ? "[describe el estilo, colores y elementos del fondo]" : "[describe lo que debe llevar tu logo]");
+  const desc = $("#sbIATxt").value.trim() || (SB.iaQue === "fondo" ? "[describe el estilo, colores y elementos del fondo]" : SB.iaQue === "logofoto" ? "" : "[describe lo que debe llevar tu logo]");
   const w = +sbCm(mm.w), h = +sbCm(mm.h), lado = Math.max(w, h), px = Math.round(lado / 2.54 * 150);
   let t;
   if (SB.iaQue === "fondo"){
@@ -2606,6 +2604,9 @@ function sbIATexto(){
       ? `- Deja más limpia la parte de arriba al centro (de ${SB_REGLAS.cuelloLogo} a 25 cm debajo del cuello), porque ahí va el logo o el texto.`
       : `- Es la tela de la manga: el centro de la imagen queda en la orilla exterior del brazo.`;
     t = `Crea una imagen de FONDO para SUBLIMACIÓN: la pieza "${nombre.toUpperCase()}" de una ${prenda} (talla ${app}).\nMedida real de la pieza: ${w} × ${h} cm. La imagen debe tener esa misma proporción (${w}:${h}), ${w >= h ? "horizontal" : "vertical"}, de mínimo ${px} px en su lado más largo (150 ppp).\nEstilo y contenido: ${desc}.\n\nInstrucciones obligatorias:\n- El diseño cubre TODA la imagen de orilla a orilla, sin márgenes ni bordes blancos.\n- Solo el diseño plano: NO dibujes la playera, ni maniquí, ni mockup.\n- NO incluyas textos, nombres, números ni logos (los agregamos después).\n${zona}\n- Colores vivos y nítidos, sin marcas de agua.`;
+  } else if (SB.iaQue === "logofoto"){
+    const texto = $("#sbIATxt").value.trim();
+    t = `Te adjunto una FOTO de mi logotipo. Redibújalo desde cero como una ilustración digital limpia, para imprimirlo en una ${prenda}.\n\nInstrucciones obligatorias:\n- Copia fielmente la forma, la composición y los colores del logo de la foto. No inventes elementos nuevos.\n- ${texto ? `El texto debe decir exactamente: "${texto}".` : "Copia el texto exactamente como aparece en la foto, letra por letra."}\n- Endereza el logo: corrige la perspectiva, la inclinación y cualquier deformación de la foto.\n- Quita sombras, reflejos, arrugas, textura de tela o papel y todo el fondo de la foto.\n- Entrega SOLO el logo, aislado, sin playera ni mockup.\n- Formato PNG con FONDO TRANSPARENTE real. NO dibujes el patrón de cuadros gris y blanco; si no puedes hacerlo transparente, usa fondo blanco liso.\n- Bordes nítidos, alta resolución: mínimo 2000 × 2000 px.`;
   } else {
     t = `Crea un LOGOTIPO para una ${prenda}, que se imprimirá en la pieza "${nombre.toLowerCase()}" a unos 10 cm.\nContenido: ${desc}.\n\nInstrucciones obligatorias:\n- Entrega SOLO el logo, aislado. NO lo pongas sobre una playera ni mockup.\n- Formato PNG con FONDO TRANSPARENTE real. NO dibujes el patrón de cuadros gris y blanco; si no puedes hacerlo transparente, usa fondo blanco liso.\n- Escribe el texto exactamente como se indica, sin cambiar letras.\n- Bordes nítidos, colores sólidos, alta resolución: mínimo 2000 × 2000 px.`;
   }
@@ -2616,8 +2617,8 @@ function sbIATexto(){
 function sbItem(){
   const qty = {}; Object.entries(SB.qty).forEach(([t, c]) => { if (c) qty[t] = c; });
   const nPz = SB_PIEZAS.reduce((a, [k]) => a + SB.piezas[k].els.length, 0);
-  const modoTxt = { piezas: `🎨 Diseño por piezas (${nPz} logos/textos)`, disenador: "✏️ Diseño de la playera a cargo de VITUMA" }[SB.modo];
-  const serv = SB.modo !== "piezas" && SERVICIOS[SB.servicio] ? SB.servicio : "ninguno";
+  const modoTxt = `🎨 Diseño por piezas (${nPz} logos/textos)`;
+  const serv = SERVICIOS[SB.servicio] ? SB.servicio : "ninguno";
   return { id: Date.now(), prod: SB.prod, modelo: SB.modelo, color: "", qty, per: null, notas: $("#sbNotas").value.trim(),
     diseno: { tecnica:"sublimado", costoPieza: 0, texto: modoTxt + (serv !== "ninguno" ? " · ✏️ " + SERVICIOS[serv].t + " (VITUMA)" : ""), adjunto: false, servicio: serv } };
 }
@@ -2626,14 +2627,15 @@ function sbPrecio(){
   const r = n ? calcular([...carrito, it]).pop() : { subtotal: 0, anticipo: 0 };
   let h = `<div><span>${p.nombre} (${SB.modelo.toLowerCase()})</span><b>${n ? money(r.subtotal / n) + " c/u" : "—"}</b></div>`;
   if (SERVICIOS[it.diseno.servicio]) h += `<div><span>✏️ ${SERVICIOS[it.diseno.servicio].t} (una vez por pedido)</span><b>${money(SERVICIOS[it.diseno.servicio].precio)}</b></div>`;
-  if (n){ h += `<div class="t"><span>Total (${n} ${n===1?"pieza":"piezas"})</span><span>${money(r.subtotal)}</span></div><div class="a"><span>Anticipo (60 %)</span><span>${money(r.anticipo)}</span></div>`; }
+  const sv = SERVICIOS[it.diseno.servicio] && !carrito.some(c => c.diseno && c.diseno.servicio === it.diseno.servicio) ? SERVICIOS[it.diseno.servicio].precio : 0;
+  if (n){ h += `<div class="t"><span>Total (${n} ${n===1?"pieza":"piezas"})</span><span>${money(r.subtotal + sv)}</span></div><div class="a"><span>Anticipo${sv ? "" : " (60 %)"}</span><span>${money(r.anticipo + sv)}</span></div>`; }
   else h += `<div><span class="muted">Elige tus tallas arriba</span><b></b></div>`;
   $("#sbRes").innerHTML = h;
   const av = [];
   if (!n) av.push("Elige cuántas piezas quieres de cada talla.");
-  if (SB.modo === "disenador" && !$("#sbNotas").value.trim()) av.push("Escribe en las notas qué quieres que lleve tu playera.");
+  if (SB.servicio === "logo" && !$("#sbNotas").value.trim()) av.push("Escribe en las notas qué quieres que lleve tu logo.");
   $("#sbWarn").innerHTML = av.map(a => `<div class="warn">${a}</div>`).join("");
-  $("#sbAdd").disabled = !n || (SB.modo === "disenador" && !$("#sbNotas").value.trim());
+  $("#sbAdd").disabled = !n || (SB.servicio === "logo" && !$("#sbNotas").value.trim());
 }
 
 /* ---------- mockup con la plantilla del ajustador ---------- */
@@ -2735,7 +2737,7 @@ async function sbAgregar(){
   const it = sbItem(); if (!piezas(it.qty)) return;
   const b = $("#sbAdd"); b.disabled = true; b.textContent = "Agregando…";
   try {
-    if (SB.modo === "piezas"){
+    if (true){
       if (!SB.mockup){ const c = await sbMockup(); SB.mockup = c.toDataURL("image/jpeg", .85); }
       const c2 = await new Promise(ok => { const im = new Image(); im.onload = () => { const c = lienzoSB(1500, 855); c.getContext("2d").drawImage(im, 0, 0, 1500, 855); ok(c); }; im.src = SB.mockup; });
       it.diseno.mockup = c2.toDataURL("image/jpeg", .8);
@@ -2752,15 +2754,16 @@ async function sbAgregar(){
 
 /* ---------- eventos fijos ---------- */
 $("#sbMkBtn").onclick = sbVerMockup;
+$("#sbTopFondo").onclick = () => sbAbrirIA("fondo");
+$("#sbTopLogo").onclick = () => sbAbrirIA("logo");
 $("#sbMkDown").onclick = () => { if (!SB.mockup) return; const a = document.createElement("a"); a.href = SB.mockup; a.download = "VITUMA_vista_previa_sublimada.jpg"; document.body.appendChild(a); a.click(); a.remove(); };
 $("#sbAdd").onclick = sbAgregar;
 $("#sbNotas").oninput = sbPrecio;
 $("#sbIATxt").oninput = sbIATexto;
 $("#sbIACopy").onclick = async () => { const t = $("#sbIAOut"); try { await navigator.clipboard.writeText(t.value); } catch(e){ t.select(); document.execCommand("copy"); } const b = $("#sbIACopy"); b.textContent = "✔ Copiado"; setTimeout(() => b.textContent = "📋 Copiar", 1500); };
-$("#sbFiles").onchange = async e => { for (const f of e.target.files){ try { const r = await VT.reducirImagen(f, 1600); SB.archivos.push({ nombre: f.name, src: r.src, tipo: r.tipo }); } catch(x){} } sbRender(); };
 $("#sbCanvas").onclick = e => { const r = e.target.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
   const z = _sbZonas.find(([, zx, zy, zw, zh]) => x >= zx && x <= zx + zw && y >= zy && y <= zy + zh); if (z){ SB.pieza = z[0]; sbTabs(); sbPanel(); sbDibujar(); } };
-window.addEventListener("resize", () => { if (SB.prod && SB.modo === "piezas") sbDibujar(); });
+window.addEventListener("resize", () => { if (SB.prod) sbDibujar(); });
 
 /* =====================================================================
    COMPRA: nota de venta, pago por transferencia y "Mis pedidos"
