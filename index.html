@@ -184,6 +184,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 .upload b{display:block}.upload span{font-size:28px}
 .upload.has{border-style:solid;border-color:var(--ok);background:#F2FBF5}
 .upload img{width:56px;height:56px;object-fit:contain;background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/12px 12px;border-radius:8px}
+.servbox{margin-top:12px;display:grid;gap:8px}.servop{align-items:flex-start}.servop.on{border-color:var(--orange);background:#FFF7F2}
+.iamodo{display:flex;gap:6px;margin:10px 0 6px;flex-wrap:wrap}
+.most{background:#FFE9DC;color:#8A3B12;padding:9px 14px;font-weight:700;font-size:14px;text-align:center}
 .ctrows{display:grid;gap:8px}.ctfonts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.ctfonts button{padding:9px 4px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font-size:15px;cursor:pointer;color:#1C2340;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ctfonts button.on{border-color:#1C2340;background:#1C2340;color:#fff}
 .ctcols{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ctcols .ctauto{height:34px;padding:0 10px;border:1.5px solid var(--line);border-radius:17px;background:#fff;font-weight:700;font-size:12px;cursor:pointer}.ctcols .ctauto.on{border-color:#1C2340;background:#1C2340;color:#fff}
 @media(max-width:600px){.ctfonts{grid-template-columns:repeat(2,1fr)}}.ctrow{display:grid;grid-template-columns:30px 88px 1fr;align-items:center;gap:8px;font-size:13px;font-weight:600}
@@ -323,9 +326,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
         <label class="upload" id="dzUp" for="dzFile"></label>
         <input type="file" id="dzFile" accept="image/jpeg,image/png" hidden>
         <div id="dzUpInfo"></div>
+        <div id="dzServ"></div>
         <details class="ia" id="dzIA">
-          <summary>¿No tienes logo? Créalo con inteligencia artificial</summary>
+          <summary>Crea o redibuja tu logo con inteligencia artificial (gratis)</summary>
           <p class="muted" style="margin-top:8px">Usa la IA de tu preferencia (Gemini o ChatGPT). Escribe qué quieres que lleve y te damos las instrucciones técnicas para que salga listo para tu camisa. Después descárgala en <b>PNG</b> (para DTF, con fondo transparente) y súbela aquí arriba.</p>
+          <div class="seg iamodo" id="iaModo"></div>
+          <div class="mini" id="iaPaso" style="margin-bottom:6px"></div>
           <textarea id="iaTxt" placeholder="Ej. Logo para 'Taller El Güero': una llave inglesa y un engrane, letras en azul y naranja."></textarea>
           <button class="btn pri" id="iaGen" style="margin-top:8px">Generar instrucciones para la IA</button>
           <textarea id="iaOut" readonly placeholder="Aquí aparecerán las instrucciones para copiar."></textarea>
@@ -1264,15 +1270,15 @@ $("#addBtn").onclick = () => {
 
 /* ---------- Carrito ---------- */
 function totales(){
-  const filas = calcular(carrito);
-  const total = filas.reduce((a,f)=>a+f.subtotal,0);
-  const anticipo = filas.reduce((a,f)=>a+f.anticipo,0);
+  const filas = calcular(carrito), servicios = serviciosCarrito(), serv = servicios.reduce((a,x)=>a+x.precio,0);
+  const total = filas.reduce((a,f)=>a+f.subtotal,0) + serv;
+  const anticipo = filas.reduce((a,f)=>a+f.anticipo,0) + serv;   // el servicio de logo se paga completo al inicio
   const pz = filas.reduce((a,f)=>a+f.n,0);
-  return { filas, total, anticipo, pz };
+  return { filas, total, anticipo, pz, servicios };
 }
 
 function pintarCarrito(){
-  const { filas, total, anticipo, pz } = totales();
+  const { filas, total, anticipo, pz, servicios } = totales();
   $("#navCount").textContent = pz ? `(${pz})` : "";
   $("#barCount").textContent = pz ? `${pz} ${pz===1?"pieza":"piezas"} · Anticipo ${money(anticipo)}` : "Tu pedido está vacío";
   $("#barTotal").textContent = money(total);
@@ -1299,7 +1305,7 @@ function pintarCarrito(){
       </div>
       <div class="r"><b>${money(f.subtotal)}</b><span class="muted">${f.n} pzs</span></div>
     </div>`;
-  }).join("") + `
+  }).join("") + servicios.map(x => `<div class="item"><div><b>✏️ ${x.t}</b><div class="det">${x.det}. Se cobra una vez y se paga completo con el anticipo.</div></div><div class="r"><b>${money(x.precio)}</b></div></div>`).join("") + `
     <div class="totals" style="margin-top:8px">
       <div class="big"><span>Total</span><span>${money(total)}</span></div>
       <div class="ant"><span>Anticipo para iniciar</span><span>${money(anticipo)}</span></div>
@@ -1445,7 +1451,19 @@ const BORDADO_REGLAS = {
   rojo:     { colores:15, fino:0.25, pequenos:25 }
 };
 
-const DZ = { prod:null, modelo:null, color:null, tecnica:"dtf", qty:{}, zonas:{}, contacto:{ on:false, v:{}, tam:"md", color:"auto", fuente:"montserrat" } };
+const DZ = { prod:null, modelo:null, color:null, tecnica:"dtf", qty:{}, zonas:{}, contacto:{ on:false, v:{}, tam:"md", color:"auto", fuente:"montserrat" }, servicio:"ninguno" };
+
+/* ---------- servicios de diseño de logotipo (el diseño de la camisa no tiene costo) ---------- */
+const SERVICIOS = {
+  digitalizar: { t:"Digitalización de logotipo", precio:150, det:"Un diseñador de VITUMA digitaliza tu logo a partir de una foto o muestra" },
+  logo:        { t:"Diseño de logotipo", precio:250, det:"Un diseñador de VITUMA realiza tu logo" }
+};
+/* se cobra una vez por pedido, aunque el logo se use en varias prendas */
+const serviciosCarrito = () => [...new Set(carrito.map(c => c.diseno && c.diseno.servicio).filter(k => SERVICIOS[k]))].map(k => ({ id:k, ...SERVICIOS[k] }));
+
+/* ---------- venta en mostrador (se abre desde el panel con ./?mostrador=ID) ---------- */
+const MOSTRADOR = (() => { try { const id = new URLSearchParams(location.search).get("mostrador"); if (!id) return null;
+  return (VT.cargar().usuarios || []).find(u => u.id === id && u.activo) || null; } catch(e){ return null; } })();
 
 /* ---------- datos de contacto en la espalda (teléfono, WhatsApp, redes) ---------- */
 const CONTACTO = [
@@ -1770,8 +1788,14 @@ function cargarDiseno(file, key){
         v.getContext("2d").drawImage(cv, x0, y0, v.width, v.height, 0, 0, v.width, v.height);
         return { src: v.toDataURL("image/png"), asp: v.width / v.height }; };
       const vSF = alfaSF ? recorte(alfaSF.data, alfaSF.cv) : null;
+      /* ¿puede ser una foto? sin fondo liso ni transparencia (las fotos casi nunca tienen fondo uniforme) */
       const vSrc = file.type === "image/png" ? recorte(datos.data, c) : null;
-      DISENOS[key] = { nombre:file.name, src, sinFondo, quitarFondo: !!bg, lienzo:c, cuadros, cubre, vSF, vSrc, esPng: file.type === "image/png", ext: (file.name.split(".").pop() || "").toUpperCase(), anchoOrig: im.width, altoOrig: im.height };
+      /* o con un fondo "casi liso" pero con sombras y ruido (papel, pared, tela) */
+      const orilla = []; { const W = c.width, H = c.height, d0 = datos.data, L = j => (d0[j] + d0[j+1] + d0[j+2]) / 3;
+        for (let xx = 0; xx < W; xx += 3){ orilla.push(L(xx*4), L(((H-1)*W + xx)*4)); } for (let y = 0; y < H; y += 3){ orilla.push(L(y*W*4), L((y*W + W-1)*4)); } }
+      const prom = orilla.reduce((a, b) => a + b, 0) / orilla.length, desv = Math.sqrt(orilla.reduce((a, b) => a + (b - prom) ** 2, 0) / orilla.length);
+      const foto = !tonos && !(file.type === "image/png" && vSrcAlfa(datos.data)) && (!bg || desv > 6);
+      DISENOS[key] = { nombre:file.name, src, sinFondo, quitarFondo: !!bg, lienzo:c, cuadros, cubre, vSF, vSrc, foto, esPng: file.type === "image/png", ext: (file.name.split(".").pop() || "").toUpperCase(), anchoOrig: im.width, altoOrig: im.height };
       Object.keys(ANALISIS).forEach(a => { if (a.startsWith(key + "@")) delete ANALISIS[a]; });
       Object.values(DZ.zonas).forEach(st => st.hilosManual = false);
       // si es el primer diseño, activar una ubicación sugerida
@@ -1831,7 +1855,7 @@ function itemDiseno(){
   const adjunto = Object.keys(DISENOS).length > 0;
   const texto = "🎨 Diseño propio · " + (zs.length ? zs.map(z => z.texto).join("; ") : "ubicación por definir") + (adjunto ? " · 📎 diseño por adjuntar" : "");
   return { id: Date.now(), prod:p.id, modelo:DZ.modelo, color:DZ.color, qty, per:null, notas:$("#dzNotas").value.trim(),
-           diseno:{ tecnica:DZ.tecnica, costoPieza: zs.reduce((a,z)=>a+z.precio,0), texto, adjunto } };
+           diseno:{ tecnica:DZ.tecnica, costoPieza: zs.reduce((a,z)=>a+z.precio,0), texto: texto + (SERVICIOS[DZ.servicio] ? " · ✏️ " + SERVICIOS[DZ.servicio].t + " (VITUMA)" : ""), adjunto: adjunto && DZ.servicio === "ninguno", servicio: DZ.servicio } };
 }
 
 /* ---------- pintar ---------- */
@@ -1886,8 +1910,20 @@ function dzRender(){
   const avisoCuad = d && d.cuadros ? `<div class="warn" style="margin-top:8px">Tu imagen traía un <b>fondo de cuadritos dibujado</b> (no es transparente de verdad). Ya se lo quitamos para la vista previa; para imprimir, VITUMA puede pedirte el archivo con fondo transparente real.</div>` : "";
   const avisoPlay = d && d.cubre > .55 ? `<div class="warn" style="margin-top:8px">¿Tu imagen trae una <b>playera dibujada</b> alrededor del diseño? Si es así, sube <b>solo el diseño</b>, sin la prenda, o se imprimiría también la silueta de la playera.</div>` : "";
   const avisoRes = d && DZ.tecnica === "dtf" && d.anchoOrig && d.anchoOrig < 1500 ? `<div class="warn" style="margin-top:8px">Tu imagen mide ${d.anchoOrig} × ${d.altoOrig} px, una resolución baja que puede verse pixelada al imprimir. Lo ideal para DTF es de 2000 px o más por lado.</div>` : "";
-  $("#dzUpInfo").innerHTML = avisoPlay + avisoCuad + avisoPng + avisoRes + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
+  const avisoFoto = d && d.foto && DZ.servicio === "ninguno" ? `<div class="warn" style="margin-top:8px"><b>Tu imagen no tiene un fondo liso.</b> Si es una <b>foto de tu logo</b> (tomada con el celular, con sombras, textura o chueca), no se puede imprimir así. Tienes dos opciones:
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn ghost" data-iafoto style="padding:7px 12px;font-size:13px">Redibujarlo con IA (gratis)</button><button class="btn ghost" data-servset="digitalizar" style="padding:7px 12px;font-size:13px">Deseo que un diseñador digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}</button></div></div>` : "";
+  $("#dzUpInfo").innerHTML = avisoFoto + avisoPlay + avisoCuad + (avisoFoto ? "" : avisoPng) + avisoRes + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
   if ($("#dzBg")) $("#dzBg").onchange = e => { d.quitarFondo = e.target.checked; dzRender(); };
+  $("#dzServ").innerHTML = `<div class="servbox"><span class="label">¿Tu logo está listo para imprimir?</span>
+    ${[["ninguno","Sí, mi logo está listo", "Súbelo arriba en buena resolución."],
+       ["digitalizar", `Deseo que un diseñador digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`, "Ya tengo logo pero en foto o muestra. Súbela arriba como referencia y el diseñador lo deja listo para imprimir."],
+       ["logo", `Deseo que un diseñador realice mi logo · ${money(SERVICIOS.logo.precio)}`, "No tengo logo. Escribe en las notas qué quieres que lleve (nombre, colores, ideas)."]]
+      .map(([k, t, x]) => `<label class="chk servop${DZ.servicio===k?" on":""}"><input type="radio" name="dzServ" value="${k}"${DZ.servicio===k?" checked":""}><span><b>${t}</b><br><span class="muted">${x}</span></span></label>`).join("")}
+    <p class="mini" style="margin-top:6px">El diseño y acomodo de tu camisa no tiene costo. Si tienes una foto de tu logo también puedes <button class="linkbtn" data-iafoto>redibujarlo gratis con IA</button>.</p></div>`;
+  const activarZona = () => { if (DZ.servicio !== "ninguno" && !Object.values(DZ.zonas).some(z => z.on)){ const z0 = zonasActuales().find(z => !z.bloqueada); if (z0) estadoZona(z0).on = true; } };
+  document.querySelectorAll("[name=dzServ]").forEach(r => r.onchange = () => { DZ.servicio = r.value; activarZona(); dzRender(); });
+  document.querySelectorAll("[data-servset]").forEach(b => b.onclick = () => { DZ.servicio = b.dataset.servset; activarZona(); dzRender(); });
+  document.querySelectorAll("[data-iafoto]").forEach(b => b.onclick = () => { IA_MODO = "foto"; iaModoPintar(); const det = $("#dzIA"); det.open = true; det.scrollIntoView({behavior:"smooth", block:"start"}); });
 
   dzZonas(p); dzVista(p); dzTallas(p); dzPrecio(p);
 }
@@ -2046,7 +2082,8 @@ function dzPrecio(p){
   $("#dzRes").innerHTML = h;
   const avisos = [];
   if (conf) avisos.push("El precio de esta playera te lo confirmamos por WhatsApp; el total mostrado solo incluye el estampado.");
-  if (!DISENOS.main) avisos.push("Aún no subes tu diseño. Puedes enviarlo después por WhatsApp.");
+  if (!DISENOS.main && DZ.servicio === "ninguno") avisos.push("Aún no subes tu diseño. Puedes enviarlo después por WhatsApp.");
+  if (SERVICIOS[DZ.servicio]) avisos.push(`✏️ ${SERVICIOS[DZ.servicio].t}: ${money(SERVICIOS[DZ.servicio].precio)}, se cobra una sola vez por pedido. El diseñador te manda la vista previa para que la autorices.`);
   if (DZ.tecnica === "bordado" && zs.some(z => { const a = DISENOS[z.st.diseno] && analisisDe(z.st.diseno, lateral(z.st) && z.z.cmLado ? z.z.cmLado : z.z.cm); return a && a.nivel === "rojo"; }))
     avisos.push("Uno de tus logos no se recomienda para bordado. Considera estampado DTF.");
   $("#dzWarn").innerHTML = avisos.map(a => `<div class="warn">${a}</div>`).join("");
@@ -2156,7 +2193,17 @@ $("#dzDown").onclick = () => mockupCanvas(c => {
   }, "image/png");
 });
 
+/* ¿la imagen tiene pixeles transparentes? */
+function vSrcAlfa(d){ for (let i = 3; i < d.length; i += 4 * 7) if (d[i] < 250) return true; return false; }
 /* ---------- instrucciones para la IA ---------- */
+let IA_MODO = "nuevo";
+function iaModoPintar(){
+  $("#iaModo").innerHTML = [["nuevo","Crear un logo nuevo"],["foto","Redibujar la foto de mi logo"]].map(([k,t]) => `<button class="${IA_MODO===k?"on":""}" data-iam="${k}">${t}</button>`).join("");
+  document.querySelectorAll("[data-iam]").forEach(b => b.onclick = () => { IA_MODO = b.dataset.iam; iaModoPintar(); });
+  $("#iaTxt").placeholder = IA_MODO === "foto" ? "Opcional: escribe el texto exacto que trae tu logo (nombre, eslogan, teléfono) para que no lo cambie." : "Ej. Logo para 'Taller El Güero': una llave inglesa y un engrane, letras en azul y naranja.";
+  $("#iaPaso").innerHTML = IA_MODO === "foto" ? "📎 En Gemini o ChatGPT <b>adjunta la foto de tu logo</b> y pega estas instrucciones." : "";
+  $("#iaOut").value = "";
+}
 $("#iaGen").onclick = () => {
   const p = DZ.prod ? byId(DZ.prod) : null;
   const txt = $("#iaTxt").value.trim() || "[describe aquí lo que quieres que lleve tu logo]";
@@ -2164,7 +2211,14 @@ $("#iaGen").onclick = () => {
   const prenda = p ? (p.tipoPrenda === "polo" ? "playera tipo polo" : "playera cuello redondo") : "playera";
   const zr = p ? preciosZonas(p)[0] : null;
   let out;
-  if (DZ.tecnica === "bordado"){
+  if (IA_MODO === "foto"){
+    const o = zr && zr.z.opciones ? zr.z.opciones.find(x => x.id === zr.st.opcion) : null;
+    const lado = o ? (o.largo ? Math.max(o.cm, o.largo) : o.cm) : 28, px = Math.max(2000, Math.round(lado / 2.54 * 300));
+    const texto = $("#iaTxt").value.trim();
+    out = DZ.tecnica === "bordado"
+      ? `Te adjunto una FOTO de mi logotipo. Redibújalo desde cero como una ilustración digital limpia para BORDAR en una ${prenda} de color ${color}.\n\nInstrucciones obligatorias:\n- Copia fielmente la forma, la composición y los colores del logo de la foto. No inventes elementos nuevos.\n- ${texto ? `El texto debe decir exactamente: "${texto}".` : "Copia el texto exactamente como aparece en la foto, letra por letra."}\n- Endereza el logo: corrige la perspectiva, la inclinación y cualquier deformación de la foto.\n- Quita sombras, reflejos, arrugas, textura de tela o papel y el fondo de la foto.\n- Máximo 5 colores sólidos y planos, sin degradados ni efectos.\n- Líneas y contornos gruesos y legibles.\n- Fondo blanco liso.\n- Imagen cuadrada de mínimo ${px} × ${px} px.\n- Entrega solo el logo, sin playera ni mockup.`
+      : `Te adjunto una FOTO de mi logotipo. Redibújalo desde cero como una ilustración digital limpia para ESTAMPADO DTF en una ${prenda} de color ${color}${o ? `, que se imprimirá a ${o.t}` : ""}.\n\nInstrucciones obligatorias:\n- Copia fielmente la forma, la composición y los colores del logo de la foto. No inventes elementos nuevos.\n- ${texto ? `El texto debe decir exactamente: "${texto}".` : "Copia el texto exactamente como aparece en la foto, letra por letra."}\n- Endereza el logo: corrige la perspectiva, la inclinación y cualquier deformación de la foto.\n- Quita sombras, reflejos, brillos, arrugas, textura de tela o papel y todo el fondo de la foto.\n- Colores nítidos y bordes definidos, sin borrosidad.\n- Entrega SOLO el logo, aislado. NO lo pongas sobre una playera ni mockup.\n- Formato PNG con FONDO TRANSPARENTE real. NO dibujes el patrón de cuadros gris y blanco: si no puedes hacer el fondo transparente, usa fondo blanco liso.\n- Resolución: mínimo ${px} px en su lado más largo (300 ppp para ${lado} cm).`;
+  } else if (DZ.tecnica === "bordado"){
     const cm = zr ? zr.z.cm : 9;
     out = `Crea un logotipo para BORDAR en una ${prenda} de color ${color}. Contenido: ${txt}.\n\nEspecificaciones técnicas obligatorias:\n- Máximo 5 colores sólidos y planos.\n- Sin degradados, sombras, brillos, texturas ni efectos 3D.\n- Formas simples y pocos elementos.\n- Líneas y contornos gruesos: mínimo 1 mm a un tamaño final de ${cm} cm.\n- Texto grande y legible, sin letras pequeñas ni frases largas.\n- Sin detalles diminutos.\n- Colores que contrasten con el color ${color} de la playera.\n- Fondo blanco liso.\n- Imagen cuadrada en alta resolución (mínimo 1000 × 1000 px), en formato JPG.`;
   } else {
@@ -2177,6 +2231,7 @@ $("#iaGen").onclick = () => {
   }
   $("#iaOut").value = out;
 };
+iaModoPintar();
 $("#iaCopy").onclick = async () => {
   const t = $("#iaOut"); if (!t.value) $("#iaGen").click();
   try { await navigator.clipboard.writeText(t.value); } catch(e){ t.select(); document.execCommand("copy"); }
@@ -2207,6 +2262,27 @@ document.querySelectorAll("#cSuc button").forEach(b => b.onclick = () => {
 });
 $("#cTel").oninput = e => { e.target.value = e.target.value.replace(/[^\d ]/g, ""); };
 
+/* datos del cliente para su siguiente pedido (solo en este celular) */
+const CLI_KEY = "vituma_mi_cliente";
+function recordarCliente(d){ try { localStorage.setItem(CLI_KEY, JSON.stringify(d)); } catch(e){} }
+function rellenarCliente(){
+  if (MOSTRADOR){ if (MOSTRADOR.sucursal && !sucursalElegida){ const b = document.querySelector(`#cSuc button[data-s="${MOSTRADOR.sucursal}"]`); if (b) b.click(); } return; }
+  let d = null; try { d = JSON.parse(localStorage.getItem(CLI_KEY) || "null"); } catch(e){}
+  if (!d) return;
+  if (!$("#cName").value) $("#cName").value = d.nombre || "";
+  if (!$("#cTel").value) $("#cTel").value = d.tel || "";
+  if (d.sucursal && !sucursalElegida){ const b = document.querySelector(`#cSuc button[data-s="${d.sucursal}"]`); if (b) b.click(); }
+}
+rellenarCliente();
+/* empezar otro pedido: carrito vacío, folio y saldo propios */
+function nuevoPedido(){
+  carrito = []; guardar(); pintarCarrito();
+  $("#misDetalle").innerHTML = ""; $("#misInicio").style.display = "block";
+  $("#cTeam").value = ""; if (MOSTRADOR){ $("#cName").value = ""; $("#cTel").value = ""; } if ($("#cAcepto")) $("#cAcepto").checked = false; $("#cErr").innerHTML = "";
+  rellenarCliente();
+  irA("cotizar");
+}
+
 function pintarPonchado(){
   const box = $("#cPonch"); if (!box) return;
   const { filas, pz } = totales();
@@ -2222,7 +2298,7 @@ function pintarPonchado(){
 }
 
 function generarNota(){
-  const { filas, total, anticipo, pz } = totales();
+  const { filas, total, anticipo, pz, servicios } = totales();
   const err = m => { $("#cErr").innerHTML = `<div class="warn" style="margin-top:10px">${m}</div>`; };
   if (!pz) return;
   const nombre = $("#cName").value.trim(), tel = $("#cTel").value.replace(/\D/g, ""), trabajo = $("#cTeam").value.trim();
@@ -2253,10 +2329,12 @@ function generarNota(){
       zonas: f.it.diseno ? (f.it.diseno.zonas || []) : [],
       logos: f.it.diseno ? (f.it.diseno.logos || []) : [],
       impresion: f.it.diseno ? (f.it.diseno.impresion || []) : [],
+      contacto: f.it.diseno ? (f.it.diseno.contacto || null) : null, servicio: f.it.diseno ? (f.it.diseno.servicio || null) : null,
       mockup: (f.it.diseno && f.it.diseno.mockup) || fotoColor(f.p, f.it.color, f.it.modelo) || imgDe(f.p, f.it.modelo) || null,
       mockupTipo: (f.it.diseno && f.it.diseno.mockup) ? "diseno" : "foto"
     };
   });
+  servicios.forEach(x => items.push({ desc: `${x.t} (${x.det})`, cant: 1, punit: x.precio, importe: x.precio, prenda: x.t, categoria: "Servicio", marca: "VITUMA", qty: {}, servicio: x.id }));
   if (ponchado.aplica) items.push({ desc: `Ponchado de logotipo${ponchado.logos > 1 ? "s" : ""}${ponchado.nota ? " (" + ponchado.nota + ")" : ""}`,
     cant: ponchado.logos, punit: ponchado.monto / ponchado.logos, importe: ponchado.monto, prenda:"Ponchado", categoria:"Ponchado", marca:"VITUMA", qty:{} });
   const descBordado = filas.filter(esBordado).map(f => `${f.p.nombre} (${f.it.color || ""}): ${textoItem(f).replace(/^🎨 Diseño propio · /,"").replace(/ · 📎 diseño por adjuntar$/,"")}`).join(" | ");
@@ -2267,7 +2345,8 @@ function generarNota(){
     folio, sucursal: sucursalElegida, fecha: ahora, cliente: { nombre, tel }, trabajo, items, bordado, ponchado, descBordado,
     total: Math.round((total + ponchado.monto) * 100) / 100, anticipoReq: Math.round((anticipo + ponchado.monto) * 100) / 100,
     pagos: [], estado: "cotizacion", entregaMin: VT.sumarHabiles(ahora, VT.ENTREGA.min), entregaMax: VT.sumarHabiles(ahora, VT.ENTREGA.max),
-    vendedor: "App (cliente)", origen: "app", politicasAceptadas: ahora, enBodega: null,
+    vendedor: MOSTRADOR ? MOSTRADOR.nombre : "App (cliente)", origen: MOSTRADOR ? "mostrador" : "app", politicasAceptadas: ahora, enBodega: null,
+    servicios: servicios.map(x => x.id),
     disenoAdjunto: carrito.some(c => c.diseno && c.diseno.adjunto)
   };
   let cli = db.clientes.find(c => c.tel === tel);
@@ -2276,6 +2355,7 @@ function generarNota(){
   db.ventas.unshift(venta);
   if (!VT.guardar(db)) return err("No se pudo guardar tu pedido en este dispositivo. Libera espacio o intenta en otro navegador.");
   agregarMiFolio(folio);
+  if (!MOSTRADOR) recordarCliente({ nombre, tel, sucursal: sucursalElegida });
   carrito = []; guardar(); pintarCarrito();
   abrirPedido(folio, true);
 }
@@ -2308,7 +2388,13 @@ function abrirPedido(folio, recien){
   const sugerido = falta > 0 ? falta : Math.max(0, Math.round((c.saldo - c.porValidar) * 100) / 100);
   let h = `<button class="btn ghost" id="misVolver" style="margin-bottom:12px">‹ Mis pedidos</button>`;
   if (v.estado === "cancelada") h += `<div class="warn" style="margin-bottom:12px"><b>Este pedido fue cancelado.</b> Si tienes dudas, escríbenos por WhatsApp.</div>`;
-  if (recien) h += `<div class="ok-banner"><b>✅ ¡Tu nota de venta está lista!</b>Folio <b style="display:inline;font-size:15px">${v.folio}</b>. Paga tu anticipo por transferencia y sube tu comprobante para confirmar tu orden.</div>`;
+  if (recien) h += `<div class="ok-banner"><b>✅ ¡Tu nota de venta está lista!</b>Folio <b style="display:inline;font-size:15px">${v.folio}</b>. ${MOSTRADOR ? "Cobra el anticipo en caja con el botón de abajo." : "Paga tu anticipo por transferencia y sube tu comprobante para confirmar tu orden."}</div>`;
+  const btnNuevo = `<button class="btn ghost" data-nuevo style="width:100%;margin-bottom:12px">＋ Hacer otro pedido <span class="muted" style="font-weight:500">(con su propio folio y saldo)</span></button>`;
+  if (recien) h += btnNuevo;
+  if (MOSTRADOR) h += `<div class="card" style="border:2px solid var(--orange)"><h3>🏪 Mostrador</h3>
+    <p class="muted" style="margin-bottom:10px">Cobra el anticipo en caja (efectivo, tarjeta o transferencia) desde el panel y manda la nota al cliente.</p>
+    <div style="display:grid;gap:8px"><a class="btn pri" href="admin.html?folio=${v.folio}" target="_blank" style="text-decoration:none;text-align:center">💵 Cobrar anticipo en caja</a>
+    <button class="btn wa" data-notawa>📲 Mandar la nota al cliente por WhatsApp</button></div></div>`;
   h += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">${v.folio}</h2><span class="badge ${c.pago.c}">${c.pago.t}</span></div>
     <p class="muted">${VT.fechaHora(v.fecha)} · Sucursal ${VT.SUCURSALES[v.sucursal].nombre}${v.trabajo ? " · " + VT.esc(v.trabajo) : ""}</p>
     <div class="totals" style="margin-top:10px">
@@ -2338,11 +2424,16 @@ function abrirPedido(folio, recien){
     <button class="btn pri" id="pEnviar" style="width:100%;margin-top:12px">Enviar comprobante</button>
     <p class="muted" style="margin-top:8px">VITUMA revisará que la transferencia haya llegado y validará tu pago.</p></div>`;
   if (v.pagos.length) h += `<div class="card"><h3>Tus pagos</h3><div class="pagos">${v.pagos.map(p => `<div class="pg"><div><b>${p.tipo}</b> · ${p.forma}<br><span class="muted">${VT.fechaHora(p.fecha)}</span></div><div style="text-align:right"><b>${money(p.monto)}</b><br><span class="badge ${p.estado==="validado"?"verde":(p.estado==="rechazado"||p.estado==="anulado")?"rojo":"amarillo"}">${p.estado==="validado"?"Validado":p.estado==="rechazado"?"Rechazado":p.estado==="anulado"?"Anulado":"Por validar"}</span></div></div>${p.montoReportado != null ? `<div class="muted" style="margin:-4px 0 6px">Reportaste ${money(p.montoReportado)}; VITUMA recibió ${money(p.monto)}.</div>` : ""}${(p.estado==="rechazado"||p.estado==="anulado") && p.motivo ? `<div class="muted" style="margin:-4px 0 6px;color:#B42318">Motivo: ${VT.esc(p.motivo)}</div>` : ""}`).join("")}</div>
-    ${c.porValidar ? `<button class="btn wa" id="pAvisar" style="margin-top:12px">Avisar a VITUMA por WhatsApp</button>` : ""}</div>`;
+    ${c.porValidar ? `<button class="btn wa" id="pAvisar" style="margin-top:12px;width:100%">📲 Avisar a VITUMA por WhatsApp que ya envié mi pago</button>` : ""}</div>`;
   h += `<div class="card"><h3>Nota de venta</h3><div class="notawrap" id="notaWrap"><div>${VT.notaHTML(v)}</div></div>
     <button class="btn ghost" id="notaPdf" style="width:100%">⬇ Descargar nota en PDF</button></div>`;
   if (v.disenoAdjunto) h += `<div class="warn">📎 Recuerda enviarnos tu logo y la vista previa de tu diseño por WhatsApp indicando tu folio <b>${v.folio}</b>.</div>`;
+  h += btnNuevo;
   $("#misDetalle").innerHTML = h;
+  document.querySelectorAll("[data-nuevo]").forEach(b => b.onclick = nuevoPedido);
+  document.querySelectorAll("[data-notawa]").forEach(b => b.onclick = () => {
+    const m = `Hola ${v.cliente.nombre.split(" ")[0]}, gracias por tu pedido en VITUMA.\nFolio: ${v.folio}\nTotal: ${money(v.total)}\nAnticipo: ${money(v.anticipoReq)}\nSaldo: ${money(c.saldo)}\nEntrega estimada: ${VT.fecha(v.entregaMax)} a más tardar.\nPuedes ver tu pedido y tu nota en ${location.origin}${location.pathname.replace(/[^/]*$/, "")} (Mis pedidos, con tu folio).`;
+    window.open(`https://api.whatsapp.com/send?phone=52${v.cliente.tel}&text=${encodeURIComponent(m)}`, "_blank"); });
   ajustarNota($("#notaWrap"));
   $("#misVolver").onclick = () => { $("#misDetalle").innerHTML = ""; $("#misInicio").style.display = "block"; pintarMisPedidos(); };
   $("#notaPdf").onclick = () => VT.notaPDF(VT.cargar().ventas.find(x => x.folio === folio));
@@ -2390,11 +2481,14 @@ function abrirPedido(folio, recien){
 
 function pintarMisPedidos(){
   const db = VT.cargar(), lista = misFolios().map(f => db.ventas.find(v => v.folio === f)).filter(Boolean);
-  $("#misLista").innerHTML = lista.length
-    ? `<h3>Hechos en este celular</h3>` + lista.map(v => { const c = VT.cuentas(v); return `<div class="item" style="cursor:pointer" data-folio="${v.folio}">
+  const deben = lista.filter(v => v.estado !== "cancelada" && VT.cuentas(v).saldo > 0);
+  $("#misLista").innerHTML = (lista.length
+    ? `<h3>Hechos en este celular</h3>` + (deben.length > 1 ? `<p class="muted" style="margin:-4px 0 8px">Tienes ${deben.length} pedidos con saldo; cada uno se paga por separado con su folio.</p>` : "") + lista.map(v => { const c = VT.cuentas(v); return `<div class="item" style="cursor:pointer" data-folio="${v.folio}">
         <div><b>${v.folio}</b><div class="det">${VT.fechaHora(v.fecha)} · ${c.piezas} pzs</div><div style="margin-top:4px"><span class="badge ${VT.ESTADOS[v.estado].c}">${VT.ESTADOS[v.estado].t}</span> <span class="badge ${c.pago.c}">${c.pago.t}</span></div></div>
         <div class="r"><b>${money(v.total)}</b><span class="muted">Saldo ${money(c.saldo)}</span></div></div>`; }).join("")
-    : `<div class="empty">Aquí aparecerán tus pedidos.<br>Si hiciste tu pedido en otro celular, búscalo abajo con tu folio, tu teléfono o tu nombre y apellido.</div>`;
+    : `<div class="empty">Aquí aparecerán tus pedidos.<br>Si hiciste tu pedido en otro celular, búscalo abajo con tu folio, tu teléfono o tu nombre y apellido.</div>`)
+    + `<button class="btn pri" data-nuevo style="width:100%;margin-top:12px">＋ Hacer un pedido nuevo</button>`;
+  document.querySelectorAll("#misLista [data-nuevo]").forEach(b => b.onclick = nuevoPedido);
   document.querySelectorAll("#misLista [data-folio]").forEach(x => x.onclick = () => abrirPedido(x.dataset.folio));
 }
 const normal = t => String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -2421,6 +2515,10 @@ function buscarPedidos(){
 $("#qBtn").onclick = buscarPedidos;
 ["#qFolio","#qTel","#qNom"].forEach(id => $(id).onkeydown = e => { if (e.key === "Enter") buscarPedidos(); });
 
+if (MOSTRADOR){
+  document.body.insertAdjacentHTML("afterbegin", `<div class="most">🏪 Venta en mostrador · Atiende: ${VT.esc(MOSTRADOR.nombre)}${MOSTRADOR.sucursal ? " · " + VT.SUCURSALES[MOSTRADOR.sucursal].nombre : ""}</div>`);
+  document.title = "VITUMA · Mostrador";
+}
 /* ---------- Lupa: recuadro que amplía la zona de la foto bajo el cursor o el dedo ---------- */
 (() => {
   const L = document.getElementById("lupa"), TAM = 170;

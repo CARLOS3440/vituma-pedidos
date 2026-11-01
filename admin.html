@@ -114,6 +114,10 @@ td.mkc{width:96px;padding:4px!important}
 .av{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;object-fit:cover;color:#fff;font-weight:800;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px rgba(28,35,64,.15)}
 .av.vacio{background:#E6E8EF;color:#9AA0B2}
 td.respc{position:relative;min-width:150px}
+.bubble{position:relative;border:0;background:none;font-size:22px;cursor:pointer;padding:4px 6px;border-radius:8px}.bubble:hover{background:#EEF1F7}
+.bubble i{position:absolute;right:-2px;bottom:0;background:#579BFC;color:#fff;font-style:normal;font-size:10px;font-weight:800;border-radius:9px;padding:1px 5px}
+.archbtn{border:0;background:none;cursor:pointer;padding:4px;border-radius:8px}.archbtn:hover{background:#EEF1F7}
+td.tk{cursor:pointer}
 .respbox{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;pointer-events:none}
 .respsel{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .zoom{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:40;display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
@@ -479,6 +483,9 @@ async function iniciar(){
   if (SES.sucursal){ vSuc = SES.sucursal; bSuc = SES.sucursal; rSuc = SES.sucursal; }
   if (!can("ver_montos")) vTab = "produccion";
   $("#login").style.display = "none"; $("#app").style.display = "block"; ir(SES.rol === "Diseño" ? "produccion" : "ventas");
+  /* viene de "Cobrar anticipo en caja" en la app (modo mostrador) */
+  const fq = new URLSearchParams(location.search).get("folio");
+  if (fq && DB.ventas.some(v => v.folio === fq) && can("ver_ventas")){ setTimeout(() => abrirVenta(fq), 60); history.replaceState(null, "", location.pathname); }
 }
 const selSuc = (id, val, todas) => SES.sucursal ? `<span class="badge gris" style="align-self:center">${suc(SES.sucursal)}</span>` :
   `<select id="${id}" style="width:auto"><option value="">${todas}</option>${Object.keys(VT.SUCURSALES).map(k=>`<option value="${k}"${k===val?" selected":""}>${suc(k)}</option>`).join("")}</select>`;
@@ -505,7 +512,7 @@ function pVentas(){
     <div class="top"><h1 class="t">Ventas</h1><div style="display:flex;gap:8px;flex-wrap:wrap">
       ${SES.rol === "Administrador" ? `<button class="btn sec" id="seed">Cargar ventas de ejemplo</button>` : ""}
       ${mon ? `<button class="btn sec" id="xls">⬇ Descargar ventas</button>` : ""}
-      <a class="btn pri" href="./" target="_blank" style="text-decoration:none">＋ Nueva venta</a></div></div>
+      <a class="btn pri" href="./?mostrador=${SES.id}" target="_blank" style="text-decoration:none" title="Abre la app en modo mostrador: la venta queda a tu nombre">＋ Nueva venta</a></div></div>
     <div class="card">
       <div class="filters"><input id="q" placeholder="Buscar por folio, cliente, trabajo, prenda o vendedor" value="${esc(vQ)}">${selSuc("fs", vSuc, "Todas las sucursales")}</div>
       <div class="tabs">${tabs.map(([k,t])=>`<button class="${k===vTab?"on":""}" data-t="${k}">${t}<span class="n">${cnt(k)}</span></button>`).join("")}</div>
@@ -907,7 +914,9 @@ function tecnicaItem(i){
   if (/dtf/i.test(i.desc)) return "dtf";
   return "lisa";
 }
-const prendas = v => v.items.filter(i => i.categoria !== "Ponchado");
+const prendas = v => v.items.filter(i => i.categoria !== "Ponchado" && i.categoria !== "Servicio");
+const SERV_TXT = { digitalizar:"✏️ Digitalizar logo", logo:"✏️ Diseñar logo" };
+const serviciosDe = v => (v.servicios || v.items.filter(i => i.servicio).map(i => i.servicio)).filter(k => SERV_TXT[k]);
 const habilesHasta = iso => { let n = 0; const d = new Date(); d.setHours(0,0,0,0); const f = new Date(iso); f.setHours(0,0,0,0);
   if (f < d) return -Math.round((d - f) / 864e5); while (d < f){ d.setDate(d.getDate()+1); const w = d.getDay(); if (w && w !== 6) n++; } return n; };
 const prioridadAuto = v => { const h = habilesHasta(v.entregaMax); return h <= 2 ? "Urgente" : h <= 5 ? "Alta" : h <= 9 ? "Media" : "Baja"; };
@@ -942,6 +951,23 @@ const pill = (t, bg, fg) => `<span class="pill" style="background:${bg};color:${
 const pillEstado = e => { const x = OT_ESTADOS.find(s => s[0] === e) || OT_ESTADOS[1]; return pill(e, x[1], x[2]); };
 const pillPrio = p => { const x = PRIORIDADES.find(s => s[0] === p) || PRIORIDADES[0]; return pill(p, x[1]); };
 
+/* días hábiles que tiene diseño para mandar el pedido a producción (desde que entra) */
+const DIAS_DISENO = 3;
+const disenoVence = (v, ot) => VT.sumarHabiles(ot.inicio, DIAS_DISENO);
+/* mensaje de WhatsApp al cliente según cómo va su pedido */
+function mensajeEstado(v, ot){
+  const n = v.cliente.nombre.split(" ")[0], k = VT.cuentas(v), f = v.folio;
+  switch (ot.estado){
+    case "Falta información": return `Hola ${n}, te escribimos de VITUMA por tu pedido ${f}. Para empezar tu diseño nos falta información: ¿nos puedes enviar tu logo o los datos pendientes por aquí?`;
+    case "Esperando autorización": return `Hola ${n}, te escribimos de VITUMA. Te compartimos la vista previa de tu pedido ${f} para que la revises.\n\nSi todo está bien, respóndenos "AUTORIZO" para pasarlo a producción. Si quieres algún cambio, dinos cuál.`;
+    case "En producción": return `Hola ${n}, tu pedido ${f} ya está en producción. Te avisamos en cuanto esté listo.`;
+    case "En tienda para entregar": return `Hola ${n}, ¡tu pedido ${f} ya está listo! Puedes recogerlo en VITUMA ${VT.SUCURSALES[v.sucursal].nombre}.${k.saldo > 0 ? ` Tu saldo pendiente es de ${money(k.saldo)}.` : ""}`;
+    case "Entregado": return `Hola ${n}, gracias por tu compra en VITUMA (pedido ${f}). ¡Esperamos que te encanten tus prendas!`;
+    default: return `Hola ${n}, te escribimos de VITUMA por tu pedido ${f}. Ya estamos trabajando en tu diseño.`;
+  }
+}
+const waCliente = (v, ot) => window.open(`https://api.whatsapp.com/send?phone=52${v.cliente.tel}&text=${encodeURIComponent(mensajeEstado(v, ot))}`, "_blank");
+
 /* ---------- tablero ---------- */
 let tab = "entrada", pQ = "";
 function pProduccion(){
@@ -957,20 +983,25 @@ function pProduccion(){
   const usuarios = (DB.usuarios || []).filter(u => u.activo && (u.rol === "Administrador" || (u.permisos || []).includes("produccion")))
     .sort((a, b) => (a.rol === "Diseño" ? 0 : 1) - (b.rol === "Diseño" ? 0 : 1) || a.nombre.localeCompare(b.nombre));
   const fila = ({v, ot}) => {
-    const k = VT.cuentas(v), h = habilesHasta(v.entregaMax), prio = ot.prioridad || prioridadAuto(v);
+    const k = VT.cuentas(v), prio = ot.prioridad || prioridadAuto(v);
+    const its = prendas(v).filter(i => tecnicaItem(i) === ot.tecnica);
     const ini = new Date(ot.inicio).getTime(), fin = new Date(v.entregaMax).getTime(), pct = Math.max(0, Math.min(100, (Date.now() - ini) / Math.max(1, fin - ini) * 100));
-    const arch = [...prendas(v).filter(i => tecnicaItem(i) === ot.tecnica).flatMap(i => (i.logos || []).map(l => l.src).concat(i.mockupTipo === "diseno" && i.mockup ? [i.mockup] : [])), ...ot.archivos.filter(a => a.tipo === "img").map(a => a.src)];
-    const pz = prendas(v).filter(i => tecnicaItem(i) === ot.tecnica).reduce((a, i) => a + i.cant, 0);
-    const mks = prendas(v).filter(i => tecnicaItem(i) === ot.tecnica && i.mockup).map(i => i.mockup);
+    const arch = [...its.flatMap(i => (i.logos || []).map(l => l.src)), ...ot.archivos.filter(a => a.tipo === "img").map(a => a.src)];
+    const pz = its.reduce((a, i) => a + i.cant, 0);
+    const mks = its.filter(i => i.mockup).map(i => i.mockup);
+    /* fecha límite para mandar el diseño a producción */
+    const dv = disenoVence(v, ot), hd = habilesHasta(dv), yaPaso = ["En producción","En tienda para entregar","Entregado"].includes(ot.estado);
     return `<tr data-ot="${ot.id}">
       <td class="mkc">${mks.length ? `<div class="mkbox"><img src="${mks[0]}" alt="Mockup" data-zoom>${mks.length > 1 ? `<span>+${mks.length-1}</span>` : ""}</div>` : `<span class="muted">—</span>`}</td>
-      <td class="tk"><b>${esc(v.cliente.nombre)}</b><div class="muted">${v.folio} · ${TECNICAS[ot.tecnica]} · ${pz} pzs${v.trabajo ? " · " + esc(v.trabajo) : ""}</div>${ot.updates.length ? `<span class="upd">💬 ${ot.updates.length}</span>` : ""}</td>
+      <td class="tk"><b>${esc(v.cliente.nombre)}</b><div class="muted">${v.folio} · ${TECNICAS[ot.tecnica]} · ${pz} pzs${v.trabajo ? " · " + esc(v.trabajo) : ""}</div>${serviciosDe(v).map(k => `<span class="upd" style="background:#FFF1E8;color:#B4400F">${SERV_TXT[k]}</span>`).join(" ")}${v.origen === "mostrador" ? ` <span class="upd">🏪 Mostrador</span>` : ""}</td>
+      <td class="bub"><button class="bubble" data-det="${ot.id}" title="Datos del cliente, lo que pidió y el mockup">💬${ot.updates.length ? `<i>${ot.updates.length}</i>` : ""}</button></td>
       <td class="respc"><div class="respbox">${avatar(ot.responsable, 30)}<span>${esc(ot.responsable ? ot.responsable.split(" ")[0] : "Asignar")}</span></div><select class="cell respsel" data-resp="${ot.id}" title="Asignar responsable"><option value="">— Sin asignar —</option>${["Diseño","otros"].map(gr => { const l = usuarios.filter(u => gr === "Diseño" ? u.rol === "Diseño" : u.rol !== "Diseño"); return l.length ? `<optgroup label="${gr === "Diseño" ? "Diseñadores" : "Otros"}">${l.map(u => `<option${u.nombre === ot.responsable ? " selected" : ""}>${esc(u.nombre)}</option>`).join("")}</optgroup>` : ""; }).join("")}</select></td>
       <td class="pc"><select class="cell pillsel" data-est="${ot.id}" style="background:${(OT_ESTADOS.find(s=>s[0]===ot.estado)||OT_ESTADOS[1])[1]};color:${(OT_ESTADOS.find(s=>s[0]===ot.estado)||OT_ESTADOS[1])[2]}">${OT_ESTADOS.map(s => `<option${s[0] === ot.estado ? " selected" : ""}>${s[0]}</option>`).join("")}</select></td>
-      <td class="${h < 0 ? "venc" : h <= 2 ? "cerca" : ""}">${VT.fecha(v.entregaMax)}<div class="muted">${h < 0 ? `Vencido hace ${-h} d` : h === 0 ? "Hoy" : `${h} días háb.`}</div></td>
-      <td><div class="crono"><i style="width:${pct}%"></i><span>${new Date(ot.inicio).toLocaleDateString("es-MX",{day:"numeric",month:"short"})} – ${new Date(v.entregaMax).toLocaleDateString("es-MX",{day:"numeric",month:"short"})}</span></div></td>
+      <td class="${yaPaso ? "" : hd < 0 ? "venc" : hd <= 1 ? "cerca" : ""}">${yaPaso ? `<span style="color:var(--ok);font-weight:700">✓ Diseño enviado</span>` : `${VT.fecha(dv)}<div class="muted">${hd < 0 ? `Vencido hace ${-hd} d` : hd === 0 ? "Vence hoy" : `${hd} días háb.`}</div>`}</td>
+      <td><div class="crono" title="Entró el ${VT.fecha(ot.inicio)} · se entrega a más tardar el ${VT.fecha(v.entregaMax)}"><i style="width:${pct}%"></i><span>${new Date(ot.inicio).toLocaleDateString("es-MX",{day:"numeric",month:"short"})} → ${new Date(v.entregaMax).toLocaleDateString("es-MX",{day:"numeric",month:"short"})}</span></div></td>
       <td class="pc"><select class="cell pillsel" data-pri="${ot.id}" style="background:${(PRIORIDADES.find(s=>s[0]===prio)||PRIORIDADES[0])[1]};color:#fff">${PRIORIDADES.map(s => `<option${s[0] === prio ? " selected" : ""}>${s[0]}</option>`).join("")}</select></td>
-      <td>${arch.length ? `<div class="thumbs">${arch.slice(0,3).map(s => `<img src="${s}" alt="">`).join("")}${arch.length > 3 ? `<b>+${arch.length-3}</b>` : ""}</div>` : `<span class="muted">—</span>`}</td>
+      <td><button class="archbtn" data-arch="${ot.id}" title="Archivos para trabajar e imprimir">${arch.length ? `<div class="thumbs">${arch.slice(0,3).map(s => `<img src="${s}" alt="">`).join("")}${arch.length > 3 ? `<b>+${arch.length-3}</b>` : ""}</div>` : `<span class="muted">📁 Archivos</span>`}</button></td>
+      <td><button class="btn wa sm" data-wa="${ot.id}" title="${esc(mensajeEstado(v, ot).split("\n")[0])}">WhatsApp</button></td>
       ${mon ? `<td>${badge(k.pago.t, k.pago.c)}<div class="muted">${[...new Set(v.pagos.filter(p=>p.estado==="validado").map(p=>p.forma))].join(", ")}</div></td>` : ""}
     </tr>`;
   };
@@ -979,7 +1010,7 @@ function pProduccion(){
       <input id="pq" placeholder="Buscar cliente, folio o teléfono" value="${esc(pQ)}" style="width:260px">${tab === "dtf" ? `<button class="btn pri sm" id="lzVar">🧾 Lienzo con varias órdenes</button>` : ""}</div></div>
     <div class="tabs">${TABLEROS.map(([k,t,f]) => `<button class="${k===tab?"on":""}" data-pt="${k}">${t}<span class="n">${filas.filter(x=>f(x.ot)).length}</span></button>`).join("")}</div>
     ${grupos.length ? grupos.map(([s, g]) => `<div class="card board"><h3 class="gtitle">ENTRADA DE ÓRDENES · ${suc(s).toUpperCase()}</h3>
-      <div class="tscroll"><table class="t prod"><thead><tr><th>Mockup</th><th>Cliente / pedido</th><th>Responsable</th><th>Estado</th><th>Vencimiento</th><th>Cronograma</th><th>Prioridad</th><th>Archivos</th>${mon?"<th>Pago</th>":""}</tr></thead>
+      <div class="tscroll"><table class="t prod"><thead><tr><th>Mockup</th><th>Cliente / pedido</th><th title="Datos del pedido">Detalle</th><th>Responsable</th><th>Estado</th><th title="Fecha límite para mandar el diseño a producción">Diseño vence</th><th title="Entrada → entrega del pedido terminado">Entrada → entrega</th><th>Prioridad</th><th>Archivos</th><th>WhatsApp</th>${mon?"<th>Pago</th>":""}</tr></thead>
       <tbody>${g.map(fila).join("")}</tbody></table></div></div>`).join("")
     : `<div class="card"><div class="empty">No hay órdenes en este tablero.<br><span class="muted">Las órdenes aparecen solas cuando se valida el anticipo o el pago de un pedido.</span></div></div>`}`;
   document.querySelectorAll("[data-pt]").forEach(b => b.onclick = () => { tab = b.dataset.pt; pProduccion(); });
@@ -989,7 +1020,10 @@ function pProduccion(){
   document.querySelectorAll("[data-est]").forEach(s => { s.onclick = e => e.stopPropagation(); s.onchange = () => cambiarOT(s.dataset.est, "estado", s.value); });
   document.querySelectorAll("[data-pri]").forEach(s => { s.onclick = e => e.stopPropagation(); s.onchange = () => cambiarOT(s.dataset.pri, "prioridad", s.value); });
   document.querySelectorAll("[data-resp]").forEach(s => { s.onclick = e => e.stopPropagation(); s.onchange = () => cambiarOT(s.dataset.resp, "responsable", s.value); });
-  document.querySelectorAll("tr[data-ot]").forEach(r => r.onclick = e => { if (e.target.tagName !== "SELECT" && !e.target.matches("img[data-zoom]")) abrirOT(r.dataset.ot); });
+  document.querySelectorAll("[data-det]").forEach(b => b.onclick = () => abrirOT(b.dataset.det, "detalle"));
+  document.querySelectorAll("tr[data-ot] td.tk").forEach(t => t.onclick = () => abrirOT(t.parentNode.dataset.ot, "detalle"));
+  document.querySelectorAll("[data-arch]").forEach(b => b.onclick = () => abrirOT(b.dataset.arch, "archivos"));
+  document.querySelectorAll("[data-wa]").forEach(b => b.onclick = () => { const { v, ot } = buscar(b.dataset.wa); if (v) waCliente(v, ot); });
   window._buscarOT = buscar;
 }
 function cambiarOT(id, campo, valor, abrirDespues){
@@ -1004,32 +1038,36 @@ function cambiarOT(id, campo, valor, abrirDespues){
 }
 
 /* ---------- detalle de una orden ---------- */
-function abrirOT(id){
+let otVista = "detalle";
+function abrirOT(id, vista){
+  if (vista) otVista = vista; const det = otVista === "detalle";
   DB = VT.cargar(); pProduccion();
   const { v, ot } = window._buscarOT(id); if (!ot) return;
   const its = prendas(v).filter(i => tecnicaItem(i) === ot.tecnica), mon = can("ver_montos"), k = VT.cuentas(v);
   const ord = ["XCH","CH","M","G","XL","2XL","3XL","4XL","5XL","6XL"];
-  $("#dTitle").textContent = `${v.cliente.nombre} · ${TECNICAS[ot.tecnica]}`;
+  $("#dTitle").textContent = det ? `${v.cliente.nombre} · ${TECNICAS[ot.tecnica]}` : `📁 Archivos · ${v.folio} · ${TECNICAS[ot.tecnica]}`;
   const archivos = [
     ...its.flatMap(i => (i.logos || []).map(l => ({ nombre: "Logo del cliente · " + l.nombre, src: l.src, tipo:"img" }))),
     ...its.filter(i => i.mockupTipo === "diseno" && i.mockup).map(i => ({ nombre: "Vista previa · " + i.prenda, src: i.mockup, tipo:"img" })),
     ...ot.archivos.map(a => ({ ...a, propio: true }))
   ];
-  $("#dBody").innerHTML = `
+  $("#dBody").innerHTML = det ? `
     <div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${pillEstado(ot.estado)} ${pillPrio(ot.prioridad || prioridadAuto(v))} ${badge(v.folio, "gris")} ${badge(suc(v.sucursal), "azul")}</div>
-      <div class="kv"><b>Cliente</b><span>${esc(v.cliente.nombre)}</span><b>Teléfono</b><span><a href="https://wa.me/52${v.cliente.tel}" target="_blank" rel="noopener">${v.cliente.tel}</a></span>
-      ${v.trabajo ? `<b>Trabajo</b><span>${esc(v.trabajo)}</span>` : ""}<b>Fecha de entrega</b><span>${VT.fecha(v.entregaMax)} (a más tardar)</span>
+      <div class="kv"><b>Cliente</b><span>${esc(v.cliente.nombre)}</span><b>WhatsApp</b><span><a href="https://wa.me/52${v.cliente.tel}" target="_blank" rel="noopener">${v.cliente.tel}</a></span>
+      <b>Sucursal</b><span>${suc(v.sucursal)}${v.origen === "mostrador" ? ` · levantó: ${esc(v.vendedor)} (mostrador)` : " · pedido desde la app"}</span>
+      ${v.trabajo ? `<b>Trabajo</b><span>${esc(v.trabajo)}</span>` : ""}<b>Entró</b><span>${VT.fecha(ot.inicio)}</span><b>Diseño vence</b><span>${VT.fecha(disenoVence(v, ot))}</span><b>Fecha de entrega</b><span>${VT.fecha(v.entregaMax)} (a más tardar)</span>
       <b>Responsable</b><span style="display:flex;align-items:center;gap:8px">${avatar(ot.responsable, 28)}${esc(ot.responsable || "Sin asignar")}</span>
       ${mon ? `<b>Pago</b><span>${k.pago.t} · ${[...new Set(v.pagos.filter(p=>p.estado==="validado").map(p=>p.forma))].join(", ") || "—"}${k.saldo ? ` · resta ${money(k.saldo)}` : ""}</span>` : ""}
       ${v.ponchado && v.ponchado.aplica && ot.tecnica === "bordado" ? `<b>Ponchado</b><span>${v.ponchado.logos} logo(s)${v.ponchado.ya ? " · el cliente dice que ya está ponchado" : ""}</span>` : ""}</div>
-      <div class="row2" style="margin-top:12px">
-        <select id="oEst"${can("cambiar_estado")?"":" disabled"}>${OT_ESTADOS.map(s=>`<option${s[0]===ot.estado?" selected":""}>${s[0]}</option>`).join("")}</select>
-        <select id="oPri">${PRIORIDADES.map(s=>`<option${s[0]===(ot.prioridad||prioridadAuto(v))?" selected":""}>${s[0]}</option>`).join("")}</select></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
         <button class="btn pri sm" id="oEtq">🏷 Imprimir etiquetas (${new Set(its.map(i => [i.prod || i.prenda, i.color, tecnicaItem(i)].join("|"))).size})</button>
         <button class="btn wa sm" id="oWa">WhatsApp al cliente</button>
+        <button class="btn sec sm" id="oArch">📁 Ver archivos</button>
         ${mon && can("ver_ventas") ? `<button class="btn sec sm" id="oVenta">Ver venta y nota</button>` : ""}
         ${["Administrador","Encargado","Diseño"].includes(SES.rol) && ot.tecnica === "sublimado" ? `<a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none">Ajustador de tallas ↗</a>` : ""}</div></div>
+    ${serviciosDe(v).length ? `<div class="card" style="border:2px solid #F26B21"><h3>✏️ Diseño a cargo de VITUMA</h3>
+      <p>${serviciosDe(v).map(k => k === "digitalizar" ? "<b>Digitalizar logo</b>: el cliente mandó una foto o muestra; hay que redibujarlo." : "<b>Diseñar logo</b>: crear el logotipo con lo que pidió el cliente (ver notas).").join("<br>")}</p>
+      <p class="muted" style="margin-top:6px">Sube el diseño final en cada ubicación (abajo), cambia la vista previa si hace falta y mándala al cliente para que la autorice.</p></div>` : ""}
     <div class="card"><h3>Especificaciones</h3>
       ${its.map(i => `<div class="spec">
         ${i.mockup ? `<img src="${i.mockup}" alt="Vista" data-zoom class="specimg">` : ""}
@@ -1037,19 +1075,33 @@ function abrirOT(id){
         <div class="tallas">${Object.entries(i.qty || {}).sort((a,b)=>ord.indexOf(a[0])-ord.indexOf(b[0])).map(([t,n])=>`<span><b>${t}</b>${n}</span>`).join("")}<span class="tot"><b>Total</b>${i.cant}</span></div>
         <div style="margin-top:6px"><b>Personalización:</b> ${esc(i.personalizacion || (TECNICAS[tecnicaItem(i)]))}</div>
         ${(i.zonas || []).length && !(i.personalizacion||"").includes(i.zonas[0]) ? `<div class="muted">Ubicaciones: ${i.zonas.map(esc).join(" · ")}</div>` : ""}
-        ${i.notas ? `<div style="margin-top:4px">📝 ${esc(i.notas)}</div>` : ""}</div></div>`).join("")}
+        ${i.contacto ? `<div style="margin-top:4px"><b>Datos de contacto en la espalda:</b> ${i.contacto.lineas.map(l => `${esc(l.red)}: ${esc(l.texto)}`).join(" · ")} <span class="muted">(letra ${esc(i.contacto.letra || "Montserrat")}, color ${esc(i.contacto.color || "automático")})</span></div>` : ""}
+        ${i.notas ? `<div style="margin-top:4px">📝 ${esc(i.notas)}</div>` : ""}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          ${i.mockup ? `<a class="btn sec sm" href="${i.mockup}" download="${v.folio}_vista_previa_${(i.color||"").replace(/\s+/g,"")}.jpg" style="text-decoration:none">⬇ Vista previa</a>` : ""}
+          <label class="btn sec sm" style="cursor:pointer">⬆ Cambiar vista previa<input type="file" accept="image/*" hidden data-mk="${its.indexOf(i)}"></label></div></div></div>`).join("")}
+      <button class="btn wa sm" id="oAut" style="margin-top:10px">📲 Mandar vista previa al cliente para autorizar</button>
+      <div class="muted" style="font-size:12px;margin-top:4px">Se abre WhatsApp con el mensaje; adjunta ahí la imagen de la vista previa. La orden pasa a "Esperando autorización".</div>
       ${ot.tecnica === "bordado" && v.descBordado ? `<p class="muted" style="margin-top:6px">Bordado: ${esc(v.descBordado)}</p>` : ""}</div>
+    <div class="card"><h3>Actualizaciones</h3>
+      <textarea id="oMsg" placeholder="Escribe una actualización para el equipo (cambios del cliente, avances, dudas…)" style="width:100%;min-height:70px;border:1.5px solid var(--line);border-radius:9px;padding:9px;font:inherit"></textarea>
+      <button class="btn pri sm" id="oSend" style="margin-top:8px">Publicar</button>
+      <div class="list" style="margin-top:10px">${ot.updates.slice().reverse().map(u => `<div class="li" style="display:block"><span style="display:inline-flex;vertical-align:middle;margin-right:6px">${avatar(u.usuario, 24)}</span><b>${esc(u.usuario)}</b> <span class="muted">${VT.fechaHora(u.fecha)}</span><div style="white-space:pre-wrap;margin-top:3px">${esc(u.texto)}</div></div>`).join("") || `<div class="muted">Sin actualizaciones.</div>`}</div></div>` : `    <div class="card" style="padding:12px 16px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${badge(v.folio, "gris")} <b>${esc(v.cliente.nombre)}</b> · ${its.reduce((a, i) => a + i.cant, 0)} pzs ${pillEstado(ot.estado)}
+      <button class="btn sec sm" id="oDet" style="margin-left:auto">💬 Ver detalle del pedido</button></div></div>
+    ${serviciosDe(v).length && its.some(i => (i.impresion || []).some(z => !z.final)) ? `<div class="warn">✏️ Diseño a cargo de VITUMA: sube el diseño final en cada ubicación.</div>` : ""}
     ${ot.tecnica === "dtf" ? `<div class="card"><h3>🖨 Archivos para impresión DTF</h3>
       <p class="muted" style="margin-bottom:8px">PNG con fondo transparente, a la medida exacta y a 300 ppp, listo para el RIP. Uno por ubicación.</p>
       ${its.flatMap((i, ni) => (i.impresion || []).map((z, nz) => {
         const lg = (i.logos || [])[z.logo] || (i.logos || [])[0];
         const necesita = Math.round(Math.max(z.ancho, z.alto) / 2.54 * 300);
         const ppp = lg && lg.anchoOrig ? Math.round(Math.min(lg.anchoOrig / (z.ancho / 2.54), lg.altoOrig / (z.alto / 2.54))) : null;
-        const nota = !lg ? `<span style="color:#B42318">Sin logo: el cliente debe enviarlo</span>`
+        const pendiente = serviciosDe(v).length && !z.final;
+        const nota = pendiente ? `<span style="color:#B42318">Falta el diseño final (servicio de diseño de VITUMA)</span>` : !lg ? `<span style="color:#B42318">Sin logo: el cliente debe enviarlo o sube aquí el diseño final</span>`
           : (ppp && ppp < 200 ? `<span style="color:#B4400F">Resolución original ${ppp} ppp (baja): revisar o redibujar</span>` : `<span style="color:var(--ok)">Resolución suficiente</span>`)
             + (lg.cuadros ? ` · <span style="color:#B4400F">traía fondo de cuadritos falso, se quitó</span>` : lg.limpio ? " · fondo blanco quitado" : "");
         return `<div class="li" style="align-items:center"><span><b>${esc(i.prenda)} · ${esc(i.color || "")} · ${esc(z.zona)}</b><div class="muted">${z.ancho} × ${z.alto} cm · ${necesita} px · ${i.cant * (z.piezasPorPrenda || 1)} impresiones</div><div class="muted">${nota}</div></span>
-          ${lg ? `<button class="btn pri sm" data-imp="${ni}|${nz}">⬇ PNG para imprimir</button>` : ""}</div>`;
+          <span style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">${lg ? `<button class="btn pri sm" data-imp="${ni}|${nz}">⬇ PNG para imprimir</button>` : ""}
+          <label class="btn sec sm" style="cursor:pointer">${z.final ? "✅ Diseño final · cambiar" : "⬆ Subir diseño final"}<input type="file" accept="image/png,image/jpeg" hidden data-fin="${ni}|${nz}"></label></span></div>`;
       })).join("") || `<div class="muted">Este pedido no tiene ubicaciones DTF registradas.</div>`}</div>
     <div class="card"><h3>🧾 Lienzo para la mesa de ${MESA_CM} cm</h3>
       <p class="muted" style="margin-bottom:8px">Todas las piezas del pedido acomodadas en ${MESA_CM} cm de ancho, ya con la cantidad de impresiones. PNG para revisar en la mesa de trabajo y TIFF para el RIP igual al de Photoshop: CMYK, en espejo, con transparencia y canal de tinta plana para el blanco, a 300 ppp.</p>
@@ -1059,19 +1111,16 @@ function abrirOT(id){
         <span>${esc(a.nombre)}</span><a href="${a.src}" download="${esc((a.nombre || "archivo").replace(/[^\w.-]+/g,"_"))}${a.tipo==="img"?(a.src.startsWith("data:image/png")?".png":".jpg"):".pdf"}">Descargar</a>
         ${a.propio ? `<button class="linkdel" data-del="${a.id}">Quitar</button>` : ""}</div>`).join("") || `<div class="muted">El cliente aún no envía su logo.</div>`}</div>
       <label class="btn sec sm" style="display:inline-block;margin-top:10px;cursor:pointer">＋ Subir archivo (imagen o PDF)<input type="file" id="oFile" accept="image/*,application/pdf" hidden multiple></label></div>
-    <div class="card"><h3>Actualizaciones</h3>
-      <textarea id="oMsg" placeholder="Escribe una actualización para el equipo (cambios del cliente, avances, dudas…)" style="width:100%;min-height:70px;border:1.5px solid var(--line);border-radius:9px;padding:9px;font:inherit"></textarea>
-      <button class="btn pri sm" id="oSend" style="margin-top:8px">Publicar</button>
-      <div class="list" style="margin-top:10px">${ot.updates.slice().reverse().map(u => `<div class="li" style="display:block"><span style="display:inline-flex;vertical-align:middle;margin-right:6px">${avatar(u.usuario, 24)}</span><b>${esc(u.usuario)}</b> <span class="muted">${VT.fechaHora(u.fecha)}</span><div style="white-space:pre-wrap;margin-top:3px">${esc(u.texto)}</div></div>`).join("") || `<div class="muted">Sin actualizaciones.</div>`}</div></div>`;
+`;
   abrir();
   if ($("#lzOT")) { const pz = piezasDTF(v, its); if (pz.length) panelLienzo($("#lzOT"), pz, v.folio); else $("#lzOT").innerHTML = `<div class="muted">Sin ubicaciones DTF registradas.</div>`; }
-  $("#oEst").onchange = e => cambiarOT(id, "estado", e.target.value, true);
-  $("#oPri").onchange = e => cambiarOT(id, "prioridad", e.target.value, true);
-  $("#oEtq").onclick = () => imprimirEtiquetas(v, its);
-  $("#oWa").onclick = () => window.open(`https://api.whatsapp.com/send?phone=52${v.cliente.tel}&text=${encodeURIComponent(`Hola ${v.cliente.nombre.split(" ")[0]}, te escribimos de VITUMA por tu pedido ${v.folio}. `)}`, "_blank");
+  if ($("#oEtq")) $("#oEtq").onclick = () => imprimirEtiquetas(v, its);
+  if ($("#oWa")) $("#oWa").onclick = () => waCliente(v, ot);
+  if ($("#oArch")) $("#oArch").onclick = () => abrirOT(id, "archivos");
+  if ($("#oDet")) $("#oDet").onclick = () => abrirOT(id, "detalle");
   if ($("#oVenta")) $("#oVenta").onclick = () => abrirVenta(v.folio);
-  $("#oSend").onclick = () => { const t = $("#oMsg").value.trim(); if (!t) return; ot.updates.push({ fecha:new Date().toISOString(), usuario:SES.nombre, texto:t }); save(); toast("Publicado"); abrirOT(id); };
-  $("#oFile").onchange = async e => {
+  if ($("#oSend")) $("#oSend").onclick = () => { const t = $("#oMsg").value.trim(); if (!t) return; ot.updates.push({ fecha:new Date().toISOString(), usuario:SES.nombre, texto:t }); save(); toast("Publicado"); abrirOT(id); };
+  if ($("#oFile")) $("#oFile").onchange = async e => {
     for (const f of e.target.files){
       if (f.type === "application/pdf" && f.size > 1.5e6){ toast(`${f.name}: el PDF es muy pesado para la muestra`, true); continue; }
       try { const r = await VT.reducirImagen(f, 1600); ot.archivos.push({ id:"A"+Date.now()+Math.random().toString(36).slice(2,5), nombre:f.name, src:r.src, tipo:r.tipo, usuario:SES.nombre, fecha:new Date().toISOString() }); } catch(x){}
@@ -1084,9 +1133,42 @@ function abrirOT(id){
     archivoImpresion((i.logos || [])[z.logo] || i.logos[0], z.ancho, z.alto,
       `${v.folio}_${(i.color || "").replace(/\s+/g,"")}_${z.zona.replace(/[^\wáéíóúñ]+/gi,"-")}_${z.ancho}x${z.alto}cm_300ppp.png`);
   });
+  document.querySelectorAll("[data-fin]").forEach(inp => inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    const [ni, nz] = inp.dataset.fin.split("|").map(Number), i = its[ni], z = i.impresion[nz];
+    try {
+      const r = await pngParaGuardar(f, 1600);
+      i.logos = i.logos || []; i.logos.push({ nombre: `Diseño final · ${z.zona}`, src: r.src, final: true, anchoOrig: r.ancho, altoOrig: r.alto, usuario: SES.nombre });
+      z.logo = i.logos.length - 1; z.final = true;
+      log(v, `Orden ${TECNICAS[ot.tecnica]}: diseño final subido`, `${i.prenda} ${i.color || ""} · ${z.zona}`);
+      if (!VT.guardar(DB)) { i.logos.pop(); z.final = false; return toast("No hay espacio en esta muestra para guardar la imagen", true); }
+      toast("Diseño final guardado"); abrirOT(id);
+    } catch(e){ toast("No se pudo leer la imagen", true); }
+  });
+  document.querySelectorAll("[data-mk]").forEach(inp => inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return; const i = its[+inp.dataset.mk];
+    try { const r = await VT.reducirImagen(f, 1400); const antes = i.mockup; i.mockup = r.src; i.mockupTipo = "diseno";
+      log(v, `Orden ${TECNICAS[ot.tecnica]}: vista previa actualizada`, `${i.prenda} ${i.color || ""}`);
+      if (!VT.guardar(DB)) { i.mockup = antes; return toast("No hay espacio en esta muestra para guardar la imagen", true); }
+      toast("Vista previa actualizada"); abrirOT(id); } catch(e){ toast("No se pudo leer la imagen", true); }
+  });
+  if ($("#oAut")) $("#oAut").onclick = () => {
+    const m = `Hola ${v.cliente.nombre.split(" ")[0]}, te escribimos de VITUMA. Te compartimos la vista previa de tu pedido ${v.folio} para que la revises.\n\nSi todo está bien, respóndenos "AUTORIZO" para pasarlo a producción. Si quieres algún cambio, dinos cuál.`;
+    window.open(`https://api.whatsapp.com/send?phone=52${v.cliente.tel}&text=${encodeURIComponent(m)}`, "_blank");
+    if (ot.estado !== "Esperando autorización" && can("cambiar_estado")) cambiarOT(id, "estado", "Esperando autorización", true);
+  };
   document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { ot.archivos = ot.archivos.filter(a => a.id !== b.dataset.del); save(); abrirOT(id); });
 }
 
+/* guarda una imagen conservando la transparencia (PNG), reducida para la muestra */
+function pngParaGuardar(file, max){
+  return new Promise((ok, no) => { const fr = new FileReader(); fr.onerror = no;
+    fr.onload = () => { const im = new Image(); im.onerror = no; im.onload = () => {
+      const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      ok({ src: c.toDataURL(file.type === "image/jpeg" ? "image/jpeg" : "image/png", .92), ancho: im.width, alto: im.height }); }; im.src = fr.result; };
+    fr.readAsDataURL(file); });
+}
 /* ---------- archivo de impresión DTF: PNG transparente a la medida exacta, 300 ppp ---------- */
 const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
