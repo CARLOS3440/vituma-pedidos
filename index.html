@@ -327,14 +327,18 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
       </div>
 
       <div class="card">
-        <h3>3. Sube tu diseño</h3>
+        <h3>3. Tu logotipo</h3>
+        <span class="label">¿Ya cuentas con tu logotipo?</span>
+        <div class="seg" id="dzTiene" style="margin-bottom:10px"></div>
+        <div id="dzNoLogo"></div>
+        <span class="label" id="dzSubeTit" style="display:block;margin-top:12px"></span>
         <label class="upload" id="dzUp" for="dzFile"></label>
         <input type="file" id="dzFile" accept="image/jpeg,image/png" hidden>
         <div id="dzUpInfo"></div>
         <div id="dzServ"></div>
         <details class="ia" id="dzIA">
           <summary>Crea o redibuja tu logo con inteligencia artificial (gratis)</summary>
-          <p class="muted" style="margin-top:8px">Usa la IA de tu preferencia (Gemini o ChatGPT). Escribe qué quieres que lleve y te damos las instrucciones técnicas para que salga listo para tu camisa. Después descárgala en <b>PNG</b> (para DTF, con fondo transparente) y súbela aquí arriba.</p>
+          <p class="muted" style="margin-top:8px">Usa la IA de tu preferencia (Gemini o ChatGPT). Escribe qué quieres que lleve y te damos las instrucciones técnicas para que salga listo para tu camisa. Después descárgala en <b>PNG</b> (para DTF, con fondo transparente) y súbela en "Sube tu logotipo".</p>
           <div class="seg iamodo" id="iaModo"></div>
           <div class="mini" id="iaPaso" style="margin-bottom:6px"></div>
           <textarea id="iaTxt" placeholder="Ej. Logo para 'Taller El Güero': una llave inglesa y un engrane, letras en azul y naranja."></textarea>
@@ -1514,7 +1518,7 @@ const DZ = { prod:null, modelo:null, color:null, tecnica:"dtf", qty:{}, zonas:{}
 
 /* ---------- servicios de diseño de logotipo (el diseño de la camisa no tiene costo) ---------- */
 const SERVICIOS = {
-  digitalizar: { t:"Digitalización de logotipo", precio:150, det:"Un diseñador de VITUMA digitaliza tu logo a partir de una foto o muestra" },
+  digitalizar: { t:"Digitalización de logotipo", precio:99, det:"Un diseñador de VITUMA digitaliza tu logo a partir de una foto o muestra" },
   logo:        { t:"Diseño de logotipo", precio:250, det:"Un diseñador de VITUMA realiza tu logo" }
 };
 /* se cobra una vez por pedido, aunque el logo se use en varias prendas */
@@ -1913,7 +1917,7 @@ function itemDiseno(){
   const qty = {}; Object.entries(DZ.qty).forEach(([t,c]) => { if (c) qty[t] = c; });
   const adjunto = Object.keys(DISENOS).length > 0;
   const texto = "🎨 Diseño propio · " + (zs.length ? zs.map(z => z.texto).join("; ") : "ubicación por definir") + (adjunto ? " · 📎 diseño por adjuntar" : "");
-  return { id: Date.now(), prod:p.id, modelo:DZ.modelo, color:DZ.color, qty, per:null, notas:$("#dzNotas").value.trim(),
+  return { id: Date.now(), prod:p.id, modelo:DZ.modelo, color:DZ.color, qty, per:null, notas: [DZ.servicio === "logo" && DZ.logoDesc ? "Logo deseado: " + DZ.logoDesc.trim() : "", $("#dzNotas").value.trim()].filter(Boolean).join(" · "),
            diseno:{ tecnica:DZ.tecnica, costoPieza: zs.reduce((a,z)=>a+z.precio,0), texto: texto + (SERVICIOS[DZ.servicio] ? " · ✏️ " + SERVICIOS[DZ.servicio].t + " (VITUMA)" : ""), adjunto: adjunto && DZ.servicio === "ninguno", servicio: DZ.servicio } };
 }
 
@@ -1975,18 +1979,33 @@ function dzRender(){
   const avisoCuad = d && d.cuadros ? `<div class="warn" style="margin-top:8px">Tu imagen traía un <b>fondo de cuadritos dibujado</b> (no es transparente de verdad). Ya se lo quitamos para la vista previa; para imprimir, VITUMA puede pedirte el archivo con fondo transparente real.</div>` : "";
   const avisoPlay = d && d.cubre > .55 ? `<div class="warn" style="margin-top:8px">¿Tu imagen trae una <b>playera dibujada</b> alrededor del diseño? Si es así, sube <b>solo el diseño</b>, sin la prenda, o se imprimiría también la silueta de la playera.</div>` : "";
   const avisoRes = d && DZ.tecnica === "dtf" && d.anchoOrig && d.anchoOrig < 1500 ? `<div class="warn" style="margin-top:8px">Tu imagen mide ${d.anchoOrig} × ${d.altoOrig} px, una resolución baja que puede verse pixelada al imprimir. Lo ideal para DTF es de 2000 px o más por lado.</div>` : "";
-  const avisoFoto = d && d.foto && DZ.servicio === "ninguno" ? `<div class="warn" style="margin-top:8px"><b>Tu imagen no tiene un fondo liso.</b> Si es una <b>foto de tu logo</b> (tomada con el celular, con sombras, textura o chueca), no se puede imprimir así. Tienes dos opciones:
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn ghost" data-iafoto style="padding:7px 12px;font-size:13px">Redibujarlo con IA (gratis)</button><button class="btn ghost" data-servset="digitalizar" style="padding:7px 12px;font-size:13px">Deseo que un diseñador digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}</button></div></div>` : "";
+  const avisoFoto = d && d.foto && DZ.servicio === "ninguno" ? `<div class="warn" style="margin-top:8px"><b>Tu imagen no tiene un fondo liso.</b> Si es una <b>foto de tu logo</b> (tomada con el celular, con sombras, textura o chueca), no se puede imprimir así.
+      <br>Abajo puedes mejorarlo con IA gratis o pedir que un diseñador de VITUMA lo digitalice.</div>` : "";
   $("#dzUpInfo").innerHTML = avisoFoto + avisoPlay + avisoCuad + (avisoFoto ? "" : avisoPng) + avisoRes + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
   if ($("#dzBg")) $("#dzBg").onchange = e => { d.quitarFondo = e.target.checked; dzRender(); };
-  $("#dzServ").innerHTML = `<div class="servbox"><span class="label">¿Tu logo está listo para imprimir?</span>
-    ${[["ninguno","Sí, mi logo está listo", "Súbelo arriba en buena resolución."],
-       ["digitalizar", `Deseo que un diseñador digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`, "Ya tengo logo pero en foto o muestra. Súbela arriba como referencia y el diseñador lo deja listo para imprimir."],
-       ["logo", `Deseo que un diseñador realice mi logo · ${money(SERVICIOS.logo.precio)}`, "No tengo logo. Escribe en las notas qué quieres que lleve (nombre, colores, ideas)."]]
-      .map(([k, t, x]) => `<label class="chk servop${DZ.servicio===k?" on":""}"><input type="radio" name="dzServ" value="${k}"${DZ.servicio===k?" checked":""}><span><b>${t}</b><br><span class="muted">${x}</span></span></label>`).join("")}
-    <p class="mini" style="margin-top:6px">El diseño y acomodo de tu camisa no tiene costo. Si tienes una foto de tu logo también puedes <button class="linkbtn" data-iafoto>redibujarlo gratis con IA</button>.</p></div>`;
+  /* ¿ya cuenta con logotipo? Sí: lo sube (y si no tiene buena calidad, IA o digitalización). No: lo crea con IA o lo pide a un diseñador */
+  if (!DZ.tiene) DZ.tiene = "si";
+  const no = DZ.tiene === "no";
+  $("#dzTiene").innerHTML = [["si","Sí, ya lo tengo"],["no","No, aún no tengo"]].map(([v, t]) => `<button class="${DZ.tiene===v?"on":""}" data-tl="${v}">${t}</button>`).join("");
+  document.querySelectorAll("[data-tl]").forEach(b => b.onclick = () => { DZ.tiene = b.dataset.tl;
+    if (DZ.tiene === "no"){ if (DZ.servicio === "digitalizar") DZ.servicio = "ninguno"; IA_MODO = "nuevo"; iaModoPintar(); $("#dzIA").open = true; }
+    else if (DZ.servicio === "logo") DZ.servicio = "ninguno";
+    dzRender(); });
+  $("#dzNoLogo").innerHTML = no ? `<div class="note">✨ <b>Créalo con ayuda de la IA de tu preferencia.</b> Escribe cómo lo deseas, genera las instrucciones, cópialas y pégalas en Gemini o ChatGPT. Cuando te dé tu logo, descárgalo y súbelo aquí abajo.</div>` : "";
+  if (no) $("#dzSubeTit").before($("#dzIA")); else $("#dzServ").after($("#dzIA"));
+  $("#dzSubeTit").textContent = no ? "Sube el logo que te hizo la IA" : "Sube tu logotipo";
+  const chk = (id, on, titulo, sub) => `<label class="chk servop${on?" on":""}" style="margin-top:10px"><input type="checkbox" id="${id}"${on?" checked":""}><span><b>${titulo}</b>${sub ? `<br><span class="muted">${sub}</span>` : ""}</span></label>`;
+  $("#dzServ").innerHTML = no
+    ? chk("dzSrvLogo", DZ.servicio === "logo", `¿Deseas que un diseñador de VITUMA realice el diseño de tu logo? · ${money(SERVICIOS.logo.precio)}`, "Si lo activas, describe cómo deseas tu logo.")
+      + (DZ.servicio === "logo" ? `<textarea id="dzLogoDesc" style="margin-top:8px" placeholder="Describe tu logo: nombre del negocio o equipo, colores, estilo, dibujos o ideas que quieres que lleve…">${VT.esc(DZ.logoDesc || "")}</textarea>` : "")
+    : (d ? `<div class="servbox"><span class="label">¿Tu logo no tiene buena calidad?</span>
+        <div class="muted" style="font-size:13px">Si es una foto, se ve borroso o pixeleado, la IA te ayuda a redibujarlo gratis: copia las instrucciones y pégalas en Gemini o ChatGPT junto con tu logo. Después sube aquí el que te dé.</div>
+        <button class="btn ghost" data-iafoto style="padding:8px 12px;font-size:13px;justify-self:start">🤖 Mejorar mi logo con IA (gratis)</button>
+        ${chk("dzSrvDig", DZ.servicio === "digitalizar", `Si no queda como lo deseas: que un diseñador de VITUMA digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`, "El diseñador lo redibuja a partir del logo que subiste y lo deja listo para imprimir.")}</div>` : "");
   const activarZona = () => { if (DZ.servicio !== "ninguno" && !Object.values(DZ.zonas).some(z => z.on)){ const z0 = zonasActuales().find(z => !z.bloqueada); if (z0) estadoZona(z0).on = true; } };
-  document.querySelectorAll("[name=dzServ]").forEach(r => r.onchange = () => { DZ.servicio = r.value; activarZona(); dzRender(); });
+  if ($("#dzSrvLogo")) $("#dzSrvLogo").onchange = e => { DZ.servicio = e.target.checked ? "logo" : "ninguno"; activarZona(); dzRender(); if (e.target.checked) setTimeout(() => $("#dzLogoDesc") && $("#dzLogoDesc").focus(), 50); };
+  if ($("#dzSrvDig")) $("#dzSrvDig").onchange = e => { DZ.servicio = e.target.checked ? "digitalizar" : "ninguno"; activarZona(); dzRender(); };
+  if ($("#dzLogoDesc")) $("#dzLogoDesc").oninput = e => { DZ.logoDesc = e.target.value; dzPrecio(p); };
   document.querySelectorAll("[data-servset]").forEach(b => b.onclick = () => { DZ.servicio = b.dataset.servset; activarZona(); dzRender(); });
   document.querySelectorAll("[data-iafoto]").forEach(b => b.onclick = () => { IA_MODO = "foto"; iaModoPintar(); const det = $("#dzIA"); det.open = true; det.scrollIntoView({behavior:"smooth", block:"start"}); });
 
@@ -2147,12 +2166,14 @@ function dzPrecio(p){
   $("#dzRes").innerHTML = h;
   const avisos = [];
   if (conf) avisos.push("El precio de esta playera te lo confirmamos por WhatsApp; el total mostrado solo incluye el estampado.");
-  if (!DISENOS.main && DZ.servicio === "ninguno") avisos.push("Aún no subes tu diseño. Puedes enviarlo después por WhatsApp.");
+  if (!DISENOS.main && DZ.servicio === "ninguno") avisos.push(DZ.tiene === "no" ? "Aún no subes el logo que te hizo la IA. También puedes pedir que un diseñador de VITUMA lo haga." : "Aún no subes tu logo. Puedes enviarlo después por WhatsApp.");
   if (SERVICIOS[DZ.servicio]) avisos.push(`✏️ ${SERVICIOS[DZ.servicio].t}: ${money(SERVICIOS[DZ.servicio].precio)}, se cobra una sola vez por pedido. El diseñador te manda la vista previa para que la autorices.`);
   if (DZ.tecnica === "bordado" && zs.some(z => { const a = DISENOS[z.st.diseno] && analisisDe(z.st.diseno, lateral(z.st) && z.z.cmLado ? z.z.cmLado : z.z.cm); return a && a.nivel === "rojo"; }))
     avisos.push("Uno de tus logos no se recomienda para bordado. Considera estampado DTF.");
   $("#dzWarn").innerHTML = avisos.map(a => `<div class="warn">${a}</div>`).join("");
-  $("#dzAdd").disabled = !n || !zs.length;
+  const faltaDesc = DZ.servicio === "logo" && !(DZ.logoDesc || "").trim();
+  if (faltaDesc) $("#dzWarn").insertAdjacentHTML("beforeend", `<div class="warn">Describe cómo deseas tu logo (en el paso 3).</div>`);
+  $("#dzAdd").disabled = !n || !zs.length || faltaDesc;
   $("#dzWa").disabled = !n || !zs.length;
 }
 
