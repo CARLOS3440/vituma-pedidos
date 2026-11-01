@@ -137,6 +137,7 @@ table.prod td.pc{padding:5px;min-width:0}
 .bubble{color:#9AA0B4}.bubble.has{color:#579BFC}.bubble:hover{color:#1C2340}
 table.prod td.bub,table.prod th.bubth{padding:0}table.prod .bubble{padding:4px}
 table.prod .badge{font-size:10.5px;white-space:nowrap}table.prod td.cen .sub{text-align:center}
+.okbox{background:#E7F7EE;color:#067647;border-radius:10px;padding:10px 12px;font-weight:600}
 .bubble{position:relative;border:0;background:none;font-size:22px;cursor:pointer;padding:4px 6px;border-radius:8px}.bubble:hover{background:#EEF1F7}
 .bubble i{position:absolute;right:-2px;bottom:0;background:#579BFC;color:#fff;font-style:normal;font-size:10px;font-weight:800;border-radius:9px;padding:1px 5px}
 .archbtn{border:0;background:none;cursor:pointer;padding:4px;border-radius:8px}.archbtn:hover{background:#EEF1F7}
@@ -536,6 +537,7 @@ function pVentas(){
     <div class="top"><h1 class="t">Ventas</h1><div style="display:flex;gap:8px;flex-wrap:wrap">
       ${SES.rol === "Administrador" ? `<button class="btn sec" id="seed">Cargar ventas de ejemplo</button>` : ""}
       ${mon ? `<button class="btn sec" id="xls">⬇ Descargar ventas</button>` : ""}
+      <button class="btn sec" id="btnEntregaV">📦 Entregar pedido</button>
       <a class="btn pri" href="./?mostrador=${SES.id}" target="_blank" style="text-decoration:none" title="Abre la app en modo mostrador: la venta queda a tu nombre">＋ Nueva venta</a></div></div>
     <div class="card">
       <div class="filters"><input id="q" placeholder="Buscar por folio, cliente, trabajo, prenda o vendedor" value="${esc(vQ)}">${selSuc("fs", vSuc, "Todas las sucursales")}</div>
@@ -554,6 +556,7 @@ function pVentas(){
   document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { vTab = b.dataset.t; pVentas(); });
   document.querySelectorAll("tr[data-f]").forEach(r => r.onclick = () => abrirVenta(r.dataset.f));
   if ($("#xls")) $("#xls").onclick = () => excelVentas(lista, "Ventas");
+  if ($("#btnEntregaV")) $("#btnEntregaV").onclick = () => abrirEntrega("");
   if ($("#seed")) $("#seed").onclick = () => { sembrar(); ir("ventas"); toast("Ventas de ejemplo cargadas"); };
 }
 
@@ -588,7 +591,9 @@ function abrirVenta(folio){
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
         ${mon ? `<button class="btn sec sm" id="verNota">🧾 Ver nota</button><button class="btn sec sm" id="pdfNota">⬇ PDF</button>` : ""}
         <button class="btn wa sm" id="waCli">WhatsApp al cliente</button>
-        ${can("produccion") && v.estado !== "cotizacion" && v.estado !== "cancelada" ? `<button class="btn sec sm" id="etqVenta">🏷 Etiquetas</button>` : ""}
+        ${mon ? `<button class="btn sec sm" id="tkVenta">🧾 Imprimir ticket</button>` : ""}
+        ${can("produccion") && v.estado !== "cotizacion" && v.estado !== "cancelada" ? `<button class="btn sec sm" id="etqVenta">🏷 Imprimir etiquetas</button>` : ""}
+        ${v.estado !== "entregado" && v.estado !== "cancelada" && v.estado !== "cotizacion" ? `<button class="btn sec sm" id="entVenta">📦 Entregar</button>` : ""}
         ${can("modificar_ventas") && !cancel ? `<button class="btn sec sm" id="modBtn">✏️ Modificar venta</button>` : ""}
         ${can("cancelar_ventas") && !cancel && v.estado !== "entregado" ? `<button class="btn no sm" id="canBtn">Cancelar venta</button>` : ""}
         ${["Administrador","Encargado","Diseño"].includes(SES.rol) && ["diseno","autorizacion"].includes(v.estado) ? `<a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none">Ajustador de tallas ↗</a>` : ""}</div></div>
@@ -597,7 +602,7 @@ function abrirVenta(folio){
     ${mon ? `<div class="card"><h3>Pagos</h3>${pagos}
       ${k.saldo > 0 && !cancel && can("registrar_pagos") ? `<h3 style="margin-top:16px">Registrar pago en mostrador</h3>
       <div class="row3"><div><label class="l">Monto</label><input id="rMonto" inputmode="decimal" placeholder="Saldo: ${money(k.saldo)}"></div>
-        <div><label class="l">Forma de pago</label><select id="rForma">${VT.FORMAS.map(f=>`<option>${f}</option>`).join("")}</select></div>
+        <div><label class="l">Forma de pago</label><select id="rForma"><option value="">— Elige —</option>${VT.FORMAS.map(f=>`<option>${f}</option>`).join("")}</select></div>
         <div><label class="l">&nbsp;</label><button class="btn pri" id="rBtn" style="width:100%">Registrar</button></div></div>
       <p class="muted" style="margin-top:6px">Para anticipos, abonos y la liquidación al recoger. Queda registrado a tu nombre.</p>` : ""}</div>` : ""}
     ${can("cambiar_estado") && !cancel ? `<div class="card"><h3>Estado del pedido</h3>
@@ -658,10 +663,13 @@ function abrirVenta(folio){
     if (monto > kk.saldo + 0.009) return toast(`El monto es mayor al saldo (${money(kk.saldo)})`, true);
     const tipo = kk.pagado <= 0 ? (monto + 0.009 < vv.anticipoReq ? "Anticipo parcial" : "Anticipo") : (monto + 0.009 >= kk.saldo ? "Liquidación" : "Abono");
     const ahora = new Date().toISOString(), forma = $("#rForma").value;
+    if (!forma) return toast("Elige la forma de pago: efectivo, transferencia, tarjeta de débito o tarjeta de crédito", true);
     if (!window.confirm(`¿Registrar ${tipo.toLowerCase()} de ${money(monto)} en ${forma.toLowerCase()} para ${folio}?\n\nSaldo después del pago: ${money(kk.saldo - monto)}`)) return;
-    vv.pagos.push({ id:"P"+Date.now(), fecha:ahora, tipo, monto, forma, estado:"validado", registro:`Mostrador (${SES.nombre})`, validadoPor:SES.nombre, validadoEl:ahora });
+    const pid = "P" + Date.now();
+    vv.pagos.push({ id:pid, fecha:ahora, tipo, monto, forma, estado:"validado", registro:`Mostrador (${SES.nombre})`, validadoPor:SES.nombre, validadoEl:ahora });
     log(vv, `${tipo} registrado`, `${money(monto)} · ${forma}`);
     trasValidar(vv); save(); toast(`${tipo} registrado`); abrirVenta(folio); refrescar();
+    if (window.confirm("¿Imprimir el ticket de este pago?")) imprimirTicket(VT.cargar().ventas.find(x => x.folio === folio), pid);
   };
   if ($("#eBtn")) $("#eBtn").onclick = () => { const vv = DB.ventas.find(x=>x.folio===folio), nuevo = $("#eSel").value; if (nuevo === vv.estado) return;
     log(vv, "Cambio de estado", `${VT.ESTADOS[vv.estado].t} → ${VT.ESTADOS[nuevo].t}`); vv.estado = nuevo; save(); toast("Estado actualizado"); abrirVenta(folio); refrescar(); };
@@ -674,6 +682,8 @@ function abrirVenta(folio){
   };
   if ($("#modBtn")) $("#modBtn").onclick = () => editarVenta(folio);
   if ($("#etqVenta")) $("#etqVenta").onclick = () => imprimirEtiquetas(v, prendas(v));
+  if ($("#tkVenta")) $("#tkVenta").onclick = () => imprimirTicket(VT.cargar().ventas.find(x => x.folio === v.folio));
+  if ($("#entVenta")) $("#entVenta").onclick = () => abrirEntrega(v.folio);
 }
 
 /* ---------- modificar venta ---------- */
@@ -1037,7 +1047,7 @@ function pProduccion(){
   };
   const grupos = Object.keys(VT.SUCURSALES).map(s => [s, vis.filter(x => x.v.sucursal === s)]).filter(g => g[1].length);
   $("#main").innerHTML = `<div class="top"><h1 class="t">Producción</h1><div style="display:flex;gap:8px;flex-wrap:wrap">
-      <input id="pq" placeholder="Buscar cliente, folio o teléfono" value="${esc(pQ)}" style="width:260px">${tab === "dtf" ? `<button class="btn pri sm" id="lzVar">🧾 Lienzo con varias órdenes</button>` : ""}</div></div>
+      <input id="pq" placeholder="Buscar cliente, folio o teléfono" value="${esc(pQ)}" style="width:260px"><button class="btn pri sm" id="btnEntrega">📦 Entregar pedido</button>${tab === "dtf" ? `<button class="btn pri sm" id="lzVar">🧾 Lienzo con varias órdenes</button>` : ""}</div></div>
     <div class="tabs">${TABLEROS.map(([k,t,f]) => `<button class="${k===tab?"on":""}" data-pt="${k}">${t}<span class="n">${filas.filter(x=>f(x.ot)).length}</span></button>`).join("")}</div>
     ${grupos.length ? grupos.map(([s, g]) => `<div class="card board"><h3 class="gtitle">${TABLEROS.find(t => t[0] === tab)[1]} · ${suc(s)} <span>${g.length} ${g.length === 1 ? "orden" : "órdenes"}</span></h3>
       <div class="tscroll"><table class="t prod"><colgroup><col style="width:78px"><col style="width:205px"><col style="width:44px"><col style="width:140px"><col style="width:172px"><col style="width:112px"><col style="width:140px"><col style="width:100px"><col style="width:80px"><col style="width:76px">${mon ? `<col style="width:150px">` : ""}</colgroup>
@@ -1046,6 +1056,7 @@ function pProduccion(){
     : `<div class="card"><div class="empty">No hay órdenes en este tablero.<br><span class="muted">Las órdenes aparecen solas cuando se valida el anticipo o el pago de un pedido.</span></div></div>`}`;
   document.querySelectorAll("[data-pt]").forEach(b => b.onclick = () => { tab = b.dataset.pt; pProduccion(); });
   if ($("#lzVar")) $("#lzVar").onclick = abrirLienzoVarias;
+  $("#btnEntrega").onclick = () => abrirEntrega("");
   $("#pq").oninput = e => { pQ = e.target.value; const p = e.target.selectionStart; pProduccion(); $("#pq").focus(); $("#pq").setSelectionRange(p,p); };
   const buscar = id => { for (const v of DB.ventas) for (const ot of (v.produccion ? v.produccion.ots : [])) if (ot.id === id) return { v, ot }; return {}; };
   document.querySelectorAll("[data-est]").forEach(s => { s.onclick = e => e.stopPropagation(); s.onchange = () => cambiarOT(s.dataset.est, "estado", s.value); });
@@ -1533,6 +1544,129 @@ function abrirLienzoVarias(){
   pinta(); abrir();
 }
 
+/* ---------- código de barras Code 128 (B) del folio: lo lee cualquier lector de mostrador ---------- */
+const C128 = ["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
+function code128svg(txt, alto = 40){
+  const vals = [104, ...[...txt].map(c => c.charCodeAt(0) - 32)];
+  const chk = vals.reduce((a, v, i) => a + v * (i || 1), 0) % 103;
+  const pat = [...vals, chk, 106].map(v => C128[v]).join("");
+  let x = 10, r = "";                       // 10 módulos de margen blanco a cada lado
+  [...pat].forEach((w, i) => { w = +w; if (i % 2 === 0) r += `<rect x="${x}" y="0" width="${w}" height="${alto}"/>`; x += w; });
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${x + 10} ${alto}" preserveAspectRatio="none" shape-rendering="crispEdges" fill="#000">${r}</svg>`;
+}
+
+/* ---------- ticket de venta para impresora térmica de 7.8 cm ---------- */
+function imprimirTicket(v, pagoId){
+  const k = VT.cuentas(v), w = window.open("", "_blank");
+  if (!w){ toast("Permite las ventanas emergentes para imprimir", true); return; }
+  const pv = (v.pagos || []).filter(p => p.estado === "validado");
+  const este = pagoId ? pv.find(p => p.id === pagoId) : null;
+  const porForma = Object.entries(pv.reduce((a, p) => (a[p.forma] = (a[p.forma] || 0) + p.monto, a), {}));
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Ticket ${v.folio}</title>
+  <style>@page{size:78mm auto;margin:0}*{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;color:#000;width:78mm;padding:3mm 4mm 6mm;font-size:3.2mm;line-height:1.3}
+  .c{text-align:center}.lg{width:44mm;display:block;margin:0 auto 2mm;filter:grayscale(1) contrast(1.4)}
+  .s{border-top:.3mm dashed #000;margin:2mm 0}.r{display:flex;justify-content:space-between;gap:2mm}.b{font-weight:700}
+  .it{margin:1.2mm 0}.it small{display:block;font-size:2.8mm;color:#222}.tot{font-size:4.2mm;font-weight:700}
+  .pg{margin:1mm 0}.pg small{display:block;font-size:2.8mm}.este{border:.4mm solid #000;border-radius:1.5mm;padding:1.5mm 2mm;margin-top:2mm}
+  .bc{height:13mm;width:60mm;margin:2mm auto 1mm;display:block}.bc svg{width:100%;height:100%;display:block}.fol{font-size:5mm;font-weight:700;letter-spacing:.4mm}
+  .bar{background:#1C2340;color:#fff;padding:8px;text-align:center;font:600 13px Arial;margin:-3mm -4mm 3mm}.bar button{margin-left:8px;padding:6px 12px;border:0;border-radius:6px;background:#EE5A24;color:#fff;font-weight:700}
+  @media print{.bar{display:none}}</style></head><body>
+  <div class="bar">Ticket ${v.folio} · 7.8 cm<button onclick="print()">Imprimir</button></div>
+  <img class="lg" src="${VT_LOGO_COLOR}" alt="VITUMA">
+  <div class="c b">VITUMA · Sucursal ${VT.SUCURSALES[v.sucursal].nombre}</div>
+  <div class="c">${esc(VT.SUCURSALES[v.sucursal].direccion || "")}</div>
+  <div class="c">WhatsApp 669 161 6789</div>
+  <div class="s"></div>
+  <div class="c fol">${v.folio}</div>
+  <div class="r"><span>Fecha</span><span>${VT.fechaHora(v.fecha)}</span></div>
+  <div class="r"><span>Atendió</span><span>${esc(v.vendedor || "—")}</span></div>
+  <div class="r"><span>Cliente</span><span>${esc(v.cliente.nombre)}</span></div>
+  <div class="r"><span>Teléfono</span><span>${esc(v.cliente.tel)}</span></div>
+  <div class="s"></div>
+  ${v.items.map(i => `<div class="it"><div class="r"><span class="b">${i.cant} × ${esc(i.prenda || i.desc)}</span><span class="b">${money(i.importe)}</span></div>
+    <small>${[i.modelo, i.color, Object.entries(i.qty || {}).filter(([, n]) => n).map(([t, n]) => `${t}×${n}`).join(" ")].filter(Boolean).map(esc).join(" · ")}</small>
+    ${i.personalizacion ? `<small>${esc(i.personalizacion)}</small>` : ""}</div>`).join("")}
+  <div class="s"></div>
+  <div class="r tot"><span>TOTAL</span><span>${money(v.total)}</span></div>
+  ${este ? `<div class="este"><div class="b">ESTE PAGO</div><div class="r"><span>${esc(este.tipo)}</span><span class="b">${money(este.monto)}</span></div><div>Forma de pago: <b>${esc(este.forma)}</b></div></div>` : ""}
+  <div class="s"></div>
+  <div class="b">PAGOS</div>
+  ${pv.map(p => `<div class="pg"><div class="r"><span>${VT.fecha(p.fecha)} · ${esc(p.tipo)}</span><span>${money(p.monto)}</span></div><small>Forma de pago: ${esc(p.forma)}</small></div>`).join("") || `<div>Sin pagos registrados.</div>`}
+  ${porForma.length > 1 ? `<div class="s"></div><div class="b">Pagado por forma de pago</div>${porForma.map(([f, m]) => `<div class="r"><span>${esc(f)}</span><span>${money(m)}</span></div>`).join("")}` : ""}
+  <div class="r b" style="margin-top:1mm"><span>Total pagado</span><span>${money(k.pagado)}</span></div>
+  <div class="s"></div>
+  ${k.saldo > 0 ? `<div class="r tot"><span>SALDO PENDIENTE</span><span>${money(k.saldo)}</span></div><div class="c" style="font-size:2.8mm">Se liquida al recoger: efectivo, transferencia, tarjeta de débito o tarjeta de crédito.</div>`
+    : `<div class="c tot">✔ PAGADO EN SU TOTALIDAD</div>`}
+  <div class="s"></div>
+  <div class="c">Entrega a más tardar: <b>${VT.fecha(v.entregaMax)}</b></div>
+  <div class="bc">${code128svg(v.folio)}</div>
+  <div class="c b">${v.folio}</div>
+  <div class="s"></div>
+  <div class="c">¡Gracias por tu compra!<br>Consulta tu pedido con tu folio en<br><b>vituma-pedidos.vercel.app</b></div>
+  <script>window.onload=()=>setTimeout(()=>print(),400)<\/script></body></html>`);
+  w.document.close();
+  log(v, "Ticket impreso", ""); save();
+}
+
+/* ---------- entrega en mostrador: se escanea el código de barras de la etiqueta o del ticket ---------- */
+function abrirEntrega(folio){
+  DB = VT.cargar();
+  $("#dTitle").textContent = "📦 Entregar pedido";
+  const v = folio ? DB.ventas.find(x => x.folio === folio.trim().toUpperCase()) : null;
+  const buscador = `<div class="card"><span class="label">Escanea el código de barras de la etiqueta o escribe el folio</span>
+      <div class="row2" style="margin-top:6px"><input id="enFol" placeholder="Ej. MAZ0001" autocomplete="off" value="${folio && !v ? esc(folio) : ""}"><button class="btn pri" id="enBus">Buscar</button></div>
+      ${folio && !v ? `<div class="warn" style="margin-top:8px">No encontramos el folio <b>${esc(folio)}</b>.</div>` : ""}</div>`;
+  if (!v){ $("#dBody").innerHTML = buscador; abrir(); enEventos(); setTimeout(() => $("#enFol").focus(), 80); return; }
+  const k = VT.cuentas(v), ots = v.produccion ? v.produccion.ots : [], ya = v.estado === "entregado";
+  const listo = ots.length && ots.every(o => o.estado === "En tienda para entregar" || o.estado === "Entregado");
+  const ord = ["XCH","CH","M","G","XL","2XL","3XL","4XL","5XL","6XL"];
+  $("#dBody").innerHTML = buscador + `
+    <div class="card" style="border:2px solid ${ya ? "#037F4C" : k.saldo > 0 ? "#B42318" : "#00C875"}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h2 style="margin:0">${v.folio}</h2>${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</div>
+      <div class="kv" style="margin-top:8px"><b>Cliente</b><span>${esc(v.cliente.nombre)}</span><b>Teléfono</b><span>${esc(v.cliente.tel)}</span>${v.trabajo ? `<b>Trabajo</b><span>${esc(v.trabajo)}</span>` : ""}<b>Sucursal</b><span>${suc(v.sucursal)}</span>
+        <b>Total</b><span>${money(v.total)}</span><b>Pagado</b><span>${money(k.pagado)}</span><b>Saldo</b><span style="font-weight:800;color:${k.saldo > 0 ? "#B42318" : "#067647"}">${money(k.saldo)}</span></div>
+      ${ya ? `<div class="okbox" style="margin-top:10px">✅ Este pedido ya se entregó${v.entregadoEl ? ` el ${VT.fechaHora(v.entregadoEl)}` : ""}${v.entregadoPor ? ` (lo entregó ${esc(v.entregadoPor)})` : ""}.</div>` : ""}
+      ${!ya && k.saldo > 0 ? `<div class="warn" style="margin-top:10px">💵 <b>Cobra el saldo de ${money(k.saldo)}</b> antes de entregar.</div>` : ""}
+      ${!ya && !listo ? `<div class="warn" style="margin-top:10px">⚠️ En producción este pedido todavía no está marcado como <b>"En tienda para entregar"</b>. Revisa que esté completo.</div>` : ""}</div>
+    <div class="card"><h3>Compara con lo que se lleva el cliente</h3>
+      ${prendas(v).map(i => `<div class="spec">${i.mockup ? `<img src="${i.mockup}" alt="" data-zoom class="specimg">` : "<div></div>"}
+        <div><b>${esc(i.prenda)}</b> · ${esc(i.modelo || "")}${i.color ? " · " + esc(i.color) : ""}
+        <div class="tallas">${Object.entries(i.qty || {}).sort((a,b)=>ord.indexOf(a[0])-ord.indexOf(b[0])).map(([t,n])=>`<span><b>${t}</b>${n}</span>`).join("")}<span class="tot"><b>Total</b>${i.cant}</span></div>
+        <div class="muted" style="margin-top:4px">${esc(i.personalizacion || TECNICAS[tecnicaItem(i)] || "")}</div></div></div>`).join("")}
+      <div class="muted" style="margin-top:6px">Total de piezas: <b>${prendas(v).reduce((a, i) => a + i.cant, 0)}</b></div></div>
+    ${ya ? "" : `<div style="display:grid;gap:8px">
+      ${k.saldo > 0 && can("registrar_pagos") ? `<button class="btn sec" id="enCobrar">💵 Cobrar saldo</button>` : ""}
+      <button class="btn pri" id="enOk" style="font-size:16px;padding:14px">✅ Confirmar entrega</button></div>`}`;
+  abrir(); enEventos();
+  if ($("#enCobrar")) $("#enCobrar").onclick = () => abrirVenta(v.folio);
+  if ($("#enOk")) $("#enOk").onclick = () => {
+    if (k.saldo > 0 && !confirm(`El pedido tiene un saldo de ${money(k.saldo)}. ¿Entregarlo de todos modos?`)) return;
+    if (!listo && !confirm("En producción este pedido no está marcado como terminado. ¿Entregarlo de todos modos?")) return;
+    ots.forEach(o => o.estado = "Entregado");
+    v.estado = "entregado"; v.entregadoEl = new Date().toISOString(); v.entregadoPor = SES.nombre;
+    log(v, "Pedido entregado", `En mostrador por ${SES.nombre}${k.saldo > 0 ? ` · quedó saldo de ${money(k.saldo)}` : ""}`);
+    save(); toast(`Pedido ${v.folio} entregado ✔`); nav(); abrirEntrega(v.folio);
+  };
+}
+function enEventos(){
+  const ir = () => { const f = $("#enFol").value.trim(); if (f) abrirEntrega(f); };
+  $("#enBus").onclick = ir; $("#enFol").onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); ir(); } };
+}
+/* el lector de código de barras "teclea" muy rápido y termina con Enter: si es un folio, se abre la entrega */
+(() => {
+  let buf = "", t0 = 0;
+  document.addEventListener("keydown", e => {
+    if (!SES) return;
+    const enCampo = e.target.matches("input, textarea, select") && e.target.id !== "enFol";
+    const ahora = Date.now();
+    if (ahora - t0 > 60) buf = ""; t0 = ahora;
+    if (e.key === "Enter"){ const f = buf.toUpperCase(); buf = "";
+      if (/^(MAZ|ESCUI)\d{3,}$/.test(f) && (!enCampo || e.target.id === "enFol")){ e.preventDefault(); abrirEntrega(f); } return; }
+    if (e.key.length === 1) buf += e.key;
+  }, true);
+})();
+
 /* ---------- etiqueta de paquete 9.8 × 14.8 cm (sin costos) ---------- */
 function imprimirEtiquetas(v, itsOrig){
   const ord = ["XCH","CH","M","G","XL","2XL","3XL","4XL","5XL","6XL"];
@@ -1574,6 +1708,7 @@ function imprimirEtiquetas(v, itsOrig){
       <div class="per"><b>Lleva:</b> ${g.pers.map(esc).join(" · ")}</div>
       ${g.notas.map(x => `<div class="per">📝 ${esc(x)}</div>`).join("")}
     </div>
+    <div class="bc"><div class="bcs">${code128svg(v.folio)}</div><span>${v.folio}</span></div>
     <div class="ft">Sucursal ${suc(v.sucursal)} · Tel. ${v.cliente.tel}</div>
   </section>`; };
   const w = window.open("", "_blank");
@@ -1604,6 +1739,7 @@ table.mix th.gen{background:#E6ECEE;color:#1C2340;text-align:left;font-size:3.2m
   .per{line-height:1.3}
   .mk{max-width:100%;max-height:26mm;object-fit:contain;align-self:center;margin-top:auto;border-radius:2mm;background:#fff}
   .ft{font-size:2.8mm;text-align:center;padding:1.5mm;color:#4A5068;border-top:.3mm solid #c9d3d6}
+  .bc{display:flex;flex-direction:column;align-items:center;padding:1mm 0 .5mm;background:#fff}.bcs{width:62mm;height:10mm}.bcs svg{width:100%;height:100%;display:block}.bc span{font-size:3mm;font-weight:800;letter-spacing:.5mm}
   .bar{position:sticky;top:0;background:#1C2340;color:#fff;padding:10px;text-align:center;font:600 14px Montserrat,Arial;margin-bottom:6mm}
   .bar button{margin-left:10px;padding:8px 14px;border:0;border-radius:8px;background:#EE5A24;color:#fff;font-weight:700;cursor:pointer}
   @media print{body{background:#fff}.bar{display:none}.e{margin:0;border-radius:6mm}}

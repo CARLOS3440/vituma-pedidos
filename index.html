@@ -337,8 +337,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
         <div id="dzUpInfo"></div>
         <div id="dzServ"></div>
         <details class="ia" id="dzIA">
-          <summary>Crea o redibuja tu logo con inteligencia artificial (gratis)</summary>
-          <p class="muted" style="margin-top:8px">Usa la IA de tu preferencia (Gemini o ChatGPT). Escribe qué quieres que lleve y te damos las instrucciones técnicas para que salga listo para tu camisa. Después descárgala en <b>PNG</b> (para DTF, con fondo transparente) y súbela en "Sube tu logotipo".</p>
+          <summary id="iaSum">Crea tu logo con inteligencia artificial (gratis)</summary>
+          <p class="muted" style="margin-top:8px" id="iaIntro"></p>
           <div class="seg iamodo" id="iaModo"></div>
           <div class="mini" id="iaPaso" style="margin-bottom:6px"></div>
           <textarea id="iaTxt" placeholder="Ej. Logo para 'Taller El Güero': una llave inglesa y un engrane, letras en azul y naranja."></textarea>
@@ -1977,13 +1977,21 @@ function dzRender(){
   $("#dzUp").className = "upload" + (d ? " has" : "");
   $("#dzUp").innerHTML = d ? `<img src="${srcVista(d)}" alt=""><div><b>${d.nombre}</b><span class="muted" style="font-size:12px">Toca para cambiar el diseño</span></div>`
                            : `<span>⬆️</span><div><b>Carga tu diseño</b><span class="muted" style="font-size:12px">Para DTF: PNG con fondo transparente, en alta resolución</span></div>`;
-  const avisoPng = d && DZ.tecnica === "dtf" && !d.esPng ? `<div class="warn" style="margin-top:8px">Para estampado <b>DTF</b> el archivo debe ser <b>PNG con fondo transparente</b>. Subiste un ${VT.esc(d.ext || "JPG")}: la vista previa le quita el fondo blanco, pero VITUMA podría pedirte el archivo en PNG para imprimir.</div>` : "";
-  const avisoCuad = d && d.cuadros ? `<div class="warn" style="margin-top:8px">Tu imagen traía un <b>fondo de cuadritos dibujado</b> (no es transparente de verdad). Ya se lo quitamos para la vista previa; para imprimir, VITUMA puede pedirte el archivo con fondo transparente real.</div>` : "";
-  const avisoPlay = d && d.cubre > .55 ? `<div class="warn" style="margin-top:8px">¿Tu imagen trae una <b>playera dibujada</b> alrededor del diseño? Si es así, sube <b>solo el diseño</b>, sin la prenda, o se imprimiría también la silueta de la playera.</div>` : "";
-  const avisoRes = d && DZ.tecnica === "dtf" && d.anchoOrig && d.anchoOrig < 1500 ? `<div class="warn" style="margin-top:8px">Tu imagen mide ${d.anchoOrig} × ${d.altoOrig} px, una resolución baja que puede verse pixelada al imprimir. Lo ideal para DTF es de 2000 px o más por lado.</div>` : "";
-  const avisoFoto = d && d.foto && DZ.servicio === "ninguno" ? `<div class="warn" style="margin-top:8px"><b>Tu imagen no tiene un fondo liso.</b> Si es una <b>foto de tu logo</b> (tomada con el celular, con sombras, textura o chueca), no se puede imprimir así.
-      <br>Abajo puedes mejorarlo con IA gratis o pedir que un diseñador de VITUMA lo digitalice.</div>` : "";
-  $("#dzUpInfo").innerHTML = avisoFoto + avisoPlay + avisoCuad + (avisoFoto ? "" : avisoPng) + avisoRes + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
+  /* ¿el logo cumple con lo recomendado para imprimirse? Si no, se explica por qué y se ofrece redibujarlo con IA */
+  const motivos = d ? [
+    d.foto ? "parece una <b>foto</b> (con sombras, textura o un fondo que no es liso)" : "",
+    DZ.tecnica === "dtf" && !d.esPng ? `es un archivo ${VT.esc(d.ext || "JPG")}; para DTF se necesita <b>PNG con fondo transparente</b>` : "",
+    d.anchoOrig && Math.max(d.anchoOrig, d.altoOrig) < 1500 ? `tiene <b>baja resolución</b> (${d.anchoOrig} × ${d.altoOrig} px; lo ideal son 2000 px o más)` : "",
+    d.cuadros ? "trae un <b>fondo de cuadritos</b> dibujado, que no es transparente de verdad" : "",
+    d.cubre > .55 ? "parece traer una <b>playera dibujada</b> alrededor del diseño" : ""].filter(Boolean) : [];
+  DZ.noOptimo = motivos.length > 0;
+  const calidad = !d || DZ.tiene === "no" ? "" : DZ.noOptimo
+    ? `<div class="warn" style="margin-top:8px"><b>⚠️ Tu logotipo no cumple con lo recomendado para imprimirse en tu camisa:</b>
+        <ul style="margin:6px 0 6px 18px">${motivos.map(m => `<li>${m}</li>`).join("")}</ul>
+        Así como está podría salir borroso, con orillas o con el fondo. <b>Puedes redibujarlo gratis con la IA</b> (Gemini o ChatGPT): te damos las instrucciones para que lo deje listo con lo que necesita tu camisa. Solo pégalas junto con tu logo y sube aquí el que te dé.
+        <div style="margin-top:8px"><button class="btn pri" data-iafoto style="padding:8px 14px;font-size:13px">🤖 Redibujar mi logo con IA (gratis)</button></div></div>`
+    : `<div class="okbox" style="margin-top:8px">✅ Tu logotipo cumple con lo recomendado para imprimirse.</div>`;
+  $("#dzUpInfo").innerHTML = calidad + (d && d.sinFondo ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="dzBg"${d.quitarFondo?" checked":""}><span><b>Quitar el fondo de la imagen</b><br><span class="muted">Para que se vea solo tu logo sobre la tela.</span></span></label>` : "");
   if ($("#dzBg")) $("#dzBg").onchange = e => { d.quitarFondo = e.target.checked; dzRender(); };
   /* ¿ya cuenta con logotipo? Sí: lo sube (y si no tiene buena calidad, IA o digitalización). No: lo crea con IA o lo pide a un diseñador */
   if (!DZ.tiene) DZ.tiene = "si";
@@ -1994,15 +2002,17 @@ function dzRender(){
     else if (DZ.servicio === "logo") DZ.servicio = "ninguno";
     dzRender(); });
   $("#dzNoLogo").innerHTML = no ? `<div class="note">✨ <b>Créalo con ayuda de la IA de tu preferencia.</b> Escribe cómo lo deseas, genera las instrucciones, cópialas y pégalas en Gemini o ChatGPT. Cuando te dé tu logo, descárgalo y súbelo aquí abajo.</div>` : "";
-  if (no) $("#dzSubeTit").before($("#dzIA")); else $("#dzServ").after($("#dzIA"));
+  if (no) $("#dzSubeTit").before($("#dzIA")); else $("#dzServ").before($("#dzIA"));
+  /* la IA: "No tengo logo" → crear uno nuevo; "Sí lo tengo" → solo redibujarlo, y solo si el logo no es óptimo */
+  $("#dzIA").style.display = no || (d && DZ.noOptimo) ? "" : "none";
+  if (no) $("#dzIA").open = true;
+  iaModoPintar();
   $("#dzSubeTit").textContent = no ? "Sube el logo que te hizo la IA" : "Sube tu logotipo";
   const chk = (id, on, titulo, sub) => `<label class="chk servop${on?" on":""}" style="margin-top:10px"><input type="checkbox" id="${id}"${on?" checked":""}><span><b>${titulo}</b>${sub ? `<br><span class="muted">${sub}</span>` : ""}</span></label>`;
   $("#dzServ").innerHTML = no
     ? chk("dzSrvLogo", DZ.servicio === "logo", `¿Deseas que un diseñador de VITUMA realice el diseño de tu logo? · ${money(SERVICIOS.logo.precio)}`, "Si lo activas, describe cómo deseas tu logo.")
       + (DZ.servicio === "logo" ? `<textarea id="dzLogoDesc" style="margin-top:8px" placeholder="Describe tu logo: nombre del negocio o equipo, colores, estilo, dibujos o ideas que quieres que lleve…">${VT.esc(DZ.logoDesc || "")}</textarea>` : "")
-    : (d ? `<div class="servbox"><span class="label">¿Tu logo no tiene buena calidad?</span>
-        <div class="muted" style="font-size:13px">Si es una foto, se ve borroso o pixeleado, la IA te ayuda a redibujarlo gratis: copia las instrucciones y pégalas en Gemini o ChatGPT junto con tu logo. Después sube aquí el que te dé.</div>
-        <button class="btn ghost" data-iafoto style="padding:8px 12px;font-size:13px;justify-self:start">🤖 Mejorar mi logo con IA (gratis)</button>
+    : (d && DZ.noOptimo ? `<div class="servbox">
         ${chk("dzSrvDig", DZ.servicio === "digitalizar", `Si no queda como lo deseas: que un diseñador de VITUMA digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`, "El diseñador lo redibuja a partir del logo que subiste y lo deja listo para imprimir.")}</div>` : "");
   const activarZona = () => { if (DZ.servicio !== "ninguno" && !Object.values(DZ.zonas).some(z => z.on)){ const z0 = zonasActuales().find(z => !z.bloqueada); if (z0) estadoZona(z0).on = true; } };
   if ($("#dzSrvLogo")) $("#dzSrvLogo").onchange = e => { DZ.servicio = e.target.checked ? "logo" : "ninguno"; activarZona(); dzRender(); if (e.target.checked) setTimeout(() => $("#dzLogoDesc") && $("#dzLogoDesc").focus(), 50); };
@@ -2286,10 +2296,16 @@ function vSrcAlfa(d){ for (let i = 3; i < d.length; i += 4 * 7) if (d[i] < 250) 
 /* ---------- instrucciones para la IA ---------- */
 let IA_MODO = "nuevo";
 function iaModoPintar(){
+  IA_MODO = DZ.tiene === "no" ? "nuevo" : "foto";
+  $("#iaModo").style.display = "none";
+  $("#iaSum").textContent = IA_MODO === "foto" ? "Redibuja tu logo con inteligencia artificial (gratis)" : "Crea tu logo con inteligencia artificial (gratis)";
+  $("#iaIntro").innerHTML = IA_MODO === "foto"
+    ? "Abre Gemini o ChatGPT, <b>adjunta tu logo</b> y pega estas instrucciones: la IA lo redibuja limpio, derecho, sin fondo y con la resolución que necesita tu camisa. Descárgalo en <b>PNG</b> y súbelo en \"Sube tu logotipo\"."
+    : "Escribe cómo quieres tu logo y te damos las instrucciones técnicas para que salga listo para tu camisa. Pégalas en Gemini o ChatGPT, descarga el logo en <b>PNG</b> (con fondo transparente) y súbelo abajo.";
   $("#iaModo").innerHTML = [["nuevo","Crear un logo nuevo"],["foto","Redibujar la foto de mi logo"]].map(([k,t]) => `<button class="${IA_MODO===k?"on":""}" data-iam="${k}">${t}</button>`).join("");
   document.querySelectorAll("[data-iam]").forEach(b => b.onclick = () => { IA_MODO = b.dataset.iam; iaModoPintar(); });
   $("#iaTxt").placeholder = IA_MODO === "foto" ? "Opcional: escribe el texto exacto que trae tu logo (nombre, eslogan, teléfono) para que no lo cambie." : "Ej. Logo para 'Taller El Güero': una llave inglesa y un engrane, letras en azul y naranja.";
-  $("#iaPaso").innerHTML = IA_MODO === "foto" ? "📎 En Gemini o ChatGPT <b>adjunta la foto de tu logo</b> y pega estas instrucciones." : "";
+  $("#iaPaso").innerHTML = "";
   $("#iaOut").value = "";
 }
 $("#iaGen").onclick = () => {
@@ -2526,24 +2542,33 @@ function sbRender(){
     if (SB.tiene === "no"){ if (SB.servicio === "digitalizar") SB.servicio = "ninguno"; sbAbrirIA("logo", true); }
     else { if (SB.servicio === "logo") SB.servicio = "ninguno"; if (SB.iaQue !== "fondo") $("#sbIA").style.display = "none"; }
     sbRender(); });
+  const motivos = lg ? [!lg.alfa ? "no tiene <b>fondo transparente</b> (se necesita PNG con fondo transparente para ponerlo sobre tu diseño)" : "",
+    Math.max(lg.w, lg.h) < 1500 ? `tiene <b>baja resolución</b> (${lg.w} × ${lg.h} px; lo ideal son 2000 px o más)` : ""].filter(Boolean) : [];
+  SB.noOptimo = motivos.length > 0;
+  const calidad = !lg || no ? "" : SB.noOptimo
+    ? `<div class="warn" style="margin-top:8px"><b>⚠️ Tu logotipo no cumple con lo recomendado para imprimirse en tu camisa:</b>
+        <ul style="margin:6px 0 6px 18px">${motivos.map(m => `<li>${m}</li>`).join("")}</ul>
+        Así como está podría salir borroso o con un recuadro alrededor. <b>Puedes redibujarlo gratis con la IA</b> (Gemini o ChatGPT): te damos las instrucciones para que lo deje listo con lo que necesita tu camisa. Solo pégalas junto con tu logo y adjunta aquí el que te dé.
+        <div style="margin-top:8px"><button class="btn pri" id="sbMejorar" style="padding:8px 14px;font-size:13px">🤖 Redibujar mi logo con IA (gratis)</button></div></div>`
+    : `<div class="okbox" style="margin-top:8px">✅ Tu logotipo cumple con lo recomendado para imprimirse.</div>`;
   const nota = no ? `<div class="note" style="margin-bottom:10px">✨ <b>Aún no lo tienes: hazlo con la IA de tu preferencia.</b> Escribe cómo lo deseas, genera las instrucciones, cópialas y pégalas en Gemini o ChatGPT. Cuando te dé tu logo, descárgalo y adjúntalo aquí abajo.</div>` : "";
   const subir = `<span class="label">${no ? "Adjunta el logo que te hizo la IA" : "Adjunta tu logotipo"}</span>
     <label class="upload${lg ? " has" : ""}" style="cursor:pointer">${lg ? `<img src="${lg.src}" alt=""><div><b>${VT.esc(lg.nombre)}</b><span class="muted" style="font-size:12px">Toca para cambiarlo. Ya está en el frente; muévelo o agrégalo en otras piezas con "＋ Mi logo".</span></div>`
       : `<span>⬆️</span><div><b>Adjunta tu logotipo</b><span class="muted" style="font-size:12px">PNG con fondo transparente y en buena resolución (2000 px o más).</span></div>`}<input type="file" id="sbLogoFile" accept="image/png,image/jpeg" hidden></label>
-    ${lg && lg.w && Math.max(lg.w, lg.h) < 1500 ? `<div class="warn" style="margin-top:8px">Tu logo mide ${lg.w} × ${lg.h} px, una resolución baja que puede verse pixeleada al imprimir.</div>` : ""}`;
+    ${calidad}`;
   const chk = (id, on, titulo, sub) => `<label class="chk servop${on?" on":""}" style="margin-top:10px"><input type="checkbox" id="${id}"${on?" checked":""}><span><b>${titulo}</b>${sub ? `<br><span class="muted">${sub}</span>` : ""}</span></label>`;
   /* No: nota → IA → adjuntar → diseñador. Sí: adjuntar → calidad (IA para mejorarlo) */
   $("#sbLogoBox").innerHTML = no ? nota : subir;
-  if (no) $("#sbLogoBox").after($("#sbIASlot")); else $("#sbLogoServ").after($("#sbIASlot"));
+  if (no) $("#sbLogoBox").after($("#sbIASlot")); else $("#sbLogoBox").after($("#sbIASlot"));
+  if (SB.iaQue !== "fondo" && !no && !(lg && SB.noOptimo)) $("#sbIA").style.display = "none";
+  if (SB.iaQue !== "fondo" && SB.iaQue !== (no ? "logo" : "logofoto") && $("#sbIA").style.display !== "none"){ SB.iaQue = no ? "logo" : "logofoto"; sbIATexto(); }
   $("#sbLogoServ").innerHTML = no
     ? `<div style="margin-top:12px">${subir}</div>` + chk("sbSrvLogo", SB.servicio === "logo", `¿Deseas que un diseñador de VITUMA realice el diseño de tu logo? · ${money(SERVICIOS.logo.precio)}`, "Si lo activas, describe cómo deseas tu logo.")
       + (SB.servicio === "logo" ? `<textarea id="sbLogoDesc" style="margin-top:8px" placeholder="Describe tu logo: nombre del negocio o equipo, colores, estilo, dibujos o ideas que quieres que lleve…">${VT.esc(SB.logoDesc || "")}</textarea>` : "")
-    : (lg ? `<div class="servbox"><span class="label">¿Tu logo no tiene buena calidad?</span>
-        <div class="muted" style="font-size:13px">Si es una foto, se ve borroso o pixeleado, la IA te ayuda a redibujarlo gratis: copia las instrucciones y pégalas en Gemini o ChatGPT junto con tu logo. Después adjunta aquí el que te dé.</div>
-        <button class="btn ghost" id="sbMejorar" style="padding:8px 12px;font-size:13px;justify-self:start">🤖 Mejorar mi logo con IA (gratis)</button>
+    : (lg && SB.noOptimo ? `<div class="servbox">
         ${chk("sbSrvDig", SB.servicio === "digitalizar", `Si no queda como lo deseas: que un diseñador de VITUMA digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`, "El diseñador lo redibuja a partir del logo que adjuntaste y lo deja listo para imprimir.")}</div>` : "");
   $("#sbLogoFile").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/png", true);
-    const antes = lg && lg.src; SB.logo = { src: r.src, nombre: f.name, w: r.w, h: r.h, asp: r.w / r.h };
+    const antes = lg && lg.src; SB.logo = { src: r.src, nombre: f.name, w: r.w, h: r.h, asp: r.w / r.h, alfa: r.alfa };
     let usado = false; SB_PIEZAS.forEach(([k]) => SB.piezas[k].els.forEach(el => { if (el.tipo === "logo" && antes && el.src === antes){ el.src = r.src; el.nombre = f.name; el.asp = r.w / r.h; usado = true; } }));
     if (!usado) SB.piezas.frente.els.unshift({ id: "e" + Date.now(), tipo:"logo", src: r.src, nombre: f.name, asp: r.w / r.h, cm: 10, zona:"arriba", lado:"centro" });
     SB.mockup = null; sbRender(); };
@@ -2599,7 +2624,7 @@ function sbPanel(){
       ${SB.logo ? `<button class="btn ghost" id="sbMiLogo" style="padding:8px 12px;font-size:13px">＋ Mi logo</button>` : ""}
       <label class="btn ghost" style="cursor:pointer;padding:8px 12px;font-size:13px">＋ ${SB.logo ? "Otro logo" : "Logo"}<input type="file" accept="image/png,image/jpeg" hidden id="sbAddLogo"></label>
       <button class="btn ghost" id="sbAddTxt" style="padding:8px 12px;font-size:13px">＋ Texto</button>
-      <button class="btn ghost" id="sbLogoIa" style="padding:8px 12px;font-size:13px">🤖 Crear logo con IA</button></div>
+      </div>
     ${k === "espalda" ? `<label class="chk" style="margin-top:10px"><input type="checkbox" checked disabled><span>Logo de <b>VITUMA</b> de 5 cm debajo del cuello</span></label>` : ""}`;
   const P0 = SB.piezas[k], byE = id => P0.els.find(e => e.id === id), cambio = (todo) => { SB.mockup = null; if (todo) { sbTabs(); sbPanel(); } sbDibujar(); };
   document.querySelectorAll("#sbFt button").forEach(b => b.onclick = () => { P0.fondo.tipo = b.dataset.v; cambio(true); });
@@ -2607,7 +2632,6 @@ function sbPanel(){
   if ($("#sbFcc")) $("#sbFcc").oninput = e => { P0.fondo.color = e.target.value.toUpperCase(); cambio(false); };
   if ($("#sbFi")) $("#sbFi").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/jpeg"); P0.fondo.src = r.src; P0.fondo.nombre = f.name; P0.fondo.w = r.w; P0.fondo.h = r.h; cambio(true); };
   if ($("#sbFia")) $("#sbFia").onclick = () => sbAbrirIA("fondo");
-  $("#sbLogoIa").onclick = () => sbAbrirIA("logo");
 
   $("#sbCopiar").onclick = () => { SB_PIEZAS.forEach(([q]) => { if (q !== k) SB.piezas[q].fondo = { ...P0.fondo }; }); cambio(true); toast2("Fondo aplicado a todas las piezas"); };
   $("#sbAddLogo").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/png", true);
@@ -2636,7 +2660,8 @@ function sbLeer(file, max, tipo, alfa){
     const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
     c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
     const png = alfa && (file.type === "image/png");
-    ok({ src: c.toDataURL(png ? "image/png" : "image/jpeg", .9), w: im.width, h: im.height }); }; im.src = fr.result; }; fr.readAsDataURL(file); });
+    let trans = false; if (png){ const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < d.length; i += 28) if (d[i] < 250){ trans = true; break; } }
+    ok({ src: c.toDataURL(png ? "image/png" : "image/jpeg", .9), w: im.width, h: im.height, alfa: trans }); }; im.src = fr.result; }; fr.readAsDataURL(file); });
 }
 
 /* ---------- instrucciones para la IA, pieza por pieza ---------- */
@@ -2647,7 +2672,7 @@ function sbAbrirIA(que, sinScroll){ SB.iaQue = que; const d = $("#sbIA");
 function sbIATexto(){
   const k = SB.pieza, nombre = SB_PIEZAS.find(x => x[0] === k)[1], { app, m } = sbBase(), mm = m[k];
   const prenda = `playera sublimada de ${sbLarga() ? "manga larga" : "manga corta"} para ${SB.modelo.toLowerCase()}`;
-  $("#sbIAQue").innerHTML = [["fondo",`Fondo de: ${nombre}`],["logo","Logo nuevo"],["logofoto","Redibujar la foto de mi logo"]].map(([v, t]) => `<button class="${SB.iaQue===v?"on":""}" data-iq="${v}">${t}</button>`).join("");
+  $("#sbIAQue").innerHTML = (SB.iaQue === "fondo" ? [["fondo",`Fondo de: ${nombre}`]] : SB.tiene === "no" ? [["logo","Crear mi logo"]] : [["logofoto","Redibujar mi logo"]]).map(([v, t]) => `<button class="${SB.iaQue===v?"on":""}" data-iq="${v}">${t}</button>`).join("");
   document.querySelectorAll("[data-iq]").forEach(b => b.onclick = () => { const q = b.dataset.iq; if ((q === "fondo") !== (SB.iaQue === "fondo")) sbAbrirIA(q); else { SB.iaQue = q; sbIATexto(); } });
   const desc = $("#sbIATxt").value.trim() || (SB.iaQue === "fondo" ? "[describe el estilo, colores y elementos del fondo]" : SB.iaQue === "logofoto" ? "" : "[describe lo que debe llevar tu logo]");
   const w = +sbCm(mm.w), h = +sbCm(mm.h), lado = Math.max(w, h), px = Math.round(lado / 2.54 * 150);
