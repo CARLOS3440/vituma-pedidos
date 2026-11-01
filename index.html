@@ -397,9 +397,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
       <div class="card">
         <h3>3. Realiza tu diseño</h3>
         <p class="muted" style="margin-bottom:10px">Arma tu playera pieza por pieza: fondo, logos y textos en el frente, la espalda y las mangas. Si ya tienes tu diseño por piezas, súbelo como fondo de cada una. La IA te ayuda a crear fondos y logos.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="btn ghost" id="sbTopFondo" style="padding:8px 12px;font-size:13px">🤖 Crear un fondo con IA</button><button class="btn ghost" id="sbTopLogo" style="padding:8px 12px;font-size:13px">🤖 Crear o redibujar mi logo con IA</button></div>
-        <span class="label">¿Tu logo está listo para imprimir?</span>
-        <div class="servbox" id="sbLogoOp" style="margin-top:4px"></div>
+        <span class="label">¿Ya cuentas con tu logotipo?</span>
+        <div class="seg" id="sbTiene" style="margin-bottom:10px"></div>
+        <div id="sbLogoBox"></div>
+        <div id="sbIASlot"></div>
+        <div id="sbLogoServ"></div>
       </div>
       <div class="card" id="sbEditor">
         <h3>4. Diseña cada pieza</h3>
@@ -415,7 +417,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
           <textarea id="sbIAOut" readonly></textarea>
           <div class="links"><button class="btn ghost" id="sbIACopy" style="padding:7px 12px;font-size:13px">📋 Copiar</button>
             <a href="https://gemini.google.com/" target="_blank" rel="noopener">Gemini</a><a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a></div>
-          <p class="muted" style="margin-top:6px">Pega las instrucciones en la IA, descarga la imagen que te dé y súbela aquí en la pieza (fondo o logo).</p>
+          <p class="muted" style="margin-top:6px">Pega las instrucciones en la IA, descarga la imagen que te dé y adjúntala aquí en la app.</p>
         </div>
       </div>
       <div class="card" id="sbMockCard">
@@ -2338,7 +2340,7 @@ const SB_FONDOS = [["Blanco","#FFFFFF"],["Negro","#111111"],["Azul marino","#1C2
   ["Naranja","#F26B21"],["Amarillo","#FFC300"],["Verde","#2A9D4B"],["Gris","#8A8F98"]];
 const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,25,28];
 const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25];
-const SB = { prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"fondo", mockup:null };
+const SB = { tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"fondo", mockup:null };
 const sbNueva = () => ({ fondo:{ tipo:"color", color:"#1C2340", img:null, src:null }, els:[] });
 const sbReset = () => { SB.piezas = { frente: sbNueva(), espalda: sbNueva(), mangaD: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } }, mangaI: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } } }; SB.mockup = null; };
 sbReset();
@@ -2517,13 +2519,38 @@ function sbRender(){
     inp.oninput = () => set(inp.value); inp.onfocus = () => inp.select();
   });
   $("#sbBaseNota").innerHTML = `Diseñamos en la <b>talla ${app}</b> (la más grande de tu pedido) para que el diseño alcance a cubrir todas las tallas. Frente: <b>${sbCm(m.frente.w)} × ${sbCm(m.frente.h)} cm</b> · Manga: <b>${sbCm(m.mangaD.w)} × ${sbCm(m.mangaD.h)} cm</b>.`;
-  /* el logo: listo, con ayuda de la IA, o que lo haga un diseñador (como en DTF) */
-  $("#sbLogoOp").innerHTML = [["ninguno","Sí, mi logo está listo","Súbelo en la pieza donde va, con el botón ＋ Logo."],
-     ["ia","Lo creo o lo redibujo con IA (gratis)","Te damos las instrucciones para Gemini o ChatGPT; sirve para crear un logo nuevo o limpiar la foto de tu logo."],
-     ["digitalizar",`Deseo que un diseñador digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`,"Ya tengo logo pero en foto o muestra: súbela como logo en su pieza y el diseñador lo deja listo."],
-     ["logo",`Deseo que un diseñador realice mi logo · ${money(SERVICIOS.logo.precio)}`,"Escribe en las notas qué quieres que lleve; el diseñador lo coloca donde lo marques."]]
-    .map(([k, t, x]) => `<label class="chk servop${SB.servicio===k?" on":""}"><input type="radio" name="sbServ" value="${k}"${SB.servicio===k?" checked":""}><span><b>${t}</b><br><span class="muted">${x}</span></span></label>`).join("");
-  document.querySelectorAll("[name=sbServ]").forEach(r => r.onchange = () => { SB.servicio = r.value; if (r.value === "ia") sbAbrirIA("logo"); sbRender(); });
+  /* logotipo: ¿ya lo tiene? Sí: lo adjunta (y si no tiene buena calidad, IA o digitalización $99). No: lo hace con la IA o lo pide a un diseñador ($250) */
+  const no = SB.tiene === "no", lg = SB.logo;
+  $("#sbTiene").innerHTML = [["si","Sí, ya lo tengo"],["no","No, aún no tengo"]].map(([v, t]) => `<button class="${SB.tiene===v?"on":""}" data-sbt="${v}">${t}</button>`).join("");
+  document.querySelectorAll("[data-sbt]").forEach(b => b.onclick = () => { SB.tiene = b.dataset.sbt;
+    if (SB.tiene === "no"){ if (SB.servicio === "digitalizar") SB.servicio = "ninguno"; sbAbrirIA("logo", true); }
+    else { if (SB.servicio === "logo") SB.servicio = "ninguno"; if (SB.iaQue !== "fondo") $("#sbIA").style.display = "none"; }
+    sbRender(); });
+  const nota = no ? `<div class="note" style="margin-bottom:10px">✨ <b>Aún no lo tienes: hazlo con la IA de tu preferencia.</b> Escribe cómo lo deseas, genera las instrucciones, cópialas y pégalas en Gemini o ChatGPT. Cuando te dé tu logo, descárgalo y adjúntalo aquí abajo.</div>` : "";
+  const subir = `<span class="label">${no ? "Adjunta el logo que te hizo la IA" : "Adjunta tu logotipo"}</span>
+    <label class="upload${lg ? " has" : ""}" style="cursor:pointer">${lg ? `<img src="${lg.src}" alt=""><div><b>${VT.esc(lg.nombre)}</b><span class="muted" style="font-size:12px">Toca para cambiarlo. Ya está en el frente; muévelo o agrégalo en otras piezas con "＋ Mi logo".</span></div>`
+      : `<span>⬆️</span><div><b>Adjunta tu logotipo</b><span class="muted" style="font-size:12px">PNG con fondo transparente y en buena resolución (2000 px o más).</span></div>`}<input type="file" id="sbLogoFile" accept="image/png,image/jpeg" hidden></label>
+    ${lg && lg.w && Math.max(lg.w, lg.h) < 1500 ? `<div class="warn" style="margin-top:8px">Tu logo mide ${lg.w} × ${lg.h} px, una resolución baja que puede verse pixeleada al imprimir.</div>` : ""}`;
+  const chk = (id, on, titulo, sub) => `<label class="chk servop${on?" on":""}" style="margin-top:10px"><input type="checkbox" id="${id}"${on?" checked":""}><span><b>${titulo}</b>${sub ? `<br><span class="muted">${sub}</span>` : ""}</span></label>`;
+  /* No: nota → IA → adjuntar → diseñador. Sí: adjuntar → calidad (IA para mejorarlo) */
+  $("#sbLogoBox").innerHTML = no ? nota : subir;
+  if (no) $("#sbLogoBox").after($("#sbIASlot")); else $("#sbLogoServ").after($("#sbIASlot"));
+  $("#sbLogoServ").innerHTML = no
+    ? `<div style="margin-top:12px">${subir}</div>` + chk("sbSrvLogo", SB.servicio === "logo", `¿Deseas que un diseñador de VITUMA realice el diseño de tu logo? · ${money(SERVICIOS.logo.precio)}`, "Si lo activas, describe cómo deseas tu logo.")
+      + (SB.servicio === "logo" ? `<textarea id="sbLogoDesc" style="margin-top:8px" placeholder="Describe tu logo: nombre del negocio o equipo, colores, estilo, dibujos o ideas que quieres que lleve…">${VT.esc(SB.logoDesc || "")}</textarea>` : "")
+    : (lg ? `<div class="servbox"><span class="label">¿Tu logo no tiene buena calidad?</span>
+        <div class="muted" style="font-size:13px">Si es una foto, se ve borroso o pixeleado, la IA te ayuda a redibujarlo gratis: copia las instrucciones y pégalas en Gemini o ChatGPT junto con tu logo. Después adjunta aquí el que te dé.</div>
+        <button class="btn ghost" id="sbMejorar" style="padding:8px 12px;font-size:13px;justify-self:start">🤖 Mejorar mi logo con IA (gratis)</button>
+        ${chk("sbSrvDig", SB.servicio === "digitalizar", `Si no queda como lo deseas: que un diseñador de VITUMA digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`, "El diseñador lo redibuja a partir del logo que adjuntaste y lo deja listo para imprimir.")}</div>` : "");
+  $("#sbLogoFile").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/png", true);
+    const antes = lg && lg.src; SB.logo = { src: r.src, nombre: f.name, w: r.w, h: r.h, asp: r.w / r.h };
+    let usado = false; SB_PIEZAS.forEach(([k]) => SB.piezas[k].els.forEach(el => { if (el.tipo === "logo" && antes && el.src === antes){ el.src = r.src; el.nombre = f.name; el.asp = r.w / r.h; usado = true; } }));
+    if (!usado) SB.piezas.frente.els.unshift({ id: "e" + Date.now(), tipo:"logo", src: r.src, nombre: f.name, asp: r.w / r.h, cm: 10, zona:"arriba", lado:"centro" });
+    SB.mockup = null; sbRender(); };
+  if ($("#sbMejorar")) $("#sbMejorar").onclick = () => sbAbrirIA("logofoto");
+  if ($("#sbSrvLogo")) $("#sbSrvLogo").onchange = e => { SB.servicio = e.target.checked ? "logo" : "ninguno"; sbRender(); if (e.target.checked) setTimeout(() => $("#sbLogoDesc") && $("#sbLogoDesc").focus(), 50); };
+  if ($("#sbSrvDig")) $("#sbSrvDig").onchange = e => { SB.servicio = e.target.checked ? "digitalizar" : "ninguno"; sbRender(); };
+  if ($("#sbLogoDesc")) $("#sbLogoDesc").oninput = e => { SB.logoDesc = e.target.value; sbPrecio(); };
   sbTabs(); sbPanel(); setTimeout(sbDibujar, 0);
   sbPrecio();
 }
@@ -2569,7 +2596,8 @@ function sbPanel(){
     <span class="label">Logos y textos</span>
     ${P.els.map(tarjeta).join("") || `<div class="muted" style="margin-bottom:8px">Esta pieza aún no lleva logos ni textos.</div>`}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <label class="btn ghost" style="cursor:pointer;padding:8px 12px;font-size:13px">＋ Logo<input type="file" accept="image/png,image/jpeg" hidden id="sbAddLogo"></label>
+      ${SB.logo ? `<button class="btn ghost" id="sbMiLogo" style="padding:8px 12px;font-size:13px">＋ Mi logo</button>` : ""}
+      <label class="btn ghost" style="cursor:pointer;padding:8px 12px;font-size:13px">＋ ${SB.logo ? "Otro logo" : "Logo"}<input type="file" accept="image/png,image/jpeg" hidden id="sbAddLogo"></label>
       <button class="btn ghost" id="sbAddTxt" style="padding:8px 12px;font-size:13px">＋ Texto</button>
       <button class="btn ghost" id="sbLogoIa" style="padding:8px 12px;font-size:13px">🤖 Crear logo con IA</button></div>
     ${k === "espalda" ? `<label class="chk" style="margin-top:10px"><input type="checkbox" checked disabled><span>Logo de <b>VITUMA</b> de 5 cm debajo del cuello</span></label>` : ""}`;
@@ -2584,6 +2612,7 @@ function sbPanel(){
   $("#sbCopiar").onclick = () => { SB_PIEZAS.forEach(([q]) => { if (q !== k) SB.piezas[q].fondo = { ...P0.fondo }; }); cambio(true); toast2("Fondo aplicado a todas las piezas"); };
   $("#sbAddLogo").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/png", true);
     P0.els.push({ id: "e" + Date.now(), tipo:"logo", src: r.src, nombre: f.name, asp: r.w / r.h, cm: cuerpo ? 10 : 7, zona:"arriba", lado:"centro" }); cambio(true); };
+  if ($("#sbMiLogo")) $("#sbMiLogo").onclick = () => { P0.els.push({ id: "e" + Date.now(), tipo:"logo", src: SB.logo.src, nombre: SB.logo.nombre, asp: SB.logo.asp, cm: cuerpo ? 10 : 7, zona:"arriba", lado:"centro" }); cambio(true); };
   $("#sbAddTxt").onclick = () => { P0.els.push({ id: "e" + Date.now(), tipo:"texto", texto: k === "espalda" ? "NOMBRE" : "TEXTO", fuente:"bebas", color: lum(P0.fondo.color || "#000") < 110 ? "#FFFFFF" : "#111111", cm: cuerpo ? 5 : 3, zona:"arriba", lado:"centro" });
     ctCargarFuenteDe("bebas").then(() => cambio(true)); };
   document.querySelectorAll("[data-ex]").forEach(b => b.onclick = () => { P0.els = P0.els.filter(e => e.id !== b.dataset.ex); cambio(true); });
@@ -2611,12 +2640,15 @@ function sbLeer(file, max, tipo, alfa){
 }
 
 /* ---------- instrucciones para la IA, pieza por pieza ---------- */
-function sbAbrirIA(que){ SB.iaQue = que; const d = $("#sbIA"); d.style.display = "block"; sbIATexto(); d.scrollIntoView({ behavior:"smooth", block:"center" }); }
+/* el panel de la IA aparece donde se pidió: los logos en el paso 3, el fondo debajo de la pieza */
+function sbAbrirIA(que, sinScroll){ SB.iaQue = que; const d = $("#sbIA");
+  if (que === "fondo") $("#sbPanel").after(d); else $("#sbIASlot").appendChild(d);
+  d.style.display = "block"; sbIATexto(); if (!sinScroll) d.scrollIntoView({ behavior:"smooth", block:"center" }); }
 function sbIATexto(){
   const k = SB.pieza, nombre = SB_PIEZAS.find(x => x[0] === k)[1], { app, m } = sbBase(), mm = m[k];
   const prenda = `playera sublimada de ${sbLarga() ? "manga larga" : "manga corta"} para ${SB.modelo.toLowerCase()}`;
   $("#sbIAQue").innerHTML = [["fondo",`Fondo de: ${nombre}`],["logo","Logo nuevo"],["logofoto","Redibujar la foto de mi logo"]].map(([v, t]) => `<button class="${SB.iaQue===v?"on":""}" data-iq="${v}">${t}</button>`).join("");
-  document.querySelectorAll("[data-iq]").forEach(b => b.onclick = () => { SB.iaQue = b.dataset.iq; sbIATexto(); });
+  document.querySelectorAll("[data-iq]").forEach(b => b.onclick = () => { const q = b.dataset.iq; if ((q === "fondo") !== (SB.iaQue === "fondo")) sbAbrirIA(q); else { SB.iaQue = q; sbIATexto(); } });
   const desc = $("#sbIATxt").value.trim() || (SB.iaQue === "fondo" ? "[describe el estilo, colores y elementos del fondo]" : SB.iaQue === "logofoto" ? "" : "[describe lo que debe llevar tu logo]");
   const w = +sbCm(mm.w), h = +sbCm(mm.h), lado = Math.max(w, h), px = Math.round(lado / 2.54 * 150);
   let t;
@@ -2640,7 +2672,7 @@ function sbItem(){
   const nPz = SB_PIEZAS.reduce((a, [k]) => a + SB.piezas[k].els.length, 0);
   const modoTxt = `🎨 Diseño por piezas (${nPz} logos/textos)`;
   const serv = SERVICIOS[SB.servicio] ? SB.servicio : "ninguno";
-  return { id: Date.now(), prod: SB.prod, modelo: SB.modelo, color: "", qty, per: null, notas: $("#sbNotas").value.trim(),
+  return { id: Date.now(), prod: SB.prod, modelo: SB.modelo, color: "", qty, per: null, notas: [SB.servicio === "logo" && SB.logoDesc ? "Logo deseado: " + SB.logoDesc.trim() : "", $("#sbNotas").value.trim()].filter(Boolean).join(" · "),
     diseno: { tecnica:"sublimado", costoPieza: 0, texto: modoTxt + (serv !== "ninguno" ? " · ✏️ " + SERVICIOS[serv].t + " (VITUMA)" : ""), adjunto: false, servicio: serv } };
 }
 function sbPrecio(){
@@ -2654,9 +2686,9 @@ function sbPrecio(){
   $("#sbRes").innerHTML = h;
   const av = [];
   if (!n) av.push("Elige cuántas piezas quieres de cada talla.");
-  if (SB.servicio === "logo" && !$("#sbNotas").value.trim()) av.push("Escribe en las notas qué quieres que lleve tu logo.");
+  if (SB.servicio === "logo" && !(SB.logoDesc || "").trim()) av.push("Describe cómo deseas tu logo (en el paso 3).");
   $("#sbWarn").innerHTML = av.map(a => `<div class="warn">${a}</div>`).join("");
-  $("#sbAdd").disabled = !n || (SB.servicio === "logo" && !$("#sbNotas").value.trim());
+  $("#sbAdd").disabled = !n || (SB.servicio === "logo" && !(SB.logoDesc || "").trim());
 }
 
 /* ---------- mockup con la plantilla del ajustador ---------- */
@@ -2775,8 +2807,7 @@ async function sbAgregar(){
 
 /* ---------- eventos fijos ---------- */
 $("#sbMkBtn").onclick = sbVerMockup;
-$("#sbTopFondo").onclick = () => sbAbrirIA("fondo");
-$("#sbTopLogo").onclick = () => sbAbrirIA("logo");
+
 $("#sbMkDown").onclick = () => { if (!SB.mockup) return; const a = document.createElement("a"); a.href = SB.mockup; a.download = "VITUMA_vista_previa_sublimada.jpg"; document.body.appendChild(a); a.click(); a.remove(); };
 $("#sbAdd").onclick = sbAgregar;
 $("#sbNotas").oninput = sbPrecio;
