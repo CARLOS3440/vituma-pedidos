@@ -682,8 +682,184 @@ const VT = (() => {
 
   const KEY = "vituma_demo_db";
   const vacia = () => ({ ventas: [], clientes: [], gastos: [], compras: [], folios: { MAZ: 0, ESCUI: 0 } });
-  function cargar(){ try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && d.ventas) return d; } catch(e){} return vacia(); }
-  function guardar(d){ try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch(e){ return false; } }
+  const cargarLocal = () => { try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && d.ventas) return d; } catch(e){} return vacia(); };
+  const guardarLocal = d => { try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch(e){ return false; } };
+
+  /* =================== BASE DE DATOS (en la nube) ===================
+     Si el servidor tiene la base de datos conectada, todo se guarda ahí; si no, sigue el modo muestra.
+     Panel: guarda solo lo que cambió (por pedido / cliente / lista). App: crea pedidos y sube comprobantes. */
+  const API = "/api/vt";
+  const S = { listo: null, srv: false, modo: null, db: null, js: { v: new Map(), c: new Map(), k: new Map() }, desde: 0, cola: Promise.resolve(), pend: 0, refs: new Map(), alSalir: null, alCambio: null };
+  const clon = o => JSON.parse(JSON.stringify(o));
+  const tok = () => { try { return sessionStorage.getItem("vituma_tok") || ""; } catch(e){ return ""; } };
+  async function api(a, body, q){
+    const r = await fetch(API + "?a=" + a + (q || ""), body === undefined ? { headers: { "x-vt-token": tok() } }
+      : { method: "POST", headers: { "Content-Type": "application/json", "x-vt-token": tok() }, body: JSON.stringify(body) });
+    let j = null; try { j = await r.json(); } catch(e){}
+    if (r.status === 401 && S.modo === "admin" && a !== "login" && S.alSalir) S.alSalir();
+    if (!r.ok) throw Object.assign(new Error((j && j.error) || ("Error " + r.status)), { status: r.status });
+    return j;
+  }
+  /* ¿hay base de datos? (si no responde, modo muestra) */
+  function iniciar(modo){
+    S.modo = modo;
+    return S.listo || (S.listo = (async () => {
+      if (location.protocol === "file:") return false;
+      try { const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
+        const r = await fetch(API + "?a=estado", { signal: ctl.signal }); clearTimeout(t);
+        const j = r.ok ? await r.json() : null; S.srv = !!(j && j.db);
+      } catch(e){ S.srv = false; }
+      if (S.srv){ try { localStorage.removeItem(KEY); } catch(e){} }   // ya no se usan los datos de muestra de este navegador
+      if (S.srv && modo === "cliente") cliCargarCache();
+      return S.srv;
+    })());
+  }
+  const enLinea = () => S.srv;
+
+  /* ---------- imágenes: se suben una por una y se cambian por su liga ---------- */
+  const esDato = v => typeof v === "string" && v.startsWith("data:") && v.length > 3000;
+  function achicar(src, maxChars){
+    return new Promise(ok => { const im = new Image(); im.onload = () => { let k = Math.min(1, 3000 / Math.max(im.width, im.height)), r = src;
+      for (let i = 0; i < 6 && r.length > maxChars; i++){ const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); r = src.startsWith("data:image/png") ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", .85); k *= .75; }
+      ok(r); }; im.onerror = () => ok(src); im.src = src; });
+  }
+  async function subirUna(v, carpeta){
+    const h = v.length + ":" + v.slice(-64) + v.slice(40, 104);
+    if (S.refs.has(h)) return S.refs.get(h);
+    let dato = v; if (dato.length > 5.4e6 && dato.startsWith("data:image")) dato = await achicar(dato, 5.4e6);
+    const r = await api("imagen", { data: dato, carpeta }); S.refs.set(h, r.ref); return r.ref;
+  }
+  async function subirImagenes(o, carpeta){
+    if (!o || typeof o !== "object") return;
+    const tareas = [];
+    const rec = x => { for (const k of Object.keys(x)){ const v = x[k];
+      if (esDato(v)) tareas.push(async () => { x[k] = await subirUna(v, carpeta); });
+      else if (v && typeof v === "object") rec(v); } };
+    rec(o);
+    for (let i = 0; i < tareas.length; i += 3) await Promise.all(tareas.slice(i, i + 3).map(f => f()));
+  }
+  /* cambia en o las imágenes ya subidas por su liga (para no subirlas dos veces) */
+  function ponerRefs(o){
+    if (!o || typeof o !== "object" || !S.refs.size) return;
+    for (const k of Object.keys(o)){ const v = o[k];
+      if (esDato(v)){ const r = S.refs.get(v.length + ":" + v.slice(-64) + v.slice(40, 104)); if (r) o[k] = r; }
+      else if (v && typeof v === "object") ponerRefs(v); }
+  }
+
+  /* ---------- panel ---------- */
+  const OTROS = d => Object.keys(d).filter(k => k !== "ventas" && k !== "clientes" && k !== "folios");
+  function indexar(){ S.js.v = new Map(S.db.ventas.map(v => [v.folio, JSON.stringify(v)])); S.js.c = new Map(S.db.clientes.map(c => [c.id, JSON.stringify(c)])); S.js.k = new Map(OTROS(S.db).map(k => [k, JSON.stringify(S.db[k])])); }
+  async function login(usuario, passHash){
+    const r = await api("login", { usuario, pass: passHash });
+    try { sessionStorage.setItem("vituma_tok", r.token); sessionStorage.setItem("vituma_ses", r.usuario.id); localStorage.setItem("vituma_mostrador", JSON.stringify(r.usuario)); } catch(e){}
+    return r.usuario;
+  }
+  async function salir(){ try { await api("salir", {}); } catch(e){} try { sessionStorage.removeItem("vituma_tok"); sessionStorage.removeItem("vituma_ses"); } catch(e){} }
+  async function cargarTodo(){
+    const d = await api("datos", undefined, "&desde=0");
+    S.db = { ...vacia(), ...d.cols, ventas: d.ventas, clientes: d.clientes };
+    S.db.ventas.sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+    S.desde = d.ahora; indexar(); estadoNube();
+    if (!S._poll){ S._poll = setInterval(traerCambios, 20000); document.addEventListener("visibilitychange", () => { if (!document.hidden) traerCambios(); }); }
+    return true;
+  }
+  /* trae lo que otros cambiaron (otra cajera, un cliente que pidió o pagó) */
+  async function traerCambios(){
+    if (!S.db || S.pend) return 0;
+    let d; try { d = await api("datos", undefined, "&desde=" + S.desde); } catch(e){ return 0; }
+    if (S.pend) return 0;
+    let n = 0;
+    for (const v of d.ventas){ const s = JSON.stringify(v); if (S.js.v.get(v.folio) === s) continue; const i = S.db.ventas.findIndex(x => x.folio === v.folio);
+      if (i >= 0) S.db.ventas[i] = v; else S.db.ventas.unshift(v); S.js.v.set(v.folio, s); n++; }
+    for (const c of d.clientes){ const s = JSON.stringify(c); if (S.js.c.get(c.id) === s) continue; const i = S.db.clientes.findIndex(x => x.id === c.id);
+      if (i >= 0) S.db.clientes[i] = c; else S.db.clientes.push(c); S.js.c.set(c.id, s); n++; }
+    for (const [k, val] of Object.entries(d.cols)){ const s = JSON.stringify(val); if (S.js.k.get(k) === s) continue; S.db[k] = val; S.js.k.set(k, s); n++; }
+    for (const f of d.borradas.ventas){ if (S.js.v.has(f)){ S.db.ventas = S.db.ventas.filter(v => v.folio !== f); S.js.v.delete(f); n++; } }
+    for (const c of d.borradas.clientes){ if (S.js.c.has(c)){ S.db.clientes = S.db.clientes.filter(x => x.id !== c); S.js.c.delete(c); n++; } }
+    S.db.ventas.sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+    S.desde = d.ahora;
+    if (n && S.alCambio) S.alCambio(n);
+    return n;
+  }
+  /* guarda solo lo que cambió respecto a lo último que se mandó */
+  function guardarNube(d){
+    ponerRefs(d);
+    const c = { ventas: [], clientes: [], cols: {}, borrar: { ventas: [], clientes: [] } };
+    const fv = new Set(), fc = new Set();
+    for (const v of d.ventas || []){ fv.add(v.folio); const s = JSON.stringify(v); if (S.js.v.get(v.folio) !== s){ c.ventas.push(clon(v)); S.js.v.set(v.folio, s); } }
+    for (const x of d.clientes || []){ fc.add(x.id); const s = JSON.stringify(x); if (S.js.c.get(x.id) !== s){ c.clientes.push(clon(x)); S.js.c.set(x.id, s); } }
+    for (const f of [...S.js.v.keys()]) if (!fv.has(f)){ c.borrar.ventas.push(f); S.js.v.delete(f); }
+    for (const id of [...S.js.c.keys()]) if (!fc.has(id)){ c.borrar.clientes.push(id); S.js.c.delete(id); }
+    for (const k of OTROS(d)){ const s = JSON.stringify(d[k]); if (S.js.k.get(k) !== s){ c.cols[k] = clon(d[k]); S.js.k.set(k, s); } }
+    S.db = clon(d);
+    if (!c.ventas.length && !c.clientes.length && !Object.keys(c.cols).length && !c.borrar.ventas.length && !c.borrar.clientes.length) return true;
+    S.pend++; estadoNube();
+    S.cola = S.cola.then(() => enviar(c, d)).catch(() => {});
+    return true;
+  }
+  async function enviar(c, d){
+    for (let intento = 0; ; intento++){
+      try {
+        await subirImagenes(c, "panel");
+        ponerRefs(d); ponerRefs(S.db);
+        /* lo que ya quedó con liga se marca así para no volver a mandarlo */
+        for (const v of c.ventas){ const i = S.db.ventas.find(x => x.folio === v.folio); if (i) S.js.v.set(v.folio, JSON.stringify(i)); }
+        for (const x of c.clientes){ const i = S.db.clientes.find(y => y.id === x.id); if (i) S.js.c.set(x.id, JSON.stringify(i)); }
+        for (const k of Object.keys(c.cols)) S.js.k.set(k, JSON.stringify(S.db[k]));
+        await api("guardar", c);
+        S.pend--; S.error = null; estadoNube(); return;
+      } catch(e){
+        if (e.status === 401 || e.status === 400){ S.pend--; S.error = e.message; estadoNube(); return; }
+        S.error = "Sin conexión: reintentando…"; estadoNube();
+        await new Promise(r => setTimeout(r, Math.min(30000, 3000 * (intento + 1))));
+      }
+    }
+  }
+  /* indicador "☁️ Guardado" en el panel */
+  function estadoNube(){
+    if (S.modo !== "admin" || !S.srv) return;
+    let el = document.getElementById("vtNube");
+    if (!el){ el = document.createElement("div"); el.id = "vtNube"; el.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9999;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:6px 12px;font:600 12px Montserrat,Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.08)"; document.body.appendChild(el); }
+    el.textContent = S.error ? "⚠️ " + S.error : S.pend ? "☁️ Guardando…" : "☁️ Guardado";
+    el.style.color = S.error ? "#B42318" : S.pend ? "#6B7280" : "#1E8E4A";
+  }
+  window.addEventListener("beforeunload", e => { if (S.pend){ e.preventDefault(); e.returnValue = ""; } });
+  async function respaldo(){ return api("respaldo", undefined); }
+  const pendientes = () => S.pend;
+
+  /* ---------- app del cliente: guarda en este celular solo sus pedidos ---------- */
+  const CKEY = "vituma_cache";
+  function cliCargarCache(){ try { S.db = JSON.parse(localStorage.getItem(CKEY) || "null"); } catch(e){} if (!S.db || !S.db.ventas) S.db = { ventas: [] }; }
+  function cliGuardarCache(){ try { localStorage.setItem(CKEY, JSON.stringify({ ventas: S.db.ventas.slice(0, 40) })); } catch(e){} }
+  function cliPoner(vs){ for (const v of vs){ const i = S.db.ventas.findIndex(x => x.folio === v.folio); if (i >= 0) S.db.ventas[i] = v; else S.db.ventas.unshift(v); } cliGuardarCache(); }
+  async function crearPedido(venta){
+    await subirImagenes(venta, "pedidos");
+    const r = await api("pedido", { venta });
+    cliPoner([r.venta]); return r.venta;
+  }
+  async function agregarPago(folio, tel, pago){
+    if (pago.comprobante) await subirImagenes(pago, "comprobantes");
+    const r = await api("pago", { folio, tel, pago }); cliPoner([r.venta]); return r.venta;
+  }
+  async function misPedidos(pares){
+    if (!pares.length) return [];
+    const r = await api("mis", { pares }); cliPoner(r.ventas); return r.ventas;
+  }
+  async function buscar(q){ const r = await api("buscar", q); cliPoner(r.ventas); return r.ventas; }
+
+  function cargar(){
+    if (!S.srv) return cargarLocal();
+    if (S.modo === "cliente") return { ...vacia(), ventas: clon((S.db || { ventas: [] }).ventas) };
+    return S.db ? clon(S.db) : vacia();
+  }
+  function guardar(d){
+    if (!S.srv) return guardarLocal(d);
+    if (S.modo === "cliente"){ S.db = { ventas: clon(d.ventas || []) }; cliGuardarCache(); return true; }
+    return guardarNube(d);
+  }
+  const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, pendientes, crearPedido, agregarPago, misPedidos, buscar, subirImagenes,
+    set alSalir(f){ S.alSalir = f; }, set alCambio(f){ S.alCambio = f; } };
 
   const money = n => "$" + (Number(n)||0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const esc = t => String(t ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
@@ -851,7 +1027,7 @@ const VT = (() => {
 
   return { BANCO, WHATSAPP_AVISOS, SUCURSALES, PONCHADO, ENTREGA, POLITICAS, ESTADOS, FORMAS, CSS,
            cargar, guardar, money, esc, fecha, fechaHora, fechaLarga, sumarHabiles, letras, cuentas, siguienteFolio,
-           notaHTML, notaPDF, reducirImagen };
+           notaHTML, notaPDF, reducirImagen, nube };
 })();
 
 document.head.insertAdjacentHTML("beforeend", `<style>${VT.CSS}</style>`);
@@ -1533,7 +1709,10 @@ const serviciosCarrito = () => [...new Set(carrito.map(c => c.diseno && c.diseno
 
 /* ---------- venta en mostrador (se abre desde el panel con ./?mostrador=ID) ---------- */
 const MOSTRADOR = (() => { try { const id = new URLSearchParams(location.search).get("mostrador"); if (!id) return null;
-  return (VT.cargar().usuarios || []).find(u => u.id === id && u.activo) || null; } catch(e){ return null; } })();
+  const u = (VT.cargar().usuarios || []).find(u => u.id === id && u.activo); if (u) return u;
+  const m = JSON.parse(localStorage.getItem("vituma_mostrador") || "null");   // con base de datos: el usuario que entró al panel en esta computadora
+  return m && m.id === id && m.activo ? m : null; } catch(e){ return null; } })();
+VT.nube.iniciar("cliente");
 
 /* ---------- datos de contacto en la espalda (teléfono, WhatsApp, redes) ---------- */
 const CONTACTO = [
@@ -3563,8 +3742,9 @@ async function generarNota(){
     cant: ponchado.logos, punit: ponchado.monto / ponchado.logos, importe: ponchado.monto, prenda:"Ponchado", categoria:"Ponchado", marca:"VITUMA", qty:{} });
   const descBordado = filas.filter(esBordado).map(f => `${f.p.nombre} (${f.it.color || ""}): ${textoItem(f).replace(/^🎨 Diseño propio · /,"").replace(/ · 📎 diseño por adjuntar$/,"")}`).join(" | ");
 
+  const enNube = await VT.nube.iniciar("cliente");
   const db = VT.cargar(), ahora = new Date().toISOString();
-  const folio = VT.siguienteFolio(db, sucursalElegida);
+  const folio = enNube ? "" : VT.siguienteFolio(db, sucursalElegida);   // con base de datos, el folio lo da el servidor
   const venta = {
     folio, sucursal: sucursalElegida, fecha: ahora, cliente: { nombre, tel }, trabajo, items, bordado, ponchado, descBordado,
     total: Math.round((total + ponchado.monto) * 100) / 100, anticipoReq: Math.round((anticipo + ponchado.monto) * 100) / 100,
@@ -3573,6 +3753,18 @@ async function generarNota(){
     servicios: servicios.map(x => x.id),
     disenoAdjunto: carrito.some(c => c.diseno && c.diseno.adjunto)
   };
+  if (enNube){
+    const b = $("#cGen"), txt = b.textContent; b.disabled = true; b.textContent = "Enviando tu pedido…";
+    let v2 = null;
+    try { v2 = await VT.nube.crearPedido(venta); }
+    catch(e){ b.disabled = false; b.textContent = txt; return err((e.message && e.status && e.status < 500 ? e.message + " " : "") + "No se pudo enviar tu pedido. Revisa tu internet e intenta de nuevo; tu carrito sigue guardado."); }
+    b.disabled = false; b.textContent = txt;
+    agregarMiFolio(v2.folio);
+    if (!MOSTRADOR) recordarCliente({ nombre, tel, sucursal: sucursalElegida });
+    carrito = []; guardar(); pintarCarrito();
+    abrirPedido(v2.folio, true);
+    return;
+  }
   let cli = db.clientes.find(c => c.tel === tel);
   if (!cli){ cli = { id: "C" + Date.now(), nombre, tel, sucursal: sucursalElegida, alta: ahora, logosPonchados: [], folios: [] }; db.clientes.push(cli); }
   cli.nombre = nombre; cli.folios.unshift(folio);
@@ -3605,6 +3797,9 @@ async function guardarConEspacio(db, venta){
   if (VT.guardar(db)) return true;
   await recorrerImgs(venta.items, (v) => v.startsWith("data:image/png") ? reducirImg(v, 600, "image/png") : reducirImg(v, 800, "image/jpeg", .7));
   if (VT.guardar(db)) return true;
+  /* modo muestra: libera las imágenes de los pedidos más viejos de este navegador (de la más vieja a la más nueva) */
+  for (const v of db.ventas.slice().reverse()){ if (v === venta) continue; let quito = false;
+    await recorrerImgs(v.items, () => { quito = true; return ""; }); if (quito){ v.imagenesPendientes = true; if (VT.guardar(db)) return true; } }
   await recorrerImgs(venta.items, (v, k) => k === "mockup" ? reducirImg(v, 700, "image/jpeg", .7) : null);
   venta.imagenesPendientes = true;
   return VT.guardar(db);
@@ -3627,6 +3822,7 @@ document.addEventListener("click", async e => {
 });
 
 function abrirPedido(folio, recien){
+  if (!recien) actualizarMios(() => { if ($("#misDetalle").innerHTML && $("#misDetalle h2") && $("#misDetalle h2").textContent === folio) abrirPedido(folio, false); });
   const db = VT.cargar(), v = db.ventas.find(x => x.folio === folio);
   if (!v){ irA("mis"); return; }
   irA("mis");
@@ -3717,25 +3913,45 @@ function abrirPedido(folio, recien){
       const comp = await VT.reducirImagen(archivo);
       const db2 = VT.cargar(), vv = db2.ventas.find(x => x.folio === folio), cc = VT.cuentas(vv);
       const tipo = cc.pagado + cc.porValidar <= 0 ? "Anticipo" : (monto >= cc.saldo - cc.porValidar ? "Liquidación" : "Abono");
+      if (VT.nube.enLinea()){
+        await VT.nube.agregarPago(folio, vv.cliente.tel, { monto, tipo, comprobante: comp, registro: MOSTRADOR ? "Mostrador" : "Cliente (app)" });
+        abrirPedido(folio, false);
+        setTimeout(() => { const a = $("#pAvisar"); if (a) a.scrollIntoView({behavior:"smooth", block:"center"}); }, 80);
+        return;
+      }
       vv.pagos.push({ id: "P" + Date.now(), fecha: new Date().toISOString(), tipo, monto, forma: "Transferencia", estado: "por_validar", comprobante: comp, registro: "Cliente (app)" });
       if (!VT.guardar(db2)) throw new Error("espacio");
       abrirPedido(folio, false);
       setTimeout(() => { const a = $("#pAvisar"); if (a) a.scrollIntoView({behavior:"smooth", block:"center"}); }, 80);
     } catch(e){
       $("#pEnviar").disabled = false; $("#pEnviar").textContent = "Enviar comprobante";
-      er("No se pudo guardar el comprobante. Intenta con una captura más pequeña.");
+      er(VT.nube.enLinea() ? "No se pudo enviar el comprobante. Revisa tu internet e intenta de nuevo." : "No se pudo guardar el comprobante. Intenta con una captura más pequeña.");
     }
   };
 }
 
+/* con base de datos: trae del servidor cómo van los pedidos de este celular (estado y pagos) */
+let _misHora = 0;
+function misPares(){
+  const db = VT.cargar(); let tel = ""; try { tel = (JSON.parse(localStorage.getItem(CLI_KEY) || "null") || {}).tel || ""; } catch(e){}
+  return misFolios().map(f => { const v = db.ventas.find(x => x.folio === f); return { folio: f, tel: v ? v.cliente.tel : tel }; }).filter(p => p.tel);
+}
+async function actualizarMios(alTerminar){
+  if (!(await VT.nube.iniciar("cliente")) || Date.now() - _misHora < 15000) return;
+  _misHora = Date.now();
+  const antes = JSON.stringify(VT.cargar().ventas);
+  try { await VT.nube.misPedidos(misPares()); } catch(e){ return; }
+  if (JSON.stringify(VT.cargar().ventas) !== antes && alTerminar) alTerminar();
+}
 function pintarMisPedidos(){
+  actualizarMios(() => { if ($("#misInicio").style.display !== "none") pintarMisPedidos(); });
   const db = VT.cargar(), lista = misFolios().map(f => db.ventas.find(v => v.folio === f)).filter(Boolean);
   const deben = lista.filter(v => v.estado !== "cancelada" && VT.cuentas(v).saldo > 0);
   $("#misLista").innerHTML = (lista.length
     ? `<h3>Hechos en este celular</h3>` + (deben.length > 1 ? `<p class="muted" style="margin:-4px 0 8px">Tienes ${deben.length} pedidos con saldo; cada uno se paga por separado con su folio.</p>` : "") + lista.map(v => { const c = VT.cuentas(v); return `<div class="item" style="cursor:pointer" data-folio="${v.folio}">
         <div><b>${v.folio}</b><div class="det">${VT.fechaHora(v.fecha)} · ${c.piezas} pzs</div><div style="margin-top:4px"><span class="badge ${VT.ESTADOS[v.estado].c}">${VT.ESTADOS[v.estado].t}</span> <span class="badge ${c.pago.c}">${c.pago.t}</span></div></div>
         <div class="r"><b>${money(v.total)}</b><span class="muted">Saldo ${money(c.saldo)}</span></div></div>`; }).join("")
-    : `<div class="empty">Aquí aparecerán tus pedidos.<br>Si hiciste tu pedido en otro celular, búscalo abajo con tu folio, tu teléfono o tu nombre y apellido.</div>`)
+    : `<div class="empty">Aquí aparecerán tus pedidos.<br>Si hiciste tu pedido en otro celular, búscalo abajo con tu teléfono.</div>`)
     + `<button class="btn pri" data-nuevo style="width:100%;margin-top:12px">＋ Hacer un pedido nuevo</button>`;
   document.querySelectorAll("#misLista [data-nuevo]").forEach(b => b.onclick = nuevoPedido);
   document.querySelectorAll("#misLista [data-folio]").forEach(x => x.onclick = () => abrirPedido(x.dataset.folio));
@@ -3748,6 +3964,7 @@ function buscarPedidos(){
   if (t && t.length !== 10) return err("El teléfono debe tener 10 dígitos.");
   const palabras = n ? n.split(" ").filter(w => w.length >= 2) : [];
   if (n && palabras.length < 2) return err("Para buscar por nombre escribe tu nombre y al menos un apellido.");
+  if (VT.nube.enLinea()) return buscarEnNube(f, t, n, err);
   const ventas = VT.cargar().ventas.filter(v =>
     (!f || v.folio === f) && (!t || v.cliente.tel === t) &&
     (!palabras.length || palabras.every(w => normal(v.cliente.nombre).split(" ").includes(w))));
@@ -3756,6 +3973,20 @@ function buscarPedidos(){
   ventas.forEach(v => agregarMiFolio(v.folio));
   if (ventas.length === 1){ $("#qRes").innerHTML = ""; abrirPedido(ventas[0].folio); return; }
   $("#qRes").innerHTML = `<p class="muted" style="margin:12px 0 4px">Encontramos ${ventas.length} pedidos:</p>` + ventas.map(v => { const c = VT.cuentas(v);
+    return `<div class="item" style="cursor:pointer" data-qf="${v.folio}"><div><b>${v.folio}</b><div class="det">${VT.fechaHora(v.fecha)} · ${c.piezas} pzs</div>
+      <div style="margin-top:4px"><span class="badge ${VT.ESTADOS[v.estado].c}">${VT.ESTADOS[v.estado].t}</span></div></div>
+      <div class="r"><b>${money(v.total)}</b><span class="muted">Saldo ${money(c.saldo)}</span></div></div>`; }).join("");
+  document.querySelectorAll("[data-qf]").forEach(x => x.onclick = () => abrirPedido(x.dataset.qf));
+}
+async function buscarEnNube(f, t, n, err){
+  if (!t) return err("Escribe tu teléfono de 10 dígitos (el que diste al hacer tu pedido). Si quieres, agrega tu folio o tu nombre para encontrarlo más rápido.");
+  $("#qErr").innerHTML = ""; $("#qRes").innerHTML = `<div class="muted" style="margin-top:10px">Buscando…</div>`;
+  let ventas = [];
+  try { ventas = await VT.nube.buscar({ folio: f, tel: t, nombre: n }); } catch(e){ return err(e.status && e.status < 500 ? e.message : "No se pudo buscar. Revisa tu internet e intenta de nuevo."); }
+  if (!ventas.length) return err("No encontramos pedidos con esos datos. Revisa que estén bien escritos.");
+  ventas.forEach(v => agregarMiFolio(v.folio));
+  if (ventas.length === 1){ $("#qRes").innerHTML = ""; abrirPedido(ventas[0].folio); return; }
+  $("#qRes").innerHTML = `<p class="muted" style="margin:10px 0 6px">Encontramos ${ventas.length} pedidos:</p>` + ventas.map(v => { const c = VT.cuentas(v);
     return `<div class="item" style="cursor:pointer" data-qf="${v.folio}"><div><b>${v.folio}</b><div class="det">${VT.fechaHora(v.fecha)} · ${c.piezas} pzs</div>
       <div style="margin-top:4px"><span class="badge ${VT.ESTADOS[v.estado].c}">${VT.ESTADOS[v.estado].t}</span></div></div>
       <div class="r"><b>${money(v.total)}</b><span class="muted">Saldo ${money(c.saldo)}</span></div></div>`; }).join("");
