@@ -2985,8 +2985,8 @@ function sbCompletar(src){
     const orilla = []; for (let z = 0; z < W; z++) orilla.push(z, N - W + z); for (let y = 0; y < H; y++) orilla.push(y * W, y * W + W - 1);
     for (const i of orilla) if (fondo[i] < 0 && bl(i)) regiones.push(inunda(i, regiones.length));
     const hueco = new Uint8Array(N); let hay = 0;
-    for (let i = 0; i < N; i++) if (fondo[i] >= 0 && regiones[fondo[i]] > N * .012){ hueco[i] = 1; hay++; }
-    if (hay < N * .01) return ok(null);
+    for (let i = 0; i < N; i++) if (fondo[i] >= 0 && regiones[fondo[i]] > N * .004){ hueco[i] = 1; hay++; }
+    if (hay < N * .006) return ok(null);
     /* la pieza: la mancha más grande que no es hueco (los nombres escritos quedan fuera) */
     const lab = new Int32Array(N), tam = [0]; let id = 0;
     for (let i = 0; i < N; i++){ if (hueco[i] || lab[i]) continue; id++; let n = 0; const st = [i]; lab[i] = id;
