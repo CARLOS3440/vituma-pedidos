@@ -1115,6 +1115,7 @@ function abrirOT(id, vista){
         <button class="btn sec sm" id="oArch">📁 Ver archivos</button>
         ${mon && can("ver_ventas") ? `<button class="btn sec sm" id="oVenta">Ver venta y nota</button>` : ""}
         ${["Administrador","Encargado","Diseño"].includes(SES.rol) && ot.tecnica === "sublimado" ? `<a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none">Ajustador de tallas ↗</a>` : ""}</div></div>
+    ${v.imagenesPendientes ? `<div class="warn" style="margin-bottom:10px">⚠️ La memoria del navegador del cliente estaba llena (modo muestra): las imágenes del diseño no se guardaron completas. Pídele por WhatsApp sus piezas y su logo.</div>` : ""}
     ${serviciosDe(v).length ? `<div class="card" style="border:2px solid #F26B21"><h3>✏️ Diseño a cargo de VITUMA</h3>
       <p>${serviciosDe(v).map(k => k === "digitalizar" ? "<b>Digitalizar logo</b>: el cliente mandó una foto o muestra; hay que redibujarlo." : "<b>Diseñar logo</b>: crear el logotipo con lo que pidió el cliente (ver notas).").join("<br>")}</p>
       <p class="muted" style="margin-top:6px">Sube el diseño final en cada ubicación (abajo), cambia la vista previa si hace falta y mándala al cliente para que la autorice.</p></div>` : ""}

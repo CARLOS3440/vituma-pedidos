@@ -1161,7 +1161,9 @@ const piezas = q => Object.values(q).reduce((a,b)=>a+(b||0),0);
 
 let carrito = [];
 try { carrito = JSON.parse(localStorage.getItem("vituma_carrito")||"[]"); } catch(e) { carrito = []; }
-const guardarOk = () => { try { localStorage.setItem("vituma_carrito", JSON.stringify(carrito)); return true; } catch(e){ return false; } };
+/* el carrito completo vive en memoria; si el navegador no tiene espacio, se guarda una copia ligera (sin imágenes pesadas) */
+const guardarOk = () => { try { localStorage.setItem("vituma_carrito", JSON.stringify(carrito)); return true; }
+  catch(e){ try { localStorage.setItem("vituma_carrito", JSON.stringify(carrito, (k, v) => typeof v === "string" && v.startsWith("data:image") && v.length > 20000 ? null : v)); } catch(e2){} return false; } };
 const guardar = () => { guardarOk(); };
 
 let actual = null; // prenda que se está configurando
@@ -2290,7 +2292,7 @@ $("#dzAdd").onclick = async () => {
     });
   } catch(e){}
   b.disabled = false; b.textContent = "Agregar a mi pedido";
-  carrito.push(it); if (!guardarOk()){ it.diseno.mockup = null; it.diseno.logos = []; guardar(); }
+  carrito.push(it); guardarOk();
   pintarCarrito();
   DZ.qty = {}; dzRender();
   const t = $("#toast"); t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1600);
@@ -2563,8 +2565,9 @@ function sbPersEls(k){
       /* reglas de manga larga: cabe entre los 10 cm del hombro y los 10 cm del puño en la manga MÁS CORTA del pedido
          (el ajustador conserva el tamaño en todas las tallas) y su ancho no pasa de la franja de 10 cm, contorno incluido */
       const tallas = byId(SB.prod).modelos[SB.modelo].filter(x => SB.qty[x]);
-      const largo = Math.min(...(tallas.length ? tallas : [sbBase().app]).map(x => sbBase(x).m[k].h)) - 2 * SB_REGLAS.hombro * PT;
-      let r = Math.min(1, largo / sbTam(e).h, 10 * PT / sbTam(e).w);
+      const otros = SB.piezas[k].els.reduce((a, x) => a + sbTam(x).h + SB_REGLAS.separa * PT, 0);   // lo que ya lleva la manga (logos, textos)
+      const largo = Math.min(...(tallas.length ? tallas : [sbBase().app]).map(x => sbBase(x).m[k].h)) - 2 * SB_REGLAS.hombro * PT - otros;
+      let r = Math.max(0, Math.min(1, largo / sbTam(e).h, 10 * PT / sbTam(e).w));
       if (r < 1){ e.cm = Math.max(3, Math.floor(M.cm * r * 10) / 10); e.ajustado = true; }
       out.push(e); } }
   if (k === "espalda" && P.espalda){ if (P.nombre) out.push(...nombre("pNomE", P.espNomCm, "centro")); if (P.numero) out.push(el("pNumE", num, P.espNumCm, "centro")); }
@@ -2607,7 +2610,8 @@ function sbAvisos(k, m){
   L.forEach(r => { if (r.e.tipo === "firma") return; const nom = `"${r.e.texto || r.e.nombre || "Logo"}"`;
     if (mangaL){   // manga larga (reglas del ajustador): entre 10 cm del hombro y 10 cm del puño, franja central de 6 a 10 cm
       if (r.w > 10 * PT + 1) a.push(`${nom} mide ${sbCm(r.w)} cm de ancho: en manga larga debe ir en la franja central de 6 a 10 cm. ${r.e.tipo === "texto" ? "Ponlo <b>a lo largo de la manga</b> o baja el alto de letra." : "Hazlo más chico."}`);
-      if (r.y + r.h > m.h - H + 1) a.push(`${nom} pasa la línea de ${SB_REGLAS.hombro} cm del puño: hazlo más chico o quita algún elemento.`);
+      if (r.y + r.h > m.h - H + 1) a.push(`${nom} pasa la línea de ${SB_REGLAS.hombro} cm del puño: ${r.e.mtx || L.some(x => x.e.mtx) ? "usa un texto más corto en el paso 6 o quita el logo de esta manga." : "hazlo más chico o quita algún elemento."}`);
+      if (r.e.mtx && r.w < 6 * PT - 1) a.push(`El texto ${nom} quedó de ${sbCm(r.w)} cm de ancho y la franja de la manga es de 6 a 10 cm${L.some(x => !x.e.mtx) ? ": no cabe junto con el logo. Usa un texto más corto o quita el logo de esta manga." : ": usa un texto más corto."}`);
       return; }
     if (mangaC && r.y < 2 * PT) a.push(`${nom} no cabe en la manga corta: hazlo más chico.`);
     if (r.x < margen || r.x + r.w > m.w - margen) a.push(`${nom} es muy ancho para esta pieza (${sbCm(r.w)} cm); ${r.e.pers ? "baja el alto en el paso 6." : "hazlo más chico."}`);
@@ -2718,6 +2722,7 @@ function sbDibujar(){
   if (SB.prueba){ x.setTransform(1, 0, 0, 1, 0, 0); sbAPrueba(cv); }
   sbCuelloUI();
   $("#sbAvisos").innerHTML = [...agr.values()].map(([n, a, ts]) => `<div class="warn" style="margin-top:6px">${n}${tallas.length > 1 ? ` <span class="muted">(talla ${ts.join(", ")})</span>` : ""}: ${a}</div>`).join("");
+  SB.errores = agr.size; sbPrecio(); sbMangaMed();
   sbMockAuto();
 }
 
@@ -3040,6 +3045,11 @@ function sbPersMedidas(){
     out.push(`<b>${t}:</b> ` + L.map(e => { const m = sbTam(e); return `${e.id.startsWith("pNom") ? "nombre" : "número"} ${sbCm(m.w)} × ${sbCm(m.h)} cm${e.ajustado ? " (se achicó para caber)" : ""}`; }).join(" · ")); }
   return out.join("<br>");
 }
+function sbMangaMed(){
+  const el = $("#smMed"); if (!el) return;
+  el.innerHTML = ["mangaD","mangaI"].map(k => sbPersEls(k).find(e => e.mtx)).filter(Boolean).map(e => { const t = sbTam(e), n = e.id === "mtxmangaD" ? "Manga derecha" : "Manga izquierda";
+        return `<div class="mini" style="margin-top:4px">📏 ${n}: <b>${sbCm(t.w)} × ${sbCm(t.h)} cm</b>${e.ajustado ? " (se achicó para caber entre las líneas de 10 cm)" : ""}${t.w < 6 * PT - 1 ? `<br>⚠️ Quedó de menos de 6 cm de ancho${SB.piezas[e.id.slice(3)].els.length ? " porque esa manga también lleva logo" : ""}: <b>usa un texto más corto${SB.piezas[e.id.slice(3)].els.length ? " o quita el logo de esa manga" : ""}</b> para respetar la franja de 6 a 10 cm.` : ""}</div>`; }).join("");
+}
 function sbPasoPers(){
   sbPersLista();
   const P = SB.pers, box = $("#sbPersBox"), sel = (id, lista, v) => `<select id="${id}">${lista.map(n => `<option value="${n}"${+v===n?" selected":""}>${n} cm</option>`).join("")}</select>`;
@@ -3053,8 +3063,7 @@ function sbPasoPers(){
       <div class="grid2" style="margin-top:10px"><div><span class="label">Manga derecha</span><input type="text" id="smD" maxlength="22" value="${VT.esc(M.D)}" placeholder="Ej. ESCUINAPA"></div>
         <div><span class="label">Manga izquierda</span><input type="text" id="smI" maxlength="22" value="${VT.esc(M.I)}" placeholder="Ej. SINALOA"></div></div>
       ${M.D.trim() || M.I.trim() ? `<div class="sbrow" style="margin-top:10px"><span class="label" style="margin:0">Alto de letra</span>${sel("smCm", [6,7,8,9,10], M.cm)}<span class="mini">La regla del ajustador: franja central de 6 a 10 cm.</span></div>
-      ${["mangaD","mangaI"].map(k => sbPersEls(k).find(e => e.mtx)).filter(Boolean).map(e => { const t = sbTam(e), n = e.id === "mtxmangaD" ? "Manga derecha" : "Manga izquierda";
-        return `<div class="mini" style="margin-top:4px">📏 ${n}: <b>${sbCm(t.w)} × ${sbCm(t.h)} cm</b>${e.ajustado ? " (se achicó para caber entre las líneas de 10 cm)" : ""}${t.w < 6 * PT - 1 ? `<br>⚠️ Quedó de menos de 6 cm de ancho: <b>usa un texto más corto</b> para respetar la franja de 6 a 10 cm.` : ""}</div>`; }).join("")}
+      <div id="smMed"></div>
       <span class="label" style="margin-top:10px">Tipo de letra</span>
       <div class="ctfonts" id="smFu">${CT_FUENTES.map(f => `<button class="${M.fuente===f.id?"on":""}" data-v="${f.id}" style="font-family:'${f.fam}',Arial;font-weight:${f.w}">${f.t}</button>`).join("")}</div>
       <span class="label" style="margin-top:10px">Color de la letra</span>
@@ -3104,6 +3113,7 @@ function sbPasoPers(){
   box.querySelectorAll("[data-pl]").forEach(i => i.oninput = () => { P.lista[+i.dataset.pl][i.dataset.pf] = i.dataset.pf === "numero" ? i.value.replace(/\D/g, "") : i.value; if (i.dataset.pf === "numero") i.value = P.lista[+i.dataset.pl].numero; cambio(false); });
   const med = () => { const el = $("#spMedidas"); if (el) el.innerHTML = sbPersMedidas() ? "📏 Así queda (ancho × alto) en la talla " + (SB.verTalla || sbBase().app) + ":<br>" + sbPersMedidas() : ""; };
   med(); box.querySelectorAll("[data-pl]").forEach(i => i.addEventListener("input", med));
+  sbMangaMed();
   if (activo) ctCargarFuenteDe(P.fuente).then(() => { sbDibujar(); med(); });
 }
 /* ---------- precio ---------- */
@@ -3133,8 +3143,9 @@ function sbPrecio(){
   const pd = sbPersDatos(); if (n && pd){ const falta = pd.lista.filter(r => (pd.nombre && !r.nombre) || (pd.numero && !r.numero)).length;
     if (falta) av.push(`Faltan nombres o números en ${falta} ${falta === 1 ? "playera" : "playeras"} (paso 6). Puedes mandarlos después por WhatsApp.`); }
   if (SB.servicio === "logo" && !(SB.logoDesc || "").trim()) av.push("Describe cómo deseas tu logo (en el paso 3).");
+  if (n && SB.errores) av.push(`<b>Hay elementos fuera del área de impresión</b> (mira los avisos en el paso 7). Corrígelos para poder agregar tu pedido: usa un texto más corto, achica o quita algún logo.`);
   $("#sbWarn").innerHTML = av.map(a => `<div class="warn">${a}</div>`).join("");
-  $("#sbAdd").disabled = !n || (SB.servicio === "logo" && !(SB.logoDesc || "").trim());
+  $("#sbAdd").disabled = !n || (SB.servicio === "logo" && !(SB.logoDesc || "").trim()) || !!SB.errores;
 }
 
 /* ---------- mockup con la plantilla del ajustador ---------- */
@@ -3260,7 +3271,7 @@ async function sbAgregar(){
       it.diseno.logos = SB.archivos.map(a => ({ nombre: a.nombre, src: a.src, tipo: a.tipo }));
     }
   } catch(e){}
-  carrito.push(it); if (!guardarOk()){ if (it.diseno.sub) Object.values(it.diseno.sub.piezas).forEach(p => p.els.forEach(e => e.src = null)); guardar(); }
+  carrito.push(it); guardarOk();
   pintarCarrito(); SB.qty = {}; sbRender();
   b.textContent = "Agregar a mi pedido";
   const t = $("#toast"); t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1600);
@@ -3339,7 +3350,7 @@ function pintarPonchado(){
       </div></div>`;
 }
 
-function generarNota(){
+async function generarNota(){
   const { filas, total, anticipo, pz, servicios } = totales();
   const err = m => { $("#cErr").innerHTML = `<div class="warn" style="margin-top:10px">${m}</div>`; };
   if (!pz) return;
@@ -3399,13 +3410,38 @@ function generarNota(){
   if (!cli){ cli = { id: "C" + Date.now(), nombre, tel, sucursal: sucursalElegida, alta: ahora, logosPonchados: [], folios: [] }; db.clientes.push(cli); }
   cli.nombre = nombre; cli.folios.unshift(folio);
   db.ventas.unshift(venta);
-  if (!VT.guardar(db)) return err("No se pudo guardar tu pedido en este dispositivo. Libera espacio o intenta en otro navegador.");
+  if (!(await guardarConEspacio(db, venta))) return err("No se pudo guardar tu pedido en este dispositivo (la memoria del navegador está llena). Mándanos tu diseño por WhatsApp o intenta en otro navegador.");
   agregarMiFolio(folio);
   if (!MOSTRADOR) recordarCliente({ nombre, tel, sucursal: sucursalElegida });
   carrito = []; guardar(); pintarCarrito();
   abrirPedido(folio, true);
 }
 $("#cGen").onclick = generarNota;
+/* ---------- guardar sin que falte espacio (modo muestra: el navegador solo guarda unos 5 MB) ----------
+   1) libera el carrito (ya va dentro de la venta)  2) reduce las imágenes del pedido  3) último recurso: guarda sin las imágenes pesadas y lo marca */
+function reducirImg(src, max, tipo, q){
+  return new Promise(ok => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k)); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+    const r = c.toDataURL(tipo, q); ok(r.length < src.length ? r : src); }; im.onerror = () => ok(src); im.src = src; });
+}
+async function recorrerImgs(o, f){
+  if (!o || typeof o !== "object") return;
+  for (const k of Object.keys(o)){ const v = o[k];
+    if (typeof v === "string" && v.startsWith("data:image") && v.length > 60000) o[k] = await f(v, k);
+    else if (v && typeof v === "object") await recorrerImgs(v, f); }
+}
+async function guardarConEspacio(db, venta){
+  if (VT.guardar(db)) return true;
+  try { localStorage.removeItem("vituma_carrito"); } catch(e){}
+  if (VT.guardar(db)) return true;
+  await recorrerImgs(venta.items, (v) => v.startsWith("data:image/png") ? reducirImg(v, 900, "image/png") : reducirImg(v, 1100, "image/jpeg", .78));
+  if (VT.guardar(db)) return true;
+  await recorrerImgs(venta.items, (v) => v.startsWith("data:image/png") ? reducirImg(v, 600, "image/png") : reducirImg(v, 800, "image/jpeg", .7));
+  if (VT.guardar(db)) return true;
+  await recorrerImgs(venta.items, (v, k) => k === "mockup" ? reducirImg(v, 700, "image/jpeg", .7) : null);
+  venta.imagenesPendientes = true;
+  return VT.guardar(db);
+}
 
 /* ---------- Mis pedidos ---------- */
 function ajustarNota(wrap){
