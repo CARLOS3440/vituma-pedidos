@@ -191,6 +191,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 .sbedit{background:#1C2340;color:#fff;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:14px}.sbedit .muted{color:#c9cde0;font-size:12px}
 .pasosbox{background:#FFF5EE;border:1.5px solid #F7C9AE;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14px}.pasosbox ol{margin:6px 0 6px 20px;display:grid;gap:3px}
 .sbborde{border-left:3px solid var(--line);padding-left:10px;margin-top:4px}
+.sbsec{margin-top:4px}.sbsec>b{display:block;font-size:15px;color:var(--navy)}
 .sbref2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sbref2 figure{margin:0}.sbref2 figcaption{font-size:12px;color:var(--muted);text-align:center;margin-top:-6px;margin-bottom:8px}.sbref2 .sbref{height:220px;max-height:none}@media(max-width:600px){.sbref2{grid-template-columns:1fr}}
 .sbref{width:100%;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:10px;cursor:zoom-in}
 .sbpz{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}.sbpz.ok{border-color:var(--ok);background:rgba(22,163,74,.04)}
@@ -2760,19 +2761,15 @@ function sbPanel(){
   $("#sbPanel").innerHTML = `
     <div class="sbedit">✏️ Estás editando: <b>${nomK.toUpperCase()}</b> <span class="muted">· cambia de pieza con los botones de arriba o tocándola en el dibujo</span></div>
     <div class="note" style="margin-bottom:10px">📏 ${sbReglasTexto(k)}</div>
-    <span class="label">Fondo de la pieza (${sbCm(mm.w)} × ${sbCm(mm.h)} cm)</span>
-    ${P.fondo.tipo === "imagen" ? (() => { const nw = Math.round(mm.w / PT / 2.54 * 150), nh = Math.round(mm.h / PT / 2.54 * 150);
-      let t = `<div class="mini" style="margin-bottom:6px">Si ya tienes el diseño de esta pieza, súbelo aquí: de preferencia de <b>${nw.toLocaleString("es-MX")} × ${nh.toLocaleString("es-MX")} px</b> o más (150 ppp), plano y de orilla a orilla, sin la playera alrededor.</div>`;
-      if (P.fondo.w){ const ppp = Math.round(Math.min(P.fondo.w / (mm.w / PT / 2.54), P.fondo.h / (mm.h / PT / 2.54))), dif = Math.abs((P.fondo.w / P.fondo.h) / (mm.w / mm.h) - 1);
-        t += `<div class="mini" style="margin-bottom:6px">✓ Imagen recibida (${P.fondo.w} × ${P.fondo.h} px). Nuestro diseñador la deja en alta resolución para imprimir${dif > .12 ? " y recorta el molde de cada talla" : ""}.</div>`; }
-      return t; })() : ""}
-    <div class="seg" id="sbFt">${[["color","Color liso"],["imagen","Imagen o diseño"]].map(([v, t]) => `<button class="${P.fondo.tipo===v?"on":""}" data-v="${v}">${t}</button>`).join("")}</div>
-    ${P.fondo.tipo === "color" ? `<div class="ctcols" style="margin-top:8px">${SB_FONDOS.map(([nm, h]) => `<button class="sw${P.fondo.color===h?" on":""}" data-fc="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="sbFcc" value="${P.fondo.color}" title="Otro color"></div>`
-      : `<div class="sbrow" style="margin-top:8px">${P.fondo.src ? `<img src="${P.fondo.src}" class="sbthumb" alt="">` : ""}<label class="btn ghost" style="cursor:pointer;padding:8px 12px;font-size:13px">${P.fondo.src ? "Cambiar imagen" : "⬆ Subir imagen del fondo"}<input type="file" accept="image/png,image/jpeg" hidden id="sbFi"></label>
-         <button class="btn ghost" id="sbFia" style="padding:8px 12px;font-size:13px">🤖 Crear con IA (paso 5)</button></div>`}
-    ${k !== "mangaD" && k !== "mangaI" || true ? `<button class="linkbtn" id="sbCopiar" style="margin-top:8px">Usar este fondo en todas las piezas</button>` : ""}
-    <div style="height:12px"></div>
-    <span class="label">Logos y textos en ${nomK.toLowerCase()}</span>
+    <div class="sbsec"><b>1. Fondo de ${nomK.toLowerCase()}</b>
+    ${P.fondo.tipo === "imagen" && P.fondo.src
+      ? `<div class="sbrow" style="margin-top:6px"><img src="${P.fondo.src}" class="sbthumb" alt=""><span>✅ Usa la pieza que subiste en el <b>paso 5</b>.</span></div>
+         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px"><button class="linkbtn" id="sbFia">Cambiarla (ir al paso 5)</button><button class="linkbtn" id="sbAColor">Mejor un color liso</button></div>`
+      : `<div class="mini" style="margin:4px 0 6px">${SB.referencia ? "Aún no subes esta pieza en el paso 5. Mientras, puedes usar un color liso:" : "Elige un color liso, o sube el diseño de esta pieza en el paso 5."}</div>
+         <div class="ctcols">${SB_FONDOS.map(([nm, h]) => `<button class="sw${P.fondo.tipo==="color" && P.fondo.color===h?" on":""}" data-fc="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="sbFcc" value="${P.fondo.color || "#1C2340"}" title="Otro color"></div>
+         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px"><button class="linkbtn" id="sbCopiar">Usar este color en todas las piezas</button>${P.fondo.src ? `<button class="linkbtn" id="sbAImagen">Volver a la pieza del paso 5</button>` : `<button class="linkbtn" id="sbFia">Subir la pieza (paso 5)</button>`}</div>`}
+    </div>
+    <div class="sbsec" style="margin-top:10px"><b>2. Logos y textos en ${nomK.toLowerCase()}</b></div>
     ${P.els.map(tarjeta).join("") || `<div class="muted" style="margin-bottom:8px">Esta pieza aún no lleva logos ni textos.</div>`}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${SB.logo ? `<button class="btn ghost" id="sbMiLogo" style="padding:8px 12px;font-size:13px">＋ Mi logo en ${nomK.toLowerCase()}</button>` : ""}
@@ -2782,13 +2779,12 @@ function sbPanel(){
     ${sbPersEls(k).length ? `<div class="mini" style="margin-top:8px">🔢 Esta pieza lleva ${sbPersEls(k).map(e => `${e.id.startsWith("pNom") ? "nombre" : "número"} (${sbCm(sbTam(e).w)} × ${sbCm(sbTam(e).h)} cm)`).join(" y ")}: se cambian en el paso 6.</div>` : ""}
     ${k === "espalda" ? `<label class="chk" style="margin-top:10px"><input type="checkbox" checked disabled><span>Logo de <b>VITUMA</b> de 5 cm debajo del cuello</span></label>` : ""}`;
   const P0 = SB.piezas[k], byE = id => P0.els.find(e => e.id === id), cambio = (todo) => { SB.mockup = null; if (todo) { sbTabs(); sbPanel(); } sbDibujar(); };
-  document.querySelectorAll("#sbFt button").forEach(b => b.onclick = () => { P0.fondo.tipo = b.dataset.v; cambio(true); });
-  document.querySelectorAll("[data-fc]").forEach(b => b.onclick = () => { P0.fondo.color = b.dataset.fc; cambio(true); });
-  if ($("#sbFcc")) $("#sbFcc").oninput = e => { P0.fondo.color = e.target.value.toUpperCase(); cambio(false); };
-  if ($("#sbFi")) $("#sbFi").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/jpeg"); P0.fondo.src = r.src; P0.fondo.nombre = f.name; P0.fondo.w = r.w; P0.fondo.h = r.h; cambio(true); };
+  document.querySelectorAll("[data-fc]").forEach(b => b.onclick = () => { P0.fondo.tipo = "color"; P0.fondo.color = b.dataset.fc; cambio(true); });
+  if ($("#sbFcc")) $("#sbFcc").oninput = e => { P0.fondo.tipo = "color"; P0.fondo.color = e.target.value.toUpperCase(); cambio(false); };
+  if ($("#sbAColor")) $("#sbAColor").onclick = () => { P0.fondo.tipo = "color"; cambio(true); };
+  if ($("#sbAImagen")) $("#sbAImagen").onclick = () => { P0.fondo.tipo = "imagen"; cambio(true); };
   if ($("#sbFia")) $("#sbFia").onclick = () => { const d = document.querySelector(`[data-pzrow="${k}"]`) || $("#sbPzCard"); d.scrollIntoView({ behavior:"smooth", block:"center" }); };
-
-  $("#sbCopiar").onclick = () => { SB_PIEZAS.forEach(([q]) => { if (q !== k) SB.piezas[q].fondo = { ...P0.fondo }; }); cambio(true); toast2("Fondo aplicado a todas las piezas"); };
+  if ($("#sbCopiar")) $("#sbCopiar").onclick = () => { SB_PIEZAS.forEach(([q]) => { if (q !== k && SB.piezas[q].fondo.tipo === "color") SB.piezas[q].fondo.color = P0.fondo.color; else if (q !== k && !SB.piezas[q].fondo.src) SB.piezas[q].fondo = { ...SB.piezas[q].fondo, tipo:"color", color: P0.fondo.color }; }); cambio(true); toast2("Color aplicado a las piezas sin imagen"); };
   $("#sbAddLogo").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/png", true);
     P0.els.push({ id: "e" + Date.now(), tipo:"logo", src: r.src, nombre: f.name, asp: r.w / r.h, cm: cuerpo ? 10 : 7, zona:"arriba", lado:"centro" }); cambio(true); };
   if ($("#sbMiLogo")) $("#sbMiLogo").onclick = () => { P0.els.push({ id: "e" + Date.now(), tipo:"logo", src: SB.logo.src, nombre: SB.logo.nombre, asp: SB.logo.asp, cm: cuerpo ? 10 : 7, zona:"arriba", lado:"centro" }); cambio(true); };
