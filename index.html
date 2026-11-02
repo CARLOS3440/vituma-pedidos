@@ -2788,6 +2788,9 @@ function sbPanel(){
   const opZona = e => cuerpo ? `<select data-ez="${e.id}">${[["arriba","Arriba"],["abajo","Abajo"]].map(([v, t]) => `<option value="${v}"${(e.zona||"arriba")===v?" selected":""}>${t}</option>`).join("")}</select>
       <select data-el="${e.id}">${[["centro","Centro"],["izquierda","Lado izquierdo"],["derecha","Lado derecho"]].map(([v, t]) => `<option value="${v}"${(e.lado||"centro")===v?" selected":""}>${t}</option>`).join("")}</select>`
     : (sbLarga() ? `<select data-ev="${e.id}"><option value="0"${!e.vertical?" selected":""}>Horizontal</option><option value="1"${e.vertical?" selected":""}>A lo largo de la manga</option></select>` : "");
+  const opTam = (e, q, attr) => `<select ${attr}>${(e.tipo === "logo" ? SB_TAM_LOGO : SB_TAM_TEXTO).filter(v => !(q.startsWith("manga") && sbLarga()) || v <= 10 || v === e.cm).map(v => `<option value="${v}"${e.cm===v?" selected":""}>${v} cm</option>`).join("")}</select>`;
+  /* las copias del mismo logo o texto en las otras partes: cada una con su propio tamaño */
+  const otrasCopias = e => SB_PIEZAS.filter(([q]) => q !== k).flatMap(([q, t]) => SB.piezas[q].els.filter(x => (x.grupo || x.id) === (e.grupo || e.id)).map(x => [q, t, x]));
   const tarjeta = (e, n) => `<div class="sbel">
     <div class="sbelh"><b>${e.tipo === "logo" ? "🖼 Logo" : "🔤 Texto"} ${n + 1}</b>
       <span><button class="linkbtn" data-eu="${e.id}" title="Subir">▲</button> <button class="linkbtn" data-ed="${e.id}" title="Bajar">▼</button> <button class="linkbtn" data-ex="${e.id}">Quitar</button></span></div>
@@ -2801,9 +2804,10 @@ function sbPanel(){
       <div class="sbchips">${SB_PIEZAS.map(([q, t]) => { const on = SB.piezas[q].els.some(x => (x.grupo || x.id) === (e.grupo || e.id));
         return `<button class="${on ? "on" : ""}" data-eg="${e.id}" data-q="${q}">${on ? "✓ " : "＋ "}${t}</button>`; }).join("")}</div></div>
     <div class="mini" style="margin:-2px 0 6px">Toca otra parte para ponerlo <b>también</b> ahí; tócala otra vez para quitarlo de esa parte.</div>
-    <div class="sbrow"><span class="label" style="margin:0">${e.tipo === "logo" ? "Tamaño" : "Alto de letra"}</span>
-      <select data-es="${e.id}">${(e.tipo === "logo" ? SB_TAM_LOGO : SB_TAM_TEXTO).filter(v => !(k.startsWith("manga") && sbLarga()) || v <= 10 || v === e.cm).map(v => `<option value="${v}"${e.cm===v?" selected":""}>${v} cm</option>`).join("")}</select>${opZona(e)}</div>
-    <div class="mini">${sbCm(sbTam(e).w)} × ${sbCm(sbTam(e).h)} cm</div></div>`;
+    <div class="sbrow"><span class="label" style="margin:0">${e.tipo === "logo" ? "Tamaño" : "Alto de letra"} en ${nomK.toLowerCase()}</span>
+      ${opTam(e, k, `data-es="${e.id}"`)}${opZona(e)}</div>
+    <div class="mini">${sbCm(sbTam(e).w)} × ${sbCm(sbTam(e).h)} cm</div>
+    ${otrasCopias(e).map(([q, t, x]) => `<div class="sbrow sbotra"><span class="label" style="margin:0">${e.tipo === "logo" ? "Tamaño" : "Alto de letra"} en ${t.toLowerCase()}</span>${opTam(x, q, `data-eso="${q}|${x.id}"`)}<span class="mini">${sbCm(sbTam(x).w)} × ${sbCm(sbTam(x).h)} cm · cada parte lleva su propio tamaño</span></div>`).join("")}</div>`;
   const nomK = SB_PIEZAS.find(x => x[0] === k)[1];
   $("#sbPanel").innerHTML = `
     <div class="sbedit">✏️ Estás editando: <b>${nomK.toUpperCase()}</b> <span class="muted">· cambia de pieza con los botones de arriba o tocándola en el dibujo</span></div>
@@ -2847,6 +2851,7 @@ function sbPanel(){
   sbBordeEventos($("#sbPanel"), id => id === "pers" ? SB.pers : id === "mtx" ? SB.mangaTxt : byE(id), todo => cambio(todo));
   document.querySelectorAll("[data-ecc]").forEach(i => i.oninput = () => { byE(i.dataset.ecc).color = i.value.toUpperCase(); cambio(false); });
   document.querySelectorAll("[data-es]").forEach(s => s.onchange = () => { byE(s.dataset.es).cm = +s.value; cambio(true); });
+  document.querySelectorAll("[data-eso]").forEach(s => s.onchange = () => { const [q, id] = s.dataset.eso.split("|"), x = SB.piezas[q].els.find(e => e.id === id); if (x){ x.cm = +s.value; cambio(true); } });
   /* poner el logo o texto también en otra pieza (copia ligada por "grupo"), o quitarlo de esa pieza */
   const nomP = q => SB_PIEZAS.find(x => x[0] === q)[1].toLowerCase();
   const ajusta = (e, q) => { if (q.startsWith("manga")){ e.zona = "arriba"; e.lado = "centro";
