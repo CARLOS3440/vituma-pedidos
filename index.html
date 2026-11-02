@@ -223,10 +223,22 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
 .lamh{display:flex;gap:10px;align-items:center;margin-bottom:6px}.lamh b{font-size:16px}.lamh .tag{background:#F26B21;color:#fff;font-weight:800;font-size:11px;border-radius:999px;padding:4px 9px;letter-spacing:.03em}
 .lamina ol{margin:6px 0 0 20px;display:grid;gap:3px;font-size:14px}
 .lamres{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.lamres figure{margin:0;text-align:center}.lamres img{width:100%;height:110px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff}.lamres figcaption{font-size:12px;font-weight:700;margin-top:3px}
-.porpieza{margin-top:4px}.porpieza>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy);padding:10px 0}
+.porpieza{margin-top:14px;border:2px solid var(--navy);border-radius:16px;background:#F5F7FC;padding:0 16px}.porpieza[open]{padding-bottom:14px}
+.porpieza>summary{cursor:pointer;font-weight:800;font-size:15px;color:var(--navy);padding:14px 0;list-style:none;display:flex;align-items:center;gap:10px}
+.porpieza>summary::-webkit-details-marker{display:none}.porpieza>summary .ppsub{display:block;font-weight:500;font-size:13px;color:var(--muted);margin-top:2px}
+.porpieza>summary .ppbtn{margin-left:auto;flex:none;background:var(--navy);color:#fff;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700}
+.porpieza>summary .ppbtn::after{content:"Ver opción ▾"}.porpieza[open]>summary .ppbtn::after{content:"Ocultar ▴"}
+.porpieza[open]>summary .ppbtn{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+.lamslot{display:block;cursor:pointer;position:relative;text-align:center}.lamslot img{width:100%;height:110px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff}
+.lamslot .lamcap{display:block;font-size:12px;font-weight:700;margin-top:4px}.lamslot.lleno .lamcap{color:#1E8E4A}
+.lamslot .lamcambia{position:absolute;top:6px;right:6px;background:rgba(28,35,64,.85);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:3px 8px}
+.lamslot .lamfalta{line-height:1.3;text-align:center;font-size:12.5px}.lamslot .lamfalta b{display:block;font-size:22px}
+.lamslot.sigue .lamfalta{border-color:#F26B21;border-style:solid;background:#FFF1E8;color:#C2410C;animation:lampulso 1.6s ease-in-out infinite}
+.lamslot.cargando{opacity:.5;pointer-events:none}
+@keyframes lampulso{0%,100%{box-shadow:0 0 0 0 rgba(242,107,33,.45)}50%{box-shadow:0 0 0 6px rgba(242,107,33,0)}}
 @media(max-width:600px){.lamres{grid-template-columns:repeat(2,1fr)}}
 .cuellosw{display:inline-block;width:44px;height:22px;border-radius:6px;border:1.5px solid #D5D8E0;vertical-align:middle}
-.lamfalta{height:110px;display:grid;place-items:center;border:2px dashed #D5D8E0;border-radius:10px;color:var(--muted);font-weight:700;font-size:13px}
+.lamfalta{height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed #D5D8E0;border-radius:10px;color:var(--muted);font-weight:700;font-size:13px}
 .verej{margin:-6px 0 14px;background:#F7F8FB;border-radius:12px;padding:8px 12px}.verej summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy)}
 .persej{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 4px}.persej figure{margin:0;background:#F7F8FB;border-radius:14px;padding:10px;text-align:center}
 .persej svg{width:100%;max-height:190px}.persej figcaption{font-size:12.5px;font-weight:700;color:var(--navy);margin-top:4px}
@@ -480,14 +492,14 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
           <ol><li>Toca <b>📋 Copiar instrucciones</b>.</li>
             <li>Pégalas en la <b>misma conversación de la IA</b> donde hiciste tu mockup.</li>
             <li>La IA te da <b>4 imágenes</b>: frente, espalda, manga derecha y manga izquierda. Si te da una sola, escríbele <b>"siguiente"</b> para la que sigue.</li>
-            <li>Descárgalas y súbelas aquí (puedes elegir las 4 juntas o una por una). <b>La app las acomoda sola.</b></li></ol>
+            <li>Descárgalas y súbelas: <b>todas juntas</b> con el botón ⬆, o <b>toca cada cuadro</b> de abajo para subir esa pieza. La app las acomoda sola.</li></ol>
           <div class="accrow" style="margin-top:10px"><button class="btn pri" id="sbLamCopy">📋 Copiar instrucciones</button>
-            <label class="btn ghost" style="cursor:pointer">⬆ Subir las imágenes de las piezas<input type="file" id="sbLamFile" accept="image/png,image/jpeg,image/webp" multiple hidden></label>
+            <label class="btn ghost" style="cursor:pointer">⬆ Subir todas juntas<input type="file" id="sbLamFile" accept="image/png,image/jpeg,image/webp" multiple hidden></label>
             <button class="btn ghost" id="sbLamMal">🔁 No salió bien</button></div>
           <div id="sbLamRes"></div>
           <details class="verinst"><summary>Ver las instrucciones</summary><textarea id="sbLamTxt" readonly></textarea></details>
         </div>
-        <details class="porpieza" id="sbPorPieza"><summary>🎯 Prefiero hacerlas una por una (mejor calidad)</summary>
+        <details class="porpieza" id="sbPorPieza"><summary><span style="font-size:24px">🎯</span><span>¿Prefieres hacerlas una por una?<span class="ppsub">Mejor calidad: una instrucción para cada pieza. Úsalo también si la IA no te sale bien.</span></span><span class="ppbtn"></span></summary>
         <div class="pasosbox"><b>📋 Cómo sacar tus piezas (en orden: frente, espalda y luego las mangas):</b>
           <ol><li>Toca <b>📋 Copiar instrucciones</b> de la pieza.</li>
             <li>Pégalas en la <b>misma conversación de la IA</b> (Gemini o ChatGPT) donde hiciste el mockup de tu camisa.</li>
@@ -3124,21 +3136,33 @@ async function sbSubirLamina(files){
   const arregladas = [];
   for (const [k, p0] of Object.entries(piezas)){ const r = "completada" in p0 ? null : await sbCompletar(p0.src), p = r || p0; if (r || p0.completada) arregladas.push(k);
     SB.piezas[k].fondo = { tipo:"imagen", src: p.src, nombre: "ia_" + k, w: p.w, h: p.h, color: SB.piezas[k].fondo.color, silueta: r || p0.completada ? false : await sbSilueta(p.src), completada: !!(r || p0.completada) }; }
-  SB.mockup = null; sbRender(); sbLamResultado(arregladas);
+  SB._lamArr = arregladas; SB.mockup = null; sbRender();
 }
-/* muestra cómo quedaron acomodadas las piezas, con botones para intercambiarlas si alguna quedó en otro lugar */
+/* los 4 cuadros de las piezas: siempre visibles; cada cuadro se toca para subir (o cambiar) esa pieza */
 function sbLamResultado(arregladas){
-  const tiene = k => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src, faltan = SB_PIEZAS.filter(([k]) => !tiene(k)).map(([, t]) => t.toLowerCase());
-  const nom = k => SB_PIEZAS.find(x => x[0] === k)[1].toLowerCase();
-  $("#sbLamRes").innerHTML = `<div class="${faltan.length ? "warn" : "okbox"}" style="margin-top:12px">${faltan.length ? `📥 Faltan: <b>${faltan.join(", ")}</b>. Pide en la IA la que sigue (escríbele "siguiente") y súbela con el mismo botón.` : "✅ Listo, tus 4 piezas están en su lugar. Revisa que cada una corresponda; si no, usa los botones ⇄."}
-    ${arregladas && arregladas.length ? `<br>✂️ La IA dibujó con forma de playera: ${arregladas.map(nom).join(", ")}. La${arregladas.length === 1 ? "" : "s"} hicimos rectángulo rellenando las orillas blancas con los colores de junto. Si no te gusta cómo quedó, toca <b>🔁 No salió bien</b> y pídela otra vez.` : ""}</div>
-    <div class="lamres">${SB_PIEZAS.map(([k, t]) => `<figure>${tiene(k) ? `<img src="${SB.piezas[k].fondo.src}" alt="${t}" data-zoom>` : `<div class="lamfalta">Falta</div>`}<figcaption>${t}</figcaption></figure>`).join("")}</div>
-    <div class="accrow" style="margin-top:8px"><button class="btn ghost" data-lsw="frente,espalda" style="padding:7px 12px;font-size:13px">⇄ Cambiar frente y espalda</button><button class="btn ghost" data-lsw="mangaD,mangaI" style="padding:7px 12px;font-size:13px">⇄ Cambiar las mangas</button></div>`;
-  $("#sbLamRes").querySelectorAll("[data-lsw]").forEach(b => b.onclick = () => { const [a, c] = b.dataset.lsw.split(","), fa = SB.piezas[a].fondo; SB.piezas[a].fondo = SB.piezas[c].fondo; SB.piezas[c].fondo = fa; SB.mockup = null; sbRender(); sbLamResultado(arregladas); });
+  if (arregladas !== undefined) SB._lamArr = arregladas; arregladas = SB._lamArr || [];
+  const box = $("#sbLamRes"); if (!box) return;
+  const tiene = k => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src;
+  const faltan = SB_PIEZAS.filter(([k]) => !tiene(k)), sig = faltan.length ? faltan[0][0] : null, nom = k => SB_PIEZAS.find(x => x[0] === k)[1].toLowerCase();
+  const msg = faltan.length === 4 ? `<div class="note" style="margin-top:12px">👇 <b>Aquí van tus 4 piezas.</b> Sube las 4 juntas con el botón de arriba, o <b>toca cada cuadro</b> para subir esa pieza.</div>`
+    : faltan.length ? `<div class="warn" style="margin-top:12px">📥 Te ${faltan.length === 1 ? "falta" : "faltan"}: <b>${faltan.map(([k]) => nom(k)).join(", ")}</b>. Pídela en la IA (escríbele "siguiente"), descárgala y <b>toca el cuadro naranja</b> de abajo para subirla.</div>`
+    : `<div class="okbox" style="margin-top:12px">✅ ¡Listo! Tus 4 piezas están en su lugar. Revisa que cada una corresponda; si no, usa los botones ⇄ o toca la pieza para cambiarla.</div>`;
+  box.innerHTML = msg + (arregladas.length ? `<div class="mini" style="margin-top:6px">✂️ La IA dibujó con forma de playera: ${arregladas.map(nom).join(", ")}. La${arregladas.length === 1 ? "" : "s"} hicimos rectángulo rellenando las orillas blancas con los colores de junto. Si no te gusta, toca <b>🔁 No salió bien</b>.</div>` : "")
+    + `<div class="lamres">${SB_PIEZAS.map(([k, t]) => `<label class="lamslot${tiene(k) ? " lleno" : ""}${k === sig ? " sigue" : ""}">
+        ${tiene(k) ? `<img src="${SB.piezas[k].fondo.src}" alt="${t}"><span class="lamcambia">Cambiar</span>` : `<div class="lamfalta"><b>⬆</b>Toca para subir<br>${t.toLowerCase()}</div>`}
+        <input type="file" accept="image/png,image/jpeg,image/webp" hidden data-lamk="${k}"><span class="lamcap">${tiene(k) ? "✓ " : ""}${t}</span></label>`).join("")}</div>
+    ${faltan.length < 3 ? `<div class="accrow" style="margin-top:8px"><button class="btn ghost" data-lsw="frente,espalda" style="padding:7px 12px;font-size:13px">⇄ Cambiar frente y espalda</button><button class="btn ghost" data-lsw="mangaD,mangaI" style="padding:7px 12px;font-size:13px">⇄ Cambiar las mangas</button></div>` : ""}`;
+  box.querySelectorAll("[data-lsw]").forEach(b => b.onclick = () => { const [a, c] = b.dataset.lsw.split(","), fa = SB.piezas[a].fondo; SB.piezas[a].fondo = SB.piezas[c].fondo; SB.piezas[c].fondo = fa; SB.mockup = null; sbRender(); });
+  box.querySelectorAll("[data-lamk]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const k = inp.dataset.lamk;
+    inp.closest(".lamslot").classList.add("cargando");
+    const x0 = await sbLeer(f, 1600, "image/jpeg"), r = await sbCompletar(x0.src), x = r || x0;
+    SB.piezas[k].fondo = { tipo:"imagen", src: x.src, nombre: f.name, w: x.w, h: x.h, color: SB.piezas[k].fondo.color, silueta: r ? false : await sbSilueta(x.src), completada: !!r };
+    SB._lamArr = (SB._lamArr || []).filter(q => q !== k).concat(r ? [k] : []); SB.mockup = null; sbRender(); });
 }
 function sbPasoPiezas(){
   const { m } = sbBase(), r = SB.referencia;
   if ($("#sbLamTxt")) $("#sbLamTxt").value = sbPromptLamina();
+  sbLamResultado();
   $("#sbPzRef").innerHTML = r ? `<div class="sbref2"><figure><img src="${r.src}" alt="Tu mockup" data-zoom class="sbref"><figcaption>Como lo dibujó la IA (pantalla)</figcaption></figure>
       <figure>${r.prueba ? `<img src="${r.prueba}" alt="Colores de impresión" data-zoom class="sbref">` : `<div class="sbref muted" style="display:flex;align-items:center;justify-content:center">Calculando…</div>`}<figcaption>🎨 Así se verían los colores impresos (aprox.)</figcaption></figure></div>
       <div class="mini" style="margin:-4px 0 10px">La pantalla muestra colores más brillantes de los que se pueden imprimir (RGB). La imprenta usa tintas CMYK: los azules, naranjas y verdes muy intensos salen un poco más apagados.</div>` : `<div class="warn">Primero adjunta tu mockup en el paso 4. Si ya tienes tu diseño por piezas, súbelas directo aquí.</div>`;
