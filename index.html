@@ -1001,7 +1001,9 @@ const DTF_FRENTE = [
   { id:"20", texto:"20 × 20 cm", precio:precioDTF(20,20) },
   { id:"22", texto:"22 × 22 cm", precio:precioDTF(22,22) },
   { id:"28", texto:"28 × 28 cm", precio:precioDTF(28,28) },
-  { id:"32", texto:"32 × 32 cm", precio:precioDTF(32,32) }
+  { id:"32", texto:"32 × 32 cm", precio:precioDTF(32,32) },
+  { id:"35", texto:"35 × 35 cm", precio:precioDTF(35,35) },
+  { id:"38", texto:"38 × 38 cm (lo más grande)", precio:precioDTF(38,38) }
 ];
 const DTF_ESPALDA = DTF_FRENTE.filter(o => o.id !== "10");
 const DTF_MANGA = { corta:{ texto:"Manga (5 a 7 cm)", precio:precioDTF(7,7) }, larga:{ texto:"Manga larga (hasta 40 cm)", precio:precioDTF(7,40) } };
@@ -1464,7 +1466,7 @@ function pintarCatalogo(){
    DISEÑA TU CAMISA
    Medidas y precios de DTF tomados del catálogo.
    ===================================================================== */
-const DTF_GRANDES = [8,10,12,15,20,22,28,32].map(n => ({ id:String(n), t:`${n} × ${n} cm`, cm:n, precio:precioDTF(n,n) }));
+const DTF_GRANDES = [8,10,12,15,20,22,28,32,35,38].map(n => ({ id:String(n), t:`${n} × ${n} cm`, cm:n, precio:precioDTF(n,n) }));
 const DTF_PECHO10 = [{ id:"10", t:"10 × 10 cm", cm:10, precio:precioDTF(10,10) }];
 const DTF_MANGA_C = [5,6,7].map(n => ({ id:String(n), t:`${n} × ${n} cm`, cm:n, precio:precioDTF(n,n) }));
 const DTF_MANGA_L = [5,6,7].map(n => ({ id:`${n}x40`, t:`${n} × 40 cm`, cm:n, largo:40, precio:precioDTF(n,40) }));
@@ -1961,7 +1963,7 @@ function dzRender(){
   document.querySelectorAll("#dzTec button").forEach(b => b.onclick = () => { if (DZ.tecnica === b.dataset.v) return; DZ.tecnica = b.dataset.v; DZ.zonas = {}; if (DISENOS.main){ const z0 = zonasActuales().find(z=>!z.bloqueada); estadoZona(z0).on = true; } dzRender(); });
   $("#dzTecNote").innerHTML = DZ.tecnica === "bordado"
     ? `<b>Bordado:</b> elegante y duradero. Funciona mejor con logos de pocos colores y formas sencillas; los detalles muy pequeños no se pueden bordar. Revisamos tu logo en automático.`
-    : `<b>Estampado DTF:</b> imprime cualquier diseño, con todos sus colores, degradados y detalles.` + (p.tipoPrenda === "polo" ? ` En polos solo va en <b>pecho o manga</b> (la espalda no está disponible).` : (p.manga === "larga" ? ` En cuello redondo manga larga puede ir al frente (logo de 10 cm o diseño grande), en la espalda y a lo largo de la manga.` : ` En cuello redondo manga corta puede ir al frente o pecho, en la espalda (15 a 32 cm) y en la manga.`));
+    : `<b>Estampado DTF:</b> imprime cualquier diseño, con todos sus colores, degradados y detalles.` + (p.tipoPrenda === "polo" ? ` En polos solo va en <b>pecho o manga</b> (la espalda no está disponible).` : (p.manga === "larga" ? ` En cuello redondo manga larga puede ir al frente (logo de 10 cm o diseño grande, hasta 38 × 38 cm), en la espalda (hasta 38 × 38 cm) y a lo largo de la manga.` : ` En cuello redondo manga corta puede ir al frente o pecho, en la espalda (logo de hasta 38 × 38 cm) y en la manga.`));
 
   // carga
   const d = DISENOS.main;
@@ -2353,10 +2355,9 @@ const SB_REGLAS = { cuelloLogo: 10, abajo: 3.5, margenManga: 2.8, hombro: 10, se
 const SB_PIEZAS = [["frente","Frente"],["espalda","Espalda"],["mangaD","Manga derecha"],["mangaI","Manga izquierda"]];
 const SB_FONDOS = [["Blanco","#FFFFFF"],["Negro","#111111"],["Azul marino","#1C2340"],["Azul rey","#1F4FBF"],["Rojo","#D62828"],["Vino","#7A1F2B"],
   ["Naranja","#F26B21"],["Amarillo","#FFC300"],["Verde","#2A9D4B"],["Gris","#8A8F98"]];
-const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,25,28,30,32,35,38];
-/* frente y espalda: logo hasta 38 cm; mangas: hasta 28 cm (en manga larga, 10 cm por la franja) */
-const sbTamMax = (q, tipo) => tipo === "logo" ? (q === "frente" || q === "espalda" ? 38 : 28) : 99;
-const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25];
+/* tamaños que se ofrecen; solo se muestran los que caben en TODAS las tallas del pedido sin salirse de los márgenes */
+const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,22,25,28,30,32,35,38,40,42,45,48,50,55,60];
+const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25,30,35,40];
 const SB = { idea:"", referencia:null, pers:{ espalda:false, pecho:false, nombre:false, numero:false, espNom:false, espNum:false, espNomCm:6, espNumCm:20, pechoQue:"no", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" }, lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null, cuello:null, prueba:true, verTalla:null, mangaTxt:{ D:"", I:"", cm:7, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" } } };
 const sbNueva = () => ({ fondo:{ tipo:"color", color:"#1C2340", img:null, src:null }, els:[] });
 const sbReset = () => { SB.piezas = { frente: sbNueva(), espalda: sbNueva(), mangaD: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } }, mangaI: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } } }; SB.mockup = null; };
@@ -2571,10 +2572,27 @@ function sbAcomodo(k, m, opt = {}){
   return res;
 }
 /* avisos: piezas que se salen del molde o se enciman */
-function sbAvisos(k, m){
-  const a = [], L = sbAcomodo(k, m), margen = (k === "frente" || k === "espalda") ? 2 * PT : SB_REGLAS.margenManga * PT;
+/* ¿cabe el elemento e con ese tamaño en la pieza k, en todas las tallas del pedido? */
+function sbCabe(k, e, cm){
+  const P = SB.piezas[k], dentro = P.els.includes(e), antes = e.cm, vista = SB.verTalla;
+  const tallas = byId(SB.prod).modelos[SB.modelo].filter(t => SB.qty[t]), lista = tallas.length ? tallas : [sbBase().app];
+  if (!dentro) P.els.push(e);
+  let ok = true;
+  try { e.cm = cm;
+    for (const t of lista){ SB.verTalla = t; const m = sbBase(t).m[k], L = sbAcomodo(k, m), r = L.find(x => x.e === e); if (r && sbFallas(k, m, L, r).length){ ok = false; break; } }
+  } finally { e.cm = antes; SB.verTalla = vista; if (!dentro) P.els.splice(P.els.indexOf(e), 1); }
+  return ok;
+}
+function sbTamOpciones(e, q){
+  const ok = sbTamCaben(q, e), lista = [...new Set([...ok, e.cm])].sort((a, b) => a - b), max = ok.length ? ok[ok.length - 1] : null;
+  return lista.map(v => `<option value="${v}"${e.cm===v?" selected":""}>${v} cm${v === max ? " (lo más grande)" : ""}${!ok.includes(v) ? " ⚠️ no cabe" : ""}</option>`).join("");
+}
+const sbTamCaben = (k, e) => (e.tipo === "logo" ? SB_TAM_LOGO : SB_TAM_TEXTO).filter(v => sbCabe(k, e, v));
+/* lo que está mal de un elemento (se sale del margen o de las reglas de la pieza) */
+function sbFallas(k, m, L, r){
+  const a = [], margen = (k === "frente" || k === "espalda") ? 2 * PT : SB_REGLAS.margenManga * PT;
   const mangaL = k.startsWith("manga") && sbLarga(), mangaC = k.startsWith("manga") && !sbLarga(), H = SB_REGLAS.hombro * PT;
-  L.forEach(r => { if (r.e.tipo === "firma") return; const nom = `"${r.e.texto || r.e.nombre || "Logo"}"`;
+  (() => { if (r.e.tipo === "firma") return; const nom = `"${r.e.texto || r.e.nombre || "Logo"}"`;
     if (mangaL){   // manga larga (reglas del ajustador): entre 10 cm del hombro y 10 cm del puño, franja central de 6 a 10 cm
       if (r.w > 10 * PT + 1) a.push(`${nom} mide ${sbCm(r.w)} cm de ancho: en manga larga debe ir en la franja central de 6 a 10 cm. ${r.e.tipo === "texto" ? "Ponlo <b>a lo largo de la manga</b> o baja el alto de letra." : "Hazlo más chico."}`);
       if (r.y + r.h > m.h - H + 1) a.push(`${nom} pasa la línea de ${SB_REGLAS.hombro} cm del puño: ${r.e.mtx || L.some(x => x.e.mtx) ? "usa un texto más corto (sección 2 de esta manga) o quita el logo." : "hazlo más chico o quita algún elemento."}`);
@@ -2582,7 +2600,12 @@ function sbAvisos(k, m){
       return; }
     if (mangaC && r.y < 2 * PT) a.push(`${nom} no cabe en la manga corta: hazlo más chico.`);
     if (r.x < margen || r.x + r.w > m.w - margen) a.push(`${nom} es muy ancho para esta pieza (${sbCm(r.w)} cm); ${r.e.pers ? "baja el alto en la sección 2 de esta pieza." : "hazlo más chico."}`);
-    if (r.y + r.h > m.h - (k.startsWith("manga") ? SB_REGLAS.margenManga * PT * .5 : 2 * PT)) a.push(`"${r.e.texto || r.e.nombre || "Logo"}" se sale por abajo; hazlo más chico o quita algún elemento.`); });
+    if (r.y + r.h > m.h - (k.startsWith("manga") ? SB_REGLAS.margenManga * PT * .5 : 2 * PT)) a.push(`"${r.e.texto || r.e.nombre || "Logo"}" se sale por abajo; hazlo más chico o quita algún elemento.`); })();
+  return a;
+}
+function sbAvisos(k, m){
+  const a = [], L = sbAcomodo(k, m);
+  L.forEach(r => a.push(...sbFallas(k, m, L, r)));
   for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++){
     const p = L[i], q = L[j];
     if (p.x < q.x + q.w && q.x < p.x + p.w && p.y < q.y + q.h && q.y < p.y + p.h) a.push("Hay elementos encimados: cambia su lugar o su tamaño.");
@@ -2726,7 +2749,7 @@ function sbRender(){
   document.querySelectorAll("#sbSizes .size").forEach(box => {
     const t = box.dataset.t, inp = box.querySelector("input");
     const set = v => { v = Math.max(0, Math.min(999, parseInt(v) || 0)); const antes = sbBase().molde; SB.qty[t] = v; inp.value = v; box.classList.toggle("has", v > 0);
-      if (sbBase().molde !== antes){ SB.mockup = null; sbRender(); } else { sbPasoPers(); sbDibujar(); sbPrecio(); } };
+      if (sbBase().molde !== antes){ SB.mockup = null; sbRender(); } else { sbPasoPers(); sbPanel(); sbDibujar(); sbPrecio(); } };   // el panel se rehace: los tamaños que caben cambian con las tallas
     box.querySelectorAll("button").forEach(b => b.onclick = () => set((SB.qty[t] || 0) + +b.dataset.d));
     inp.oninput = () => set(inp.value); inp.onfocus = () => inp.select();
   });
@@ -2790,7 +2813,7 @@ function sbPanel(){
   const opZona = e => cuerpo ? `<select data-ez="${e.id}">${[["arriba","Arriba"],["abajo","Abajo"]].map(([v, t]) => `<option value="${v}"${(e.zona||"arriba")===v?" selected":""}>${t}</option>`).join("")}</select>
       <select data-el="${e.id}">${[["centro","Centro"],["izquierda","Lado izquierdo"],["derecha","Lado derecho"]].map(([v, t]) => `<option value="${v}"${(e.lado||"centro")===v?" selected":""}>${t}</option>`).join("")}</select>`
     : (sbLarga() ? `<select data-ev="${e.id}"><option value="0"${!e.vertical?" selected":""}>Horizontal</option><option value="1"${e.vertical?" selected":""}>A lo largo de la manga</option></select>` : "");
-  const opTam = (e, q, attr) => `<select ${attr}>${(e.tipo === "logo" ? SB_TAM_LOGO : SB_TAM_TEXTO).filter(v => (v <= sbTamMax(q, e.tipo) && (!(q.startsWith("manga") && sbLarga()) || v <= 10)) || v === e.cm).map(v => `<option value="${v}"${e.cm===v?" selected":""}>${v} cm</option>`).join("")}</select>`;
+  const opTam = (e, q, attr) => `<select ${attr}>${sbTamOpciones(e, q)}</select>`;
   /* las copias del mismo logo o texto en las otras partes: cada una con su propio tamaño */
   const otrasCopias = e => SB_PIEZAS.filter(([q]) => q !== k).flatMap(([q, t]) => SB.piezas[q].els.filter(x => (x.grupo || x.id) === (e.grupo || e.id)).map(x => [q, t, x]));
   const tarjeta = (e, n) => `<div class="sbel">
@@ -2847,7 +2870,7 @@ function sbPanel(){
   document.querySelectorAll("[data-eu],[data-ed]").forEach(b => b.onclick = () => { const id = b.dataset.eu || b.dataset.ed, i = P0.els.findIndex(e => e.id === id), j = i + (b.dataset.eu ? -1 : 1);
     if (j < 0 || j >= P0.els.length) return; [P0.els[i], P0.els[j]] = [P0.els[j], P0.els[i]]; cambio(true); });
   document.querySelectorAll("[data-ef]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const e = byE(inp.dataset.ef), r = await sbLeer(f, 1600, "image/png", true); e.src = r.src; e.nombre = f.name; e.asp = r.w / r.h; cambio(true); });
-  document.querySelectorAll("[data-et]").forEach(i => i.oninput = () => { byE(i.dataset.et).texto = i.value; cambio(false); const t = i.closest(".sbel").querySelector(".mini"); if (t) { const s = sbTam(byE(i.dataset.et)); t.textContent = `${sbCm(s.w)} × ${sbCm(s.h)} cm`; } });
+  document.querySelectorAll("[data-et]").forEach(i => i.oninput = () => { byE(i.dataset.et).texto = i.value; cambio(false); clearTimeout(i._t); i._t = setTimeout(() => { const s = document.querySelector(`[data-es="${i.dataset.et}"]`); if (s) s.innerHTML = sbTamOpciones(byE(i.dataset.et), k); }, 250); const t = i.closest(".sbel").querySelector(".mini"); if (t) { const s = sbTam(byE(i.dataset.et)); t.textContent = `${sbCm(s.w)} × ${sbCm(s.h)} cm`; } });
   document.querySelectorAll("[data-efu] button").forEach(b => b.onclick = () => { const e = byE(b.parentNode.dataset.efu); e.fuente = b.dataset.v; ctCargarFuenteDe(e.fuente).then(() => cambio(true)); });
   document.querySelectorAll("[data-ec]").forEach(b => b.onclick = () => { byE(b.dataset.ec).color = b.dataset.v; cambio(true); });
   sbBordeEventos($("#sbPanel"), id => id === "pers" ? SB.pers : id === "mtx" ? SB.mangaTxt : byE(id), todo => cambio(todo));
@@ -2859,7 +2882,7 @@ function sbPanel(){
   const ajusta = (e, q) => { if (q.startsWith("manga")){ e.zona = "arriba"; e.lado = "centro";
       if (sbLarga()){ if (e.tipo === "texto"){ e.vertical = true; e.cm = Math.min(10, Math.max(6, e.cm)); } else if (e.cm > 10) e.cm = 8; }
       else { e.vertical = false; if (e.cm > 10) e.cm = e.tipo === "logo" ? 7 : 4; } } else e.vertical = false;
-    if (e.tipo === "logo" && e.cm > sbTamMax(q, "logo")) e.cm = sbTamMax(q, "logo"); return e; };
+    if (!sbCabe(q, e, e.cm)){ const ok = sbTamCaben(q, e); if (ok.length) e.cm = ok.filter(v => v <= e.cm).pop() || ok[0]; } return e; };
   document.querySelectorAll("[data-eg]").forEach(bt => bt.onclick = () => { const e = byE(bt.dataset.eg), q = bt.dataset.q, g = e.grupo || e.id; e.grupo = g;
     const enQ = SB.piezas[q].els.filter(x => (x.grupo || x.id) === g);
     if (enQ.length){
