@@ -218,6 +218,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 .sbblock{border:1.5px solid #ECEEF3;border-radius:14px;padding:14px;margin-top:12px;background:#FCFCFE}
 .sbblock>b{font-size:15px}
 @media(max-width:700px){.pasosrow{grid-template-columns:1fr}.pzgrid{grid-template-columns:1fr}#sbRest .card{padding:16px}.pasoh h3{font-size:17px}}
+img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF0F4);min-height:40px}
 .sbref2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sbref2 figure{margin:0}.sbref2 figcaption{font-size:12px;color:var(--muted);text-align:center;margin-top:-6px;margin-bottom:8px}.sbref2 .sbref{height:220px;max-height:none}@media(max-width:600px){.sbref2{grid-template-columns:1fr}}
 .sbref{width:100%;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:10px;cursor:zoom-in}
 .sbpz{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}.sbpz.ok{border-color:var(--ok);background:rgba(22,163,74,.04)}
@@ -804,160 +805,15 @@ const VT = (() => {
 
 document.head.insertAdjacentHTML("beforeend", `<style>${VT.CSS}</style>`);
 /* Fotos del catálogo (incrustadas para no subir archivos aparte) */
-const IMG = {
-  "dkc_beige":"img/dkc_beige.jpg?v=6a6a06c0",
-  "dkc_blanco":"img/dkc_blanco.jpg?v=5c2191e4",
-  "dkc_carbon":"img/dkc_carbon.jpg?v=670d70e6",
-  "dkc_cielo":"img/dkc_cielo.jpg?v=03a3a6a3",
-  "dkc_delfin":"img/dkc_delfin.jpg?v=1b064204",
-  "dkc_marino":"img/dkc_marino.jpg?v=8c287401",
-  "dkc_negro":"img/dkc_negro.jpg?v=09d18eeb",
-  "dkc_olivo":"img/dkc_olivo.jpg?v=07d27fd5",
-  "dkc_plata":"img/dkc_plata.jpg?v=8324316c",
-  "dkc_rojo":"img/dkc_rojo.jpg?v=318d7550",
-  "dkc_royal":"img/dkc_royal.jpg?v=ffb08c98",
-  "dkc_vino":"img/dkc_vino.jpg?v=b5ae1f0b",
-  "dkd_beige":"img/dkd_beige.jpg?v=d74674d0",
-  "dkd_blanco":"img/dkd_blanco.jpg?v=46daee39",
-  "dkd_carbon":"img/dkd_carbon.jpg?v=e7d76626",
-  "dkd_cielo":"img/dkd_cielo.jpg?v=06d436c5",
-  "dkd_delfin":"img/dkd_delfin.jpg?v=08e109d1",
-  "dkd_marino":"img/dkd_marino.jpg?v=cf56c1c0",
-  "dkd_negro":"img/dkd_negro.jpg?v=e5a5261c",
-  "dkd_plata":"img/dkd_plata.jpg?v=f3c676d6",
-  "dkd_rojo":"img/dkd_rojo.jpg?v=32fae9ad",
-  "dkd_royal":"img/dkd_royal.jpg?v=f6ba8e49",
-  "dkd_vino":"img/dkd_vino.jpg?v=359bcc16",
-  "dtf_corta":"img/dtf_corta.jpg?v=63717b0c",
-  "dtf_larga":"img/dtf_larga.jpg?v=10ce1b8e",
-  "lvc_amarillo":"img/lvc_amarillo.jpg?v=71e20df0",
-  "lvc_azul_marino":"img/lvc_azul_marino.jpg?v=a6634092",
-  "lvc_azul_rey":"img/lvc_azul_rey.jpg?v=a8fde08f",
-  "lvc_blanco":"img/lvc_blanco.jpg?v=4ab63784",
-  "lvc_gris_oxford":"img/lvc_gris_oxford.jpg?v=892185ff",
-  "lvc_magenta":"img/lvc_magenta.jpg?v=12d37fa2",
-  "lvc_moka":"img/lvc_moka.jpg?v=0adcbf85",
-  "lvc_morado":"img/lvc_morado.jpg?v=d2aec8fd",
-  "lvc_naranja":"img/lvc_naranja.jpg?v=1380d0d9",
-  "lvc_negro":"img/lvc_negro.jpg?v=a040dfcf",
-  "lvc_oceano":"img/lvc_oceano.jpg?v=332dd170",
-  "lvc_rojo":"img/lvc_rojo.jpg?v=96c5325f",
-  "lvc_rosa_mexicano":"img/lvc_rosa_mexicano.jpg?v=9dc1801f",
-  "lvc_rosa_palo":"img/lvc_rosa_palo.jpg?v=31059442",
-  "lvc_tinto":"img/lvc_tinto.jpg?v=72afb890",
-  "lvc_verde_bandera":"img/lvc_verde_bandera.jpg?v=f7163e49",
-  "lvc_verde_militar":"img/lvc_verde_militar.jpg?v=9403e615",
-  "lvd_amarillo":"img/lvd_amarillo.jpg?v=5a9e7138",
-  "lvd_azul_marino":"img/lvd_azul_marino.jpg?v=a2dad7ff",
-  "lvd_azul_rey":"img/lvd_azul_rey.jpg?v=b819c4b5",
-  "lvd_blanco":"img/lvd_blanco.jpg?v=786e7340",
-  "lvd_gris_oxford":"img/lvd_gris_oxford.jpg?v=8b563176",
-  "lvd_magenta":"img/lvd_magenta.jpg?v=84d31c16",
-  "lvd_moka":"img/lvd_moka.jpg?v=49329c02",
-  "lvd_morado":"img/lvd_morado.jpg?v=f40a8022",
-  "lvd_naranja":"img/lvd_naranja.jpg?v=60ccccc1",
-  "lvd_negro":"img/lvd_negro.jpg?v=072ec583",
-  "lvd_oceano":"img/lvd_oceano.jpg?v=719a6942",
-  "lvd_rojo":"img/lvd_rojo.jpg?v=0f945784",
-  "lvd_rosa_mexicano":"img/lvd_rosa_mexicano.jpg?v=b8a9869a",
-  "lvd_rosa_palo":"img/lvd_rosa_palo.jpg?v=c210ed19",
-  "lvd_tinto":"img/lvd_tinto.jpg?v=36d24e47",
-  "lvd_verde_bandera":"img/lvd_verde_bandera.jpg?v=032a1d42",
-  "lvd_verde_militar":"img/lvd_verde_militar.jpg?v=1d8b5b49",
-  "lvmlc_azul_marino":"img/lvmlc_azul_marino.jpg?v=e350d567",
-  "lvmlc_azul_rey":"img/lvmlc_azul_rey.jpg?v=ab29f0cd",
-  "lvmlc_blanco":"img/lvmlc_blanco.jpg?v=690c98e5",
-  "lvmlc_gris_oxford":"img/lvmlc_gris_oxford.jpg?v=4f40696d",
-  "lvmlc_negro":"img/lvmlc_negro.jpg?v=1576c98b",
-  "lvmlc_rojo":"img/lvmlc_rojo.jpg?v=11211537",
-  "lvmlc_rosa_fucsia":"img/lvmlc_rosa_fucsia.jpg?v=092911ff",
-  "lvmlc_verde_militar":"img/lvmlc_verde_militar.jpg?v=bb0d5d98",
-  "lvmld_azul_marino":"img/lvmld_azul_marino.jpg?v=19b130d9",
-  "lvmld_azul_rey":"img/lvmld_azul_rey.jpg?v=7e99ddf3",
-  "lvmld_blanco":"img/lvmld_blanco.jpg?v=e00f923e",
-  "lvmld_gris_oxford":"img/lvmld_gris_oxford.jpg?v=f314bc35",
-  "lvmld_negro":"img/lvmld_negro.jpg?v=e844a42d",
-  "lvmld_rojo":"img/lvmld_rojo.jpg?v=14cd5822",
-  "lvmld_rosa_fucsia":"img/lvmld_rosa_fucsia.jpg?v=0900603f",
-  "lvmld_verde_militar":"img/lvmld_verde_militar.jpg?v=3e09ce0c",
-  "polo_dk_cab":"img/polo_dk_cab.jpg?v=4e2e1976",
-  "polo_dk_dama":"img/polo_dk_dama.jpg?v=a1320235",
-  "polo_lv_cab":"img/polo_lv_cab.jpg?v=1cae58c6",
-  "polo_lv_dama":"img/polo_lv_dama.jpg?v=c1dc1885",
-  "polo_lvml_cab":"img/polo_lvml_cab.jpg?v=80bb5ae1",
-  "polo_lvml_dama":"img/polo_lvml_dama.jpg?v=cb49e7fa",
-  "polo_portada":"img/polo_portada.jpg?v=dbd7aee6",
-  "polo_spa_cab":"img/polo_spa_cab.jpg?v=d082847d",
-  "polo_spa_dama":"img/polo_spa_dama.jpg?v=5c1f358d",
-  "sil_cas_cab":"img/sil_cas_cab.jpg?v=f7265184",
-  "sil_cas_dama":"img/sil_cas_dama.jpg?v=93c467ba",
-  "sil_mc_cab":"img/sil_mc_cab.jpg?v=d091ce1e",
-  "sil_mc_dama":"img/sil_mc_dama.jpg?v=bdde70df",
-  "sil_ml_cab":"img/sil_ml_cab.jpg?v=18e66208",
-  "sil_ml_dama":"img/sil_ml_dama.jpg?v=f5c483b5",
-  "spa_colores":"img/spa_colores.jpg?v=4a150633",
-  "sub_cas":"img/sub_cas.jpg?v=f1cefc0e",
-  "sub_mc":"img/sub_mc.jpg?v=340a5e4f",
-  "sub_ml":"img/sub_ml.jpg?v=ec584082",
-  "sub_portada":"img/sub_portada.jpg?v=841fd400",
-  "tcc_arena":"img/tcc_arena.jpg?v=ab9a5d1f",
-  "tcc_blanco":"img/tcc_blanco.jpg?v=fa8cf706",
-  "tcc_canario":"img/tcc_canario.jpg?v=723f0ceb",
-  "tcc_carbon":"img/tcc_carbon.jpg?v=696091e8",
-  "tcc_caribe":"img/tcc_caribe.jpg?v=066140eb",
-  "tcc_fucsia":"img/tcc_fucsia.jpg?v=9b9cdc95",
-  "tcc_gris_jaspe":"img/tcc_gris_jaspe.jpg?v=8b3af3c3",
-  "tcc_jade":"img/tcc_jade.jpg?v=809556dd",
-  "tcc_lavanda":"img/tcc_lavanda.jpg?v=995c8ffc",
-  "tcc_marino":"img/tcc_marino.jpg?v=d9f013fc",
-  "tcc_marron":"img/tcc_marron.jpg?v=33d3abf7",
-  "tcc_morado":"img/tcc_morado.jpg?v=9628ded5",
-  "tcc_naranja":"img/tcc_naranja.jpg?v=08a69944",
-  "tcc_negro":"img/tcc_negro.jpg?v=3c960cd4",
-  "tcc_rojo":"img/tcc_rojo.jpg?v=95be430d",
-  "tcc_rosa_pastel":"img/tcc_rosa_pastel.jpg?v=3b1d11df",
-  "tcc_royal":"img/tcc_royal.jpg?v=88a109b6",
-  "tcc_salmon":"img/tcc_salmon.jpg?v=c4149117",
-  "tcc_turquesa":"img/tcc_turquesa.jpg?v=73a0fd5e",
-  "tve_arena":"img/tve_arena.webp?v=caab6c80",
-  "tve_blanco":"img/tve_blanco.webp?v=ec996132",
-  "tve_canario":"img/tve_canario.webp?v=eeb18af7",
-  "tve_carbon":"img/tve_carbon.webp?v=f704c37a",
-  "tve_caribe":"img/tve_caribe.webp?v=3466e783",
-  "tve_fucsia":"img/tve_fucsia.webp?v=1b68cf51",
-  "tve_gris_jaspe":"img/tve_gris_jaspe.webp?v=c11bd9ef",
-  "tve_jade":"img/tve_jade.webp?v=1eecb6a0",
-  "tve_lavanda":"img/tve_lavanda.webp?v=7ab78c4a",
-  "tve_marino":"img/tve_marino.webp?v=4f0fa3e9",
-  "tve_marron":"img/tve_marron.webp?v=a9d239ae",
-  "tve_morado":"img/tve_morado.webp?v=53f702c9",
-  "tve_naranja":"img/tve_naranja.webp?v=230665d1",
-  "tve_negro":"img/tve_negro.webp?v=02579253",
-  "tve_rojo":"img/tve_rojo.webp?v=7a726491",
-  "tve_rosa_pastel":"img/tve_rosa_pastel.webp?v=70f094a6",
-  "tve_royal":"img/tve_royal.webp?v=a72edac2",
-  "tve_salmon":"img/tve_salmon.webp?v=a95546e8",
-  "tve_turquesa":"img/tve_turquesa.webp?v=0325b591",
-  "tvf_arena":"img/tvf_arena.webp?v=1a581478",
-  "tvf_blanco":"img/tvf_blanco.webp?v=701c23e5",
-  "tvf_canario":"img/tvf_canario.webp?v=9b93b7f6",
-  "tvf_carbon":"img/tvf_carbon.webp?v=d8b8359e",
-  "tvf_caribe":"img/tvf_caribe.webp?v=73840dcc",
-  "tvf_fucsia":"img/tvf_fucsia.webp?v=d02f4045",
-  "tvf_gris_jaspe":"img/tvf_gris_jaspe.webp?v=1cee5b9a",
-  "tvf_jade":"img/tvf_jade.webp?v=6f238d1a",
-  "tvf_lavanda":"img/tvf_lavanda.webp?v=85ce645e",
-  "tvf_marino":"img/tvf_marino.webp?v=b1e8cbdc",
-  "tvf_marron":"img/tvf_marron.webp?v=b40a1598",
-  "tvf_morado":"img/tvf_morado.webp?v=fca1767b",
-  "tvf_naranja":"img/tvf_naranja.webp?v=6b071bf3",
-  "tvf_negro":"img/tvf_negro.webp?v=f2281796",
-  "tvf_rojo":"img/tvf_rojo.webp?v=91842abd",
-  "tvf_rosa_pastel":"img/tvf_rosa_pastel.webp?v=9fbe1309",
-  "tvf_royal":"img/tvf_royal.webp?v=f7b12990",
-  "tvf_salmon":"img/tvf_salmon.webp?v=e5bcfab0",
-  "tvf_turquesa":"img/tvf_turquesa.webp?v=a36239d2"
-};
+/* las fotos de las prendas (~1.5 MB) llegan aparte (fotos.json) para que la página abra rápido;
+   mientras llegan se ve un recuadro gris y luego se cambia sola */
+const FOTOS_KEYS = ["dkc_beige", "dkc_blanco", "dkc_carbon", "dkc_cielo", "dkc_delfin", "dkc_marino", "dkc_negro", "dkc_olivo", "dkc_plata", "dkc_rojo", "dkc_royal", "dkc_vino", "dkd_beige", "dkd_blanco", "dkd_carbon", "dkd_cielo", "dkd_delfin", "dkd_marino", "dkd_negro", "dkd_plata", "dkd_rojo", "dkd_royal", "dkd_vino", "dtf_corta", "dtf_larga", "lvc_amarillo", "lvc_azul_marino", "lvc_azul_rey", "lvc_blanco", "lvc_gris_oxford", "lvc_magenta", "lvc_moka", "lvc_morado", "lvc_naranja", "lvc_negro", "lvc_oceano", "lvc_rojo", "lvc_rosa_mexicano", "lvc_rosa_palo", "lvc_tinto", "lvc_verde_bandera", "lvc_verde_militar", "lvd_amarillo", "lvd_azul_marino", "lvd_azul_rey", "lvd_blanco", "lvd_gris_oxford", "lvd_magenta", "lvd_moka", "lvd_morado", "lvd_naranja", "lvd_negro", "lvd_oceano", "lvd_rojo", "lvd_rosa_mexicano", "lvd_rosa_palo", "lvd_tinto", "lvd_verde_bandera", "lvd_verde_militar", "lvmlc_azul_marino", "lvmlc_azul_rey", "lvmlc_blanco", "lvmlc_gris_oxford", "lvmlc_negro", "lvmlc_rojo", "lvmlc_rosa_fucsia", "lvmlc_verde_militar", "lvmld_azul_marino", "lvmld_azul_rey", "lvmld_blanco", "lvmld_gris_oxford", "lvmld_negro", "lvmld_rojo", "lvmld_rosa_fucsia", "lvmld_verde_militar", "polo_dk_cab", "polo_dk_dama", "polo_lv_cab", "polo_lv_dama", "polo_lvml_cab", "polo_lvml_dama", "polo_portada", "polo_spa_cab", "polo_spa_dama", "sil_cas_cab", "sil_cas_dama", "sil_mc_cab", "sil_mc_dama", "sil_ml_cab", "sil_ml_dama", "spa_colores", "sub_cas", "sub_mc", "sub_ml", "sub_portada", "tcc_arena", "tcc_blanco", "tcc_canario", "tcc_carbon", "tcc_caribe", "tcc_fucsia", "tcc_gris_jaspe", "tcc_jade", "tcc_lavanda", "tcc_marino", "tcc_marron", "tcc_morado", "tcc_naranja", "tcc_negro", "tcc_rojo", "tcc_rosa_pastel", "tcc_royal", "tcc_salmon", "tcc_turquesa", "tve_arena", "tve_blanco", "tve_canario", "tve_carbon", "tve_caribe", "tve_fucsia", "tve_gris_jaspe", "tve_jade", "tve_lavanda", "tve_marino", "tve_marron", "tve_morado", "tve_naranja", "tve_negro", "tve_rojo", "tve_rosa_pastel", "tve_royal", "tve_salmon", "tve_turquesa", "tvf_arena", "tvf_blanco", "tvf_canario", "tvf_carbon", "tvf_caribe", "tvf_fucsia", "tvf_gris_jaspe", "tvf_jade", "tvf_lavanda", "tvf_marino", "tvf_marron", "tvf_morado", "tvf_naranja", "tvf_negro", "tvf_rojo", "tvf_rosa_pastel", "tvf_royal", "tvf_salmon", "tvf_turquesa"], _FOTOS = {}, _PIX = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+let FOTOS_OK = false;
+const IMG = new Proxy(_FOTOS, { get(t, k){ if (k in t) return t[k]; if (!FOTOS_OK && typeof k === "string" && FOTOS_KEYS.includes(k)) return _PIX + "#" + k; return undefined; } });
+const fotosListas = fetch("fotos.json?v=3cd93948").then(r => r.json()).then(d => { Object.assign(_FOTOS, d); FOTOS_OK = true;
+  document.querySelectorAll("img").forEach(i => { const s = i.getAttribute("src") || ""; if (s.startsWith(_PIX + "#")) i.src = _FOTOS[s.slice(_PIX.length + 1)] || ""; });
+  document.querySelectorAll("image").forEach(i => { const s = i.getAttribute("href") || ""; if (s.startsWith(_PIX + "#")){ const v = _FOTOS[s.slice(_PIX.length + 1)] || ""; i.setAttribute("href", v); i.setAttributeNS("http://www.w3.org/1999/xlink", "href", v); } });
+}).catch(() => {});
 
 /* =====================================================================
    CONFIGURACIÓN DE VITUMA
@@ -2310,6 +2166,7 @@ $("#dzWa").onclick = () => {
 
 /* dibuja la vista previa (frente y espalda) en un canvas */
 function mockupCanvas(cb){
+  if (!FOTOS_OK){ fotosListas.then(() => mockupCanvas(cb)); return; }
   const p = byId(DZ.prod); if (!p) return;
   const { o, logos, fv } = dzVista(p);
   const anidar = (svg, x) => svg.replace("<svg ", `<svg x="${x}" y="30" width="760" height="590" `);
@@ -2431,7 +2288,7 @@ $("#iaCopy").onclick = async () => {
 let SUB = null, _subP = null;
 function sbCargarDatos(){
   if (SUB) return Promise.resolve(SUB);
-  return _subP || (_subP = fetch("datos/sublima.json?v=0a0a9e97").then(r => { if (!r.ok) throw new Error("datos"); return r.json(); })
+  return _subP || (_subP = fetch("sublima.json?v=0a0a9e97").then(r => { if (!r.ok) throw new Error("datos"); return r.json(); })
     .then(d => (SUB = d)).catch(e => { _subP = null; throw e; }));
 }
 document.addEventListener("click", e => { if (e.target.closest && e.target.closest('[data-tab="disena"],#irDiseno')) sbCargarDatos().catch(() => {}); }, true);
