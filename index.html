@@ -2353,7 +2353,9 @@ const SB_REGLAS = { cuelloLogo: 10, abajo: 3.5, margenManga: 2.8, hombro: 10, se
 const SB_PIEZAS = [["frente","Frente"],["espalda","Espalda"],["mangaD","Manga derecha"],["mangaI","Manga izquierda"]];
 const SB_FONDOS = [["Blanco","#FFFFFF"],["Negro","#111111"],["Azul marino","#1C2340"],["Azul rey","#1F4FBF"],["Rojo","#D62828"],["Vino","#7A1F2B"],
   ["Naranja","#F26B21"],["Amarillo","#FFC300"],["Verde","#2A9D4B"],["Gris","#8A8F98"]];
-const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,25,28];
+const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,25,28,30,32,35,38];
+/* frente y espalda: logo hasta 38 cm; mangas: hasta 28 cm (en manga larga, 10 cm por la franja) */
+const sbTamMax = (q, tipo) => tipo === "logo" ? (q === "frente" || q === "espalda" ? 38 : 28) : 99;
 const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25];
 const SB = { idea:"", referencia:null, pers:{ espalda:false, pecho:false, nombre:false, numero:false, espNom:false, espNum:false, espNomCm:6, espNumCm:20, pechoQue:"no", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" }, lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null, cuello:null, prueba:true, verTalla:null, mangaTxt:{ D:"", I:"", cm:7, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" } } };
 const sbNueva = () => ({ fondo:{ tipo:"color", color:"#1C2340", img:null, src:null }, els:[] });
@@ -2788,7 +2790,7 @@ function sbPanel(){
   const opZona = e => cuerpo ? `<select data-ez="${e.id}">${[["arriba","Arriba"],["abajo","Abajo"]].map(([v, t]) => `<option value="${v}"${(e.zona||"arriba")===v?" selected":""}>${t}</option>`).join("")}</select>
       <select data-el="${e.id}">${[["centro","Centro"],["izquierda","Lado izquierdo"],["derecha","Lado derecho"]].map(([v, t]) => `<option value="${v}"${(e.lado||"centro")===v?" selected":""}>${t}</option>`).join("")}</select>`
     : (sbLarga() ? `<select data-ev="${e.id}"><option value="0"${!e.vertical?" selected":""}>Horizontal</option><option value="1"${e.vertical?" selected":""}>A lo largo de la manga</option></select>` : "");
-  const opTam = (e, q, attr) => `<select ${attr}>${(e.tipo === "logo" ? SB_TAM_LOGO : SB_TAM_TEXTO).filter(v => !(q.startsWith("manga") && sbLarga()) || v <= 10 || v === e.cm).map(v => `<option value="${v}"${e.cm===v?" selected":""}>${v} cm</option>`).join("")}</select>`;
+  const opTam = (e, q, attr) => `<select ${attr}>${(e.tipo === "logo" ? SB_TAM_LOGO : SB_TAM_TEXTO).filter(v => (v <= sbTamMax(q, e.tipo) && (!(q.startsWith("manga") && sbLarga()) || v <= 10)) || v === e.cm).map(v => `<option value="${v}"${e.cm===v?" selected":""}>${v} cm</option>`).join("")}</select>`;
   /* las copias del mismo logo o texto en las otras partes: cada una con su propio tamaño */
   const otrasCopias = e => SB_PIEZAS.filter(([q]) => q !== k).flatMap(([q, t]) => SB.piezas[q].els.filter(x => (x.grupo || x.id) === (e.grupo || e.id)).map(x => [q, t, x]));
   const tarjeta = (e, n) => `<div class="sbel">
@@ -2856,7 +2858,8 @@ function sbPanel(){
   const nomP = q => SB_PIEZAS.find(x => x[0] === q)[1].toLowerCase();
   const ajusta = (e, q) => { if (q.startsWith("manga")){ e.zona = "arriba"; e.lado = "centro";
       if (sbLarga()){ if (e.tipo === "texto"){ e.vertical = true; e.cm = Math.min(10, Math.max(6, e.cm)); } else if (e.cm > 10) e.cm = 8; }
-      else { e.vertical = false; if (e.cm > 10) e.cm = e.tipo === "logo" ? 7 : 4; } } else e.vertical = false; return e; };
+      else { e.vertical = false; if (e.cm > 10) e.cm = e.tipo === "logo" ? 7 : 4; } } else e.vertical = false;
+    if (e.tipo === "logo" && e.cm > sbTamMax(q, "logo")) e.cm = sbTamMax(q, "logo"); return e; };
   document.querySelectorAll("[data-eg]").forEach(bt => bt.onclick = () => { const e = byE(bt.dataset.eg), q = bt.dataset.q, g = e.grupo || e.id; e.grupo = g;
     const enQ = SB.piezas[q].els.filter(x => (x.grupo || x.id) === g);
     if (enQ.length){
