@@ -1210,7 +1210,7 @@ function abrirOT(id, vista){
   const nomPDF = i => `SIN_MOLDE_SUBLIMADA_MANGA_${(i.sub.larga != null ? i.sub.larga : /larga/.test(i.sub.modelo || "")) ? "LARGA" : "CORTA"}_${i.sub.tallaBase}_${(i.modelo || "").toUpperCase()}_${(v.cliente.nombre || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}_${v.folio}.pdf`;
   document.querySelectorAll("[data-ajenv]").forEach(b => b.onclick = () => {
     const i = its[+b.dataset.ajenv], t = b.textContent; b.disabled = true; b.textContent = "Enviando…";
-    enviarAlAjustador(() => pdfSinMolde(i.sub, "", _mejoradas[v.folio + "|" + b.dataset.ajenv] || {}, true),
+    enviarAlAjustador(async () => { const pdf = await pdfSinMolde(i.sub, "", _mejoradas[v.folio + "|" + b.dataset.ajenv] || {}, true), x = await persParaAjustador(i); return { pdf, extra: x.extra, transfer: x.transfer }; },
       { nombre: nomPDF(i), modelo: i.sub.modelo, talla: i.sub.tallaBase, cliente: v.cliente.nombre + " · " + v.folio },
       () => { b.disabled = false; b.textContent = t; });
   });
@@ -1400,20 +1400,90 @@ async function pdfSinMolde(sub, nombre, reemplazos = {}, soloBytes = false){
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" })); a.download = nombre;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
 }
+/* ---------- nombre y número por persona para el ajustador: mismas reglas que la app del cliente ---------- */
+const PERS_F = { "Montserrat":["Montserrat",700], "Arial":["Arial",700], "Roboto":["Roboto",700], "Poppins":["Poppins",700], "Oswald":["Oswald",600],
+  "Bebas Neue":["Bebas Neue",400], "Anton":["Anton",400], "Playfair":["Playfair Display",700], "Lobster":["Lobster",400], "Pacifico":["Pacifico",400] };
+const PCM = 72 / 2.54, PGROSOR = { delgado:.05, medio:.09, grueso:.14 };
+async function persFuente(t){
+  const [fam, w] = PERS_F[t] || ["Arial", 700];
+  if (fam !== "Arial" && !document.querySelector(`link[data-pf="${fam}"]`)){ const l = document.createElement("link"); l.rel = "stylesheet"; l.dataset.pf = fam;
+    l.href = `https://fonts.googleapis.com/css2?family=${fam.replace(/ /g, "+")}:wght@${w}&display=swap`; document.head.appendChild(l); await new Promise(r => { l.onload = r; l.onerror = r; setTimeout(r, 4000); }); }
+  try { await document.fonts.load(`${w} 40px "${fam}"`); } catch(e){}
+  return [fam, w];
+}
+const _pctx = document.createElement("canvas").getContext("2d");
+function persTam(e, F){
+  const fs = e.cm * PCM / .72; _pctx.font = `${F[1]} ${fs}px "${F[0]}", Arial`;
+  const mt = _pctx.measureText(e.texto || " "), asc = mt.actualBoundingBoxAscent || fs * .72, des = mt.actualBoundingBoxDescent || 0;
+  const g = e.borde ? e.cm * PCM * (PGROSOR[e.borde.grosor] || .09) : 0;
+  return { w: Math.max(1, (mt.actualBoundingBoxLeft || 0) + (mt.actualBoundingBoxRight || mt.width)) + 2 * g, h: asc + des + 2 * g, fs, asc: asc + g, left: (mt.actualBoundingBoxLeft || 0) + g, g };
+}
+function persEls(cfg, k, nombre, numero, F){
+  const out = [], borde = cfg.contorno ? { color: cfg.contorno.color, grosor: cfg.contorno.grosor } : null;
+  const nom = (nombre || "").trim() || "NOMBRE", num = (numero || "").trim() || "10", lado = cfg.pecho ? cfg.pecho.lado : "centro";
+  const el = (id, texto, cm, ld) => { const e = { id, texto, cm, borde, lado: ld };
+    const max = (k === "espalda" ? (id.startsWith("pNum") ? 40 : 30) : ld === "centro" ? 18 : 11) * PCM, w = persTam(e, F).w;
+    if (w > max){ e.cm = Math.max(1, Math.floor(cm * max / w * 10) / 10); e.ajustado = true; } return e; };
+  const dosLineas = (id, cm, ld) => { const uno = el(id, nom, cm, ld), pal = nom.split(/\s+/);
+    if (!uno.ajustado || uno.cm >= cm * .8 || pal.length < 2) return [uno];
+    let mejor = 1, dif = Infinity; for (let i = 1; i < pal.length; i++){ const d = Math.abs(pal.slice(0, i).join(" ").length - pal.slice(i).join(" ").length); if (d < dif){ dif = d; mejor = i; } }
+    const a = el(id + "1", pal.slice(0, mejor).join(" "), cm, ld), b = el(id + "2", pal.slice(mejor).join(" "), cm, ld), c = Math.min(a.cm, b.cm);
+    if (c <= uno.cm) return [uno]; a.cm = b.cm = c; b.junto = true; return [a, b]; };
+  if (k === "espalda" && cfg.espalda){ if (cfg.espalda.nombreCm) out.push(...dosLineas("pNomE", cfg.espalda.nombreCm, "centro")); if (cfg.espalda.numeroCm) out.push(el("pNumE", num, cfg.espalda.numeroCm, "centro")); }
+  if (k === "frente" && cfg.pecho){ const q = cfg.pecho.que;
+    if (q === "nombre" || q === "ambos") out.push(...dosLineas("pNomF", q === "ambos" ? Math.max(1.5, Math.round(cfg.pecho.cm / 3 * 2) / 2) : cfg.pecho.cm, lado));
+    if (q === "numero" || q === "ambos") out.push(el("pNumF", num, cfg.pecho.cm, lado)); }
+  return out;
+}
+/* imagen del texto a 300 ppp: CMYK para imprimir (con la tabla del RIP) y PNG chico para revisar */
+async function persImagen(e, F, color, lut){
+  const t = persTam(e, F), k = 300 / 72, c = document.createElement("canvas"); c.width = Math.max(1, Math.ceil(t.w * k)); c.height = Math.max(1, Math.ceil(t.h * k));
+  const x = c.getContext("2d"); x.scale(k, k); x.font = `${F[1]} ${t.fs}px "${F[0]}", Arial`; x.textBaseline = "alphabetic"; x.textAlign = "left";
+  if (t.g){ x.lineJoin = "round"; x.miterLimit = 2; x.lineWidth = t.g * 2; x.strokeStyle = e.borde.color || "#111111"; x.strokeText(e.texto, t.left, t.asc); }
+  x.fillStyle = color; x.fillText(e.texto, t.left, t.asc);
+  const W = c.width, H = c.height, d = x.getImageData(0, 0, W, H).data, op = new Uint8Array(W * 4 * 256 + 4), tmp = new Uint8Array(W * 256 * 6), cm = new Uint8Array(W * H * 4), al = new Uint8Array(W * H);
+  for (let y0 = 0; y0 < H; y0 += 256){ const filas = Math.min(256, H - y0);
+    for (let i = 0; i < W * filas; i++){ const j = (y0 * W + i) * 4; op[i*4] = d[j]; op[i*4+1] = d[j+1]; op[i*4+2] = d[j+2]; op[i*4+3] = 255; al[y0 * W + i] = d[j+3]; }
+    aCMYK(lut, op, W, filas, tmp);
+    for (let i = 0; i < W * filas; i++){ const o = (y0 * W + i) * 4; cm[o] = tmp[i*6]; cm[o+1] = tmp[i*6+1]; cm[o+2] = tmp[i*6+2]; cm[o+3] = tmp[i*6+3]; } }
+  const pv = document.createElement("canvas"), r = Math.min(1, 1000 / Math.max(W, H)); pv.width = Math.max(1, Math.round(W * r)); pv.height = Math.max(1, Math.round(H * r)); pv.getContext("2d").drawImage(c, 0, 0, pv.width, pv.height);
+  const cmB = await desinflar(cm), alB = await desinflar(al);
+  return { w: t.w, h: t.h, src: pv.toDataURL("image/png"), cmyk: { W, H, cm: cmB.buffer, al: alB.buffer } };
+}
+const moldeDeTalla = (t, dama) => ({ XL: dama ? "XL" : "XG", "2XL":"XXL", "3XL":"XXXL", "4XL":"XXXXL" })[t] || t;
+async function persParaAjustador(i){
+  const cfg = i.pers, dama = /dama/.test(i.sub.modelo || ""), out = { tallas: [...new Set(Object.keys(i.qty || {}).filter(t => i.qty[t]).map(t => moldeDeTalla(t, dama)))], personas: [] }, transfer = [];
+  if (!cfg || !cfg.lista || !cfg.lista.length) return { extra: out, transfer };
+  const F = await persFuente(cfg.fuente), lut = (await datosRIP()).lut;
+  /* dónde empieza el nombre/número en la talla base (lo acomodó la app del cliente) */
+  const ancla = {};
+  for (const k of ["espalda","frente"]){ const p = i.sub.piezas[k], ph = p ? p.els.filter(e => e.pers) : [];
+    if (ph.length){ const y0 = Math.min(...ph.map(e => e.y)), f = ph.find(e => e.y === y0); ancla[k] = { y0, cxRel: (f.x + f.w / 2) / p.w }; } }
+  for (const r of cfg.lista){
+    const per = { talla: moldeDeTalla(r.talla, dama), nombre: r.nombre, numero: r.numero, piezas: {} };
+    for (const k of Object.keys(ancla)){
+      const els = persEls(cfg, k, r.nombre, r.numero, F); let y = ancla[k].y0; per.piezas[k] = [];
+      for (const e of els){ if (e.junto) y -= (1.2 - .35) * PCM; const im = await persImagen(e, F, cfg.color, lut);
+        per.piezas[k].push({ src: im.src, w: im.w, h: im.h, yBase: y, cxRel: ancla[k].cxRel, cmyk: im.cmyk }); transfer.push(im.cmyk.cm, im.cmyk.al); y += im.h + 1.2 * PCM; }
+    }
+    out.personas.push(per);
+  }
+  return { extra: out, transfer };
+}
 /* manda el PDF directo al ajustador de tallas (sin descargarlo): abre el ajustador y, cuando avisa que está listo, se lo pasa con el modelo, la talla y el cliente */
 function enviarAlAjustador(generar, datos, alTerminar){
   const ORIGEN = new URL(AJUSTADOR).origin, w = window.open(AJUSTADOR + (AJUSTADOR.includes("?") ? "&" : "?") + "desde=vituma", "_blank");
   if (!w){ toast("Tu navegador bloqueó la ventana del ajustador: permite las ventanas emergentes para este sitio", true); alTerminar(false); return; }
-  let listo = false, pdf = null, enviado = false, fin = false;
+  let listo = false, pdf = null, extra = {}, transfer = [], enviado = false, fin = false;
   const terminar = ok => { if (fin) return; fin = true; window.removeEventListener("message", oye); clearTimeout(tm); alTerminar(ok); };
   const mandar = () => { if (enviado || !listo || !pdf) return; enviado = true; const buf = pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength);
-    w.postMessage({ tipo:"vituma-ajustador", pdf: buf, ...datos }, ORIGEN, [buf]); };
+    w.postMessage({ tipo:"vituma-ajustador", pdf: buf, ...datos, ...extra }, ORIGEN, [buf, ...transfer]); };
   const oye = e => { if (e.origin !== ORIGEN || e.source !== w || !e.data) return;
     if (e.data.tipo === "ajustador-listo"){ listo = true; mandar(); }
     if (e.data.tipo === "ajustador-recibido"){ toast("Diseño enviado al ajustador ✔"); terminar(true); } };
   window.addEventListener("message", oye);
   const tm = setTimeout(() => { if (!enviado) toast("El ajustador no respondió. Usa “PDF sin molde” y súbelo a mano.", true); terminar(false); }, 60000);
-  generar().then(b => { pdf = b; mandar(); }).catch(() => { toast("No se pudo generar el PDF", true); try { w.close(); } catch(e){} terminar(false); });
+  generar().then(r => { if (r && r.pdf){ pdf = r.pdf; extra = r.extra || {}; transfer = r.transfer || []; } else pdf = r; mandar(); }).catch(() => { toast("No se pudo generar el PDF", true); try { w.close(); } catch(e){} terminar(false); });
 }
 /* guarda una imagen conservando la transparencia (PNG), reducida para la muestra */
 function pngParaGuardar(file, max){

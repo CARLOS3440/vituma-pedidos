@@ -219,6 +219,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 .sbblock>b{font-size:15px}
 @media(max-width:700px){.pasosrow{grid-template-columns:1fr}.pzgrid{grid-template-columns:1fr}#sbRest .card{padding:16px}.pasoh h3{font-size:17px}}
 img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF0F4);min-height:40px}
+.lamina{border:2px solid #F26B21;border-radius:16px;padding:16px;background:linear-gradient(180deg,#FFF8F3,#fff);margin-bottom:14px}
+.lamh{display:flex;gap:10px;align-items:center;margin-bottom:6px}.lamh b{font-size:16px}.lamh .tag{background:#F26B21;color:#fff;font-weight:800;font-size:11px;border-radius:999px;padding:4px 9px;letter-spacing:.03em}
+.lamina ol{margin:6px 0 0 20px;display:grid;gap:3px;font-size:14px}
+.lamres{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.lamres figure{margin:0;text-align:center}.lamres img{width:100%;height:110px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff}.lamres figcaption{font-size:12px;font-weight:700;margin-top:3px}
+.porpieza{margin-top:4px}.porpieza>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy);padding:10px 0}
+@media(max-width:600px){.lamres{grid-template-columns:repeat(2,1fr)}}
+.cuellosw{display:inline-block;width:44px;height:22px;border-radius:6px;border:1.5px solid #D5D8E0;vertical-align:middle}
+.verej{margin:-6px 0 14px;background:#F7F8FB;border-radius:12px;padding:8px 12px}.verej summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy)}
+.persej{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 4px}.persej figure{margin:0;background:#F7F8FB;border-radius:14px;padding:10px;text-align:center}
+.persej svg{width:100%;max-height:190px}.persej figcaption{font-size:12.5px;font-weight:700;color:var(--navy);margin-top:4px}
 .sbref2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sbref2 figure{margin:0}.sbref2 figcaption{font-size:12px;color:var(--muted);text-align:center;margin-top:-6px;margin-bottom:8px}.sbref2 .sbref{height:220px;max-height:none}@media(max-width:600px){.sbref2{grid-template-columns:1fr}}
 .sbref{width:100%;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:10px;cursor:zoom-in}
 .sbpz{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}.sbpz.ok{border-color:var(--ok);background:rgba(22,163,74,.04)}
@@ -464,6 +474,18 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
       <div class="card" id="sbPzCard">
         <div class="pasoh"><span class="num">5</span><div><h3>Saca las piezas de tu diseño</h3><p>Para imprimir necesitamos un <b>rectángulo lleno de diseño</b> por cada parte. No tienes que escribir nada: la app te da las instrucciones.</p></div></div>
         <div id="sbPzRef"></div>
+        <div class="lamina">
+          <div class="lamh"><span class="tag">⚡ Rápido</span><b>Las 4 piezas en un solo paso</b></div>
+          <ol><li>Toca <b>📋 Copiar instrucciones</b>.</li>
+            <li>Pégalas en la <b>misma conversación de la IA</b> donde hiciste tu mockup.</li>
+            <li>Descarga la imagen con las 4 piezas (o las 4 imágenes si te las da separadas) y súbela aquí. <b>La app separa las piezas sola.</b></li></ol>
+          <div class="accrow" style="margin-top:10px"><button class="btn pri" id="sbLamCopy">📋 Copiar instrucciones</button>
+            <label class="btn ghost" style="cursor:pointer">⬆ Subir la imagen de las piezas<input type="file" id="sbLamFile" accept="image/png,image/jpeg,image/webp" multiple hidden></label>
+            <button class="btn ghost" id="sbLamMal">🔁 No salió bien</button></div>
+          <div id="sbLamRes"></div>
+          <details class="verinst"><summary>Ver las instrucciones</summary><textarea id="sbLamTxt" readonly></textarea></details>
+        </div>
+        <details class="porpieza" id="sbPorPieza"><summary>🎯 Prefiero hacerlas una por una (mejor calidad)</summary>
         <div class="pasosbox"><b>📋 Cómo sacar tus piezas (en orden: frente, espalda y luego las mangas):</b>
           <ol><li>Toca <b>📋 Copiar instrucciones</b> de la pieza.</li>
             <li>Pégalas en la <b>misma conversación de la IA</b> (Gemini o ChatGPT) donde hiciste el mockup de tu camisa.</li>
@@ -471,22 +493,37 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
             <li>Súbela con <b>⬆ Subir la pieza</b> en ese mismo apartado. Cuando esté bien, se marca <b>✓ Lista</b>.</li></ol>
           <div class="mini">Si la IA dibujó la forma de la playera, dejó textos o no llenó todo el rectángulo, toca <b>🔁 No salió bien</b>, pega ese mensaje en la misma conversación y sube la imagen nueva.</div></div>
         <div id="sbPzList" class="pzgrid"></div>
-        <p class="mini" style="margin-top:10px">Las instrucciones le piden a la IA usar exactamente lo mismo que en tu mockup, sin tu logo ni textos (esos los acomodas en el paso 7), y con diseño de sobra en las orillas para ajustarlo a todas las tallas. Si alguna pieza no te sale, súbela como la tengas: nuestro diseñador la revisa.</p>
-      </div>
-      <div class="card">
-        <div class="pasoh"><span class="num">6</span><div><h3>Personaliza <span class="opc">opcional</span></h3><p>Nombre y número de cada persona<span id="sbPersSubML"> y texto en las mangas</span>.</p></div></div>
-        <div id="sbPersBox"></div>
+        </details>
+        <p class="mini" style="margin-top:10px">Las instrucciones le piden a la IA usar exactamente lo mismo que en tu mockup, sin tu logo ni textos (esos los acomodas en el paso 6), y con diseño de sobra en las orillas para ajustarlo a todas las tallas. Si alguna pieza no te sale, súbela como la tengas: nuestro diseñador la revisa.</p>
       </div>
       <div class="card" id="sbEditor">
-        <div class="pasoh"><span class="num">7</span><div><h3>Revisa y acomoda tu diseño</h3><p>Toca una pieza para <b>acomodar tu logo y agregar los textos</b> de tu mockup. Las líneas naranjas son las reglas para que quede igual en todas las tallas.</p></div></div>
+        <div class="pasoh"><span class="num">6</span><div><h3>Acomoda y personaliza tu camisa</h3><p>Toca una parte de la camisa (abajo del dibujo) y ahí mismo acomodas tu <b>logo</b>, agregas <b>textos</b> y, si quieres, <b>nombre y número</b> distinto en cada playera.</p></div></div>
+        <details class="verej"><summary>👀 Ver ejemplo: sin personalizar y personalizada</summary>
+        <div class="persej">
+          <figure><svg viewBox="0 0 200 210" aria-label="Playera sin personalizar"><defs><linearGradient id="jg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F26B21"/><stop offset=".55" stop-color="#E0531A"/><stop offset="1" stop-color="#3C4250"/></linearGradient></defs>
+            <path d="M62 14 Q100 30 138 14 L170 26 Q186 60 196 150 L178 156 Q166 96 160 72 L158 200 Q100 208 42 200 L40 72 Q34 96 22 156 L4 150 Q14 60 30 26 Z" fill="url(#jg)" stroke="#2A2F3A" stroke-width="2"/>
+            <path d="M62 14 Q100 30 138 14" fill="none" stroke="#2A2F3A" stroke-width="6"/>
+            <path d="M48 40 L150 190 M78 30 L170 150 M40 120 L100 205" stroke="#fff" stroke-opacity=".18" stroke-width="10"/></svg><figcaption>Sin personalizar</figcaption></figure>
+          <figure><svg viewBox="0 0 200 210" aria-label="Playera personalizada"><defs><linearGradient id="jg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F26B21"/><stop offset=".55" stop-color="#E0531A"/><stop offset="1" stop-color="#3C4250"/></linearGradient></defs>
+            <path d="M62 14 Q100 30 138 14 L170 26 Q186 60 196 150 L178 156 Q166 96 160 72 L158 200 Q100 208 42 200 L40 72 Q34 96 22 156 L4 150 Q14 60 30 26 Z" fill="url(#jg)" stroke="#2A2F3A" stroke-width="2"/>
+            <path d="M62 14 Q100 30 138 14" fill="none" stroke="#2A2F3A" stroke-width="6"/>
+            <path d="M48 40 L150 190 M78 30 L170 150 M40 120 L100 205" stroke="#fff" stroke-opacity=".18" stroke-width="10"/>
+            <text x="100" y="62" text-anchor="middle" font-family="Bebas Neue, Oswald, Arial" font-weight="700" font-size="17" fill="#fff" stroke="#111" stroke-width="2.4" paint-order="stroke">GARCÍA</text>
+            <text x="100" y="128" text-anchor="middle" font-family="Bebas Neue, Oswald, Arial" font-weight="700" font-size="58" fill="#fff" stroke="#111" stroke-width="3.5" paint-order="stroke">10</text>
+            <g class="soloML"><text transform="translate(26 70) rotate(73)" font-family="Bebas Neue, Oswald, Arial" font-weight="700" font-size="11" fill="#fff" stroke="#111" stroke-width="1.6" paint-order="stroke">ESCUINAPA</text>
+            <text transform="translate(181 116) rotate(-73)" font-family="Bebas Neue, Oswald, Arial" font-weight="700" font-size="11" fill="#fff" stroke="#111" stroke-width="1.6" paint-order="stroke">SINALOA</text></g>
+          </svg><figcaption>Personalizada: nombre y número en la espalda<span class="soloML">, texto en las mangas</span></figcaption></figure>
+        </div>
+        </details>
         <div id="sbTallaVer" class="sbrow" style="flex-wrap:wrap;margin-bottom:8px"></div>
         <div class="sbwrap"><canvas id="sbCanvas"></canvas></div>
         <div id="sbAvisos"></div>
         <div id="sbCuello" class="sbrow" style="margin-top:10px;flex-wrap:wrap"></div>
         <label class="chk" style="margin-top:8px"><input type="checkbox" data-prueba checked><span>🎨 Ver los colores como quedan impresos (CMYK, aproximado)</span></label>
-        <span class="label" style="margin-top:14px">¿Qué pieza quieres editar?</span>
+        <span class="label" style="margin-top:14px">👇 Toca la parte que quieres editar</span>
         <div class="seg" id="sbTabs" style="margin:4px 0 12px"></div>
         <div id="sbPanel"></div>
+        <div id="sbPersBox" style="margin-top:12px"></div>
         <div id="sbIA" class="ia" style="display:none;margin-top:12px">
           <b>🤖 Instrucciones para la IA</b>
           <div class="seg iamodo" id="sbIAQue"></div>
@@ -2311,7 +2348,7 @@ const SB_FONDOS = [["Blanco","#FFFFFF"],["Negro","#111111"],["Azul marino","#1C2
   ["Naranja","#F26B21"],["Amarillo","#FFC300"],["Verde","#2A9D4B"],["Gris","#8A8F98"]];
 const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,25,28];
 const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25];
-const SB = { idea:"", referencia:null, pers:{ espalda:false, pecho:false, nombre:true, numero:true, espNomCm:6, espNumCm:20, pechoQue:"numero", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" }, lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null, cuello:null, prueba:true, verTalla:null, mangaTxt:{ D:"", I:"", cm:7, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" } } };
+const SB = { idea:"", referencia:null, pers:{ espalda:false, pecho:false, nombre:false, numero:false, espNom:false, espNum:false, espNomCm:6, espNumCm:20, pechoQue:"no", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" }, lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null, cuello:null, prueba:true, verTalla:null, mangaTxt:{ D:"", I:"", cm:7, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" } } };
 const sbNueva = () => ({ fondo:{ tipo:"color", color:"#1C2340", img:null, src:null }, els:[] });
 const sbReset = () => { SB.piezas = { frente: sbNueva(), espalda: sbNueva(), mangaD: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } }, mangaI: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } } }; SB.mockup = null; };
 sbReset();
@@ -2369,8 +2406,47 @@ function sbMockAuto(){
   if (SB.mockup || !$("#sbMk img") || _sbMkGen) return;
   clearTimeout(_sbMkT); _sbMkT = setTimeout(async () => { if (SB.mockup || _sbMkGen) return; _sbMkGen = true; try { await sbVerMockup(); } finally { _sbMkGen = false; } }, 900);
 }
-/* color del cuello: el que elija el cliente o, si no, el del fondo de la espalda */
-const sbCuelloColor = () => SB.cuello || (SB.piezas.espalda.fondo.tipo === "color" ? SB.piezas.espalda.fondo.color : "#111111");
+/* color del cuello: el que trae el mockup (color sólido, sin degradados) o, si no hay mockup, el del fondo de la espalda */
+const sbCuelloColor = () => (SB.referencia && SB.referencia.cuello) || (SB.piezas.espalda.fondo.tipo === "color" ? SB.piezas.espalda.fondo.color : "#111111");
+/* busca el cuello en el mockup: separa cada camisa del fondo y, en su centro, baja desde arriba.
+   La primera franja de color es el resorte del cuello; si es gris oscuro (el interior de la camisa, cuando el cuello
+   se confunde con el fondo) toma la franja que sigue. Devuelve un color sólido (la mediana de esa franja). */
+function sbCuelloDeMockup(src){
+  return new Promise(ok => { const im = new Image(); im.onload = () => { try {
+    const S = Math.min(1, 480 / Math.max(im.width, im.height)), W = Math.max(8, Math.round(im.width * S)), H = Math.max(8, Math.round(im.height * S));
+    const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H); x.drawImage(im, 0, 0, W, H);
+    const d = x.getImageData(0, 0, W, H).data, px = i => [d[i * 4], d[i * 4 + 1], d[i * 4 + 2]], dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    const orilla = []; for (let i = 0; i < W; i++) orilla.push(i, (H - 1) * W + i); for (let j = 0; j < H; j++) orilla.push(j * W, j * W + W - 1);
+    const md = v => { v = v.slice().sort((a, b) => a - b); return v[v.length >> 1]; };
+    const bc = [0, 1, 2].map(k => md(orilla.map(i => d[i * 4 + k])));
+    /* fondo: parte de la orilla que se parece al color de fondo y se extiende por tonos parecidos */
+    const bg = new Uint8Array(W * H), cola = orilla.filter(i => dist(px(i), bc) < 30);
+    for (const i of cola) bg[i] = 1;
+    for (let q = 0; q < cola.length; q++){ const i = cola[q], a = px(i), cx = i % W, cy = (i / W) | 0;
+      for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue; const n = ny * W + nx;
+        if (!bg[n] && dist(px(n), a) < 14){ bg[n] = 1; cola.push(n); } } }
+    /* camisas: manchas grandes que no son fondo */
+    const lab = new Int32Array(W * H), cajas = []; let id = 0;
+    for (let i = 0; i < W * H; i++){ if (bg[i] || lab[i]) continue; id++; const st = [i]; lab[i] = id; let n = 0, x0 = W, x1 = 0, y0 = H, y1 = 0;
+      while (st.length){ const k = st.pop(), kx = k % W, ky = (k / W) | 0; n++; if (kx < x0) x0 = kx; if (kx > x1) x1 = kx; if (ky < y0) y0 = ky; if (ky > y1) y1 = ky;
+        for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx = kx + dx, ny = ky + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue; const m = ny * W + nx; if (!bg[m] && !lab[m]){ lab[m] = id; st.push(m); } } }
+      if (n > W * H * .04) cajas.push({ n, x0, x1, y0, y1 }); }
+    cajas.sort((a, b) => b.n - a.n);
+    for (const b of cajas){ const cx = Math.round((b.x0 + b.x1) / 2), alto = b.y1 - b.y0, fin = Math.min(H, Math.round(b.y0 + alto * .35));
+      const col = y => { const f = []; for (let xx = Math.max(0, cx - 2); xx <= Math.min(W - 1, cx + 2); xx++) f.push(px(y * W + xx)); return [0, 1, 2].map(k => f.reduce((s, p) => s + p[k], 0) / f.length); };
+      let y = Math.max(0, b.y0 - 3); while (y < fin && dist(col(y), bc) < 20) y++;
+      const franjas = []; let cur = null;
+      for (; y < fin; y++){ const p = col(y);
+        if (cur && dist(p, cur.c) < 40){ cur.v.push(p); cur.c = cur.c.map((v, k) => v * .8 + p[k] * .2); }
+        else { cur = { c: p.slice(), v: [p] }; franjas.push(cur); } }
+      const buenas = franjas.filter(f => f.v.length >= 3); if (!buenas.length) continue;
+      const neutroOscuro = f => { const [r, g, bl] = f.c; return Math.max(r, g, bl) - Math.min(r, g, bl) < 22 && (r + g + bl) / 3 < 120; };
+      const f = neutroOscuro(buenas[0]) && buenas[1] ? buenas[1] : buenas[0];
+      const col3 = [0, 1, 2].map(k => Math.round(md(f.v.map(p => p[k]))));
+      return ok("#" + col3.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase()); }
+    ok(null);
+  } catch (e){ ok(null); } }; im.onerror = () => ok(null); im.src = src; });
+}
 const sbCm = v => (v / PT).toFixed(1).replace(/\.0$/, "");
 
 /* ---------- imágenes cargadas ---------- */
@@ -2422,6 +2498,12 @@ function sbTam(e){
 }
 
 /* ---------- nombre y número (personalizado): se muestran con el primer renglón de la lista ---------- */
+/* lo que lleva cada pieza se elige en su pestaña; de ahí salen los resúmenes (espalda, pecho, nombre, número) */
+function sbPersSync(){ const P = SB.pers;
+  if (P.espNom === undefined){ P.espNom = !!(P.espalda && P.nombre); P.espNum = !!(P.espalda && P.numero); if (!P.pecho) P.pechoQue = "no"; }
+  const q = P.pechoQue;
+  P.espalda = !!(P.espNom || P.espNum); P.pecho = q === "nombre" || q === "numero" || q === "ambos";
+  P.nombre = !!P.espNom || q === "nombre" || q === "ambos"; P.numero = !!P.espNum || q === "numero" || q === "ambos"; }
 function sbPersEls(k){
   const P = SB.pers, lleno = x => x.nombre || x.numero, tv = SB.verTalla || (SB.prod ? sbBase().app : null), r = (tv && P.lista.find(x => x.talla === tv && lleno(x))) || P.lista.find(lleno) || {}, out = [];
   const nom = (r.nombre || "").trim() || "NOMBRE", num = (r.numero || "").trim() || "10";
@@ -2446,10 +2528,10 @@ function sbPersEls(k){
       let r = Math.max(0, Math.min(1, largo / sbTam(e).h, 10 * PT / sbTam(e).w));
       if (r < 1){ e.cm = Math.max(3, Math.floor(M.cm * r * 10) / 10); e.ajustado = true; }
       out.push(e); } }
-  if (k === "espalda" && P.espalda){ if (P.nombre) out.push(...nombre("pNomE", P.espNomCm, "centro")); if (P.numero) out.push(el("pNumE", num, P.espNumCm, "centro")); }
+  if (k === "espalda"){ if (P.espNom) out.push(...nombre("pNomE", P.espNomCm, "centro")); if (P.espNum) out.push(el("pNumE", num, P.espNumCm, "centro")); }
   if (k === "frente" && P.pecho){ const q = P.pechoQue;
-    if ((q === "nombre" || q === "ambos") && P.nombre) out.push(...nombre("pNomF", q === "ambos" ? Math.max(1.5, Math.round(P.pechoCm / 3 * 2) / 2) : P.pechoCm, P.pechoLado));
-    if ((q === "numero" || q === "ambos") && P.numero) out.push(el("pNumF", num, P.pechoCm, P.pechoLado)); }
+    if (q === "nombre" || q === "ambos") out.push(...nombre("pNomF", q === "ambos" ? Math.max(1.5, Math.round(P.pechoCm / 3 * 2) / 2) : P.pechoCm, P.pechoLado));
+    if (q === "numero" || q === "ambos") out.push(el("pNumF", num, P.pechoCm, P.pechoLado)); }
   return out;
 }
 /* ---------- acomodo con las reglas del ajustador ----------
@@ -2486,11 +2568,11 @@ function sbAvisos(k, m){
   L.forEach(r => { if (r.e.tipo === "firma") return; const nom = `"${r.e.texto || r.e.nombre || "Logo"}"`;
     if (mangaL){   // manga larga (reglas del ajustador): entre 10 cm del hombro y 10 cm del puño, franja central de 6 a 10 cm
       if (r.w > 10 * PT + 1) a.push(`${nom} mide ${sbCm(r.w)} cm de ancho: en manga larga debe ir en la franja central de 6 a 10 cm. ${r.e.tipo === "texto" ? "Ponlo <b>a lo largo de la manga</b> o baja el alto de letra." : "Hazlo más chico."}`);
-      if (r.y + r.h > m.h - H + 1) a.push(`${nom} pasa la línea de ${SB_REGLAS.hombro} cm del puño: ${r.e.mtx || L.some(x => x.e.mtx) ? "usa un texto más corto en el paso 6 o quita el logo de esta manga." : "hazlo más chico o quita algún elemento."}`);
+      if (r.y + r.h > m.h - H + 1) a.push(`${nom} pasa la línea de ${SB_REGLAS.hombro} cm del puño: ${r.e.mtx || L.some(x => x.e.mtx) ? "usa un texto más corto (sección 2 de esta manga) o quita el logo." : "hazlo más chico o quita algún elemento."}`);
       if (r.e.mtx && r.w < 6 * PT - 1) a.push(`El texto ${nom} quedó de ${sbCm(r.w)} cm de ancho y la franja de la manga es de 6 a 10 cm${L.some(x => !x.e.mtx) ? ": no cabe junto con el logo. Usa un texto más corto o quita el logo de esta manga." : ": usa un texto más corto."}`);
       return; }
     if (mangaC && r.y < 2 * PT) a.push(`${nom} no cabe en la manga corta: hazlo más chico.`);
-    if (r.x < margen || r.x + r.w > m.w - margen) a.push(`${nom} es muy ancho para esta pieza (${sbCm(r.w)} cm); ${r.e.pers ? "baja el alto en el paso 6." : "hazlo más chico."}`);
+    if (r.x < margen || r.x + r.w > m.w - margen) a.push(`${nom} es muy ancho para esta pieza (${sbCm(r.w)} cm); ${r.e.pers ? "baja el alto en la sección 2 de esta pieza." : "hazlo más chico."}`);
     if (r.y + r.h > m.h - (k.startsWith("manga") ? SB_REGLAS.margenManga * PT * .5 : 2 * PT)) a.push(`"${r.e.texto || r.e.nombre || "Logo"}" se sale por abajo; hazlo más chico o quita algún elemento.`); });
   for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++){
     const p = L[i], q = L[j];
@@ -2604,9 +2686,8 @@ function sbDibujar(){
 
 function sbCuelloUI(){
   const c = sbCuelloColor(), b = $("#sbCuello"); if (!b) return;
-  b.innerHTML = `<span class="label" style="margin:0">Color del cuello</span><div class="ctcols">${SB_FONDOS.map(([nm, h]) => `<button class="sw${c===h?" on":""}" data-cu="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="sbCuC" value="${c}" title="Otro color"></div>${SB.cuello ? "" : `<span class="mini">${SB.piezas.espalda.fondo.tipo === "color" ? "(igual que la espalda)" : "(negro; elige el color que lleva tu mockup)"}</span>`}`;
-  b.querySelectorAll("[data-cu]").forEach(x => x.onclick = () => { SB.cuello = x.dataset.cu; SB.mockup = null; sbDibujar(); });
-  $("#sbCuC").onchange = e => { SB.cuello = e.target.value.toUpperCase(); SB.mockup = null; sbDibujar(); };
+  const de = SB.referencia && SB.referencia.cuello ? "tomado de tu mockup" : SB.piezas.espalda.fondo.tipo === "color" ? "igual que la espalda (adjunta tu mockup en el paso 4 y se toma de ahí)" : "negro (adjunta tu mockup en el paso 4 y se toma de ahí)";
+  b.innerHTML = `<span class="label" style="margin:0">Cuello</span><span class="cuellosw" style="background:${c}"></span><span class="mini">${c} · ${de}</span>`;
 }
 /* ---------- interfaz ---------- */
 async function sbElegir(id){
@@ -2728,15 +2809,14 @@ function sbPanel(){
          <div class="ctcols">${SB_FONDOS.map(([nm, h]) => `<button class="sw${P.fondo.tipo==="color" && P.fondo.color===h?" on":""}" data-fc="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="sbFcc" value="${P.fondo.color || "#1C2340"}" title="Otro color"></div>
          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px"><button class="linkbtn" id="sbCopiar">Usar este color en todas las piezas</button>${P.fondo.src ? `<button class="linkbtn" id="sbAImagen">Volver a la pieza del paso 5</button>` : `<button class="linkbtn" id="sbFia">Subir la pieza (paso 5)</button>`}</div>`}
     </div>
-    <div class="sbsec" style="margin-top:10px"><b>2. Logos y textos en ${nomK.toLowerCase()}</b></div>
+    ${sbPersSeccion(k)}
+    <div class="sbsec" style="margin-top:10px"><b>${sbPersSeccion(k) ? "3" : "2"}. Logos y textos en ${nomK.toLowerCase()}</b></div>
     ${P.els.map(tarjeta).join("") || `<div class="muted" style="margin-bottom:8px">Esta pieza aún no lleva logos ni textos.</div>`}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${SB.logo ? (P.els.some(x => x.tipo === "logo" && x.src === SB.logo.src) ? `<span class="mini" style="align-self:center">✓ Tu logo ya está en ${nomK.toLowerCase()} (cámbiale el tamaño arriba)</span>` : `<button class="btn ghost" id="sbMiLogo" style="padding:8px 12px;font-size:13px">＋ Mi logo en ${nomK.toLowerCase()}</button>`) : ""}
       <label class="btn ghost" style="cursor:pointer;padding:8px 12px;font-size:13px">＋ ${SB.logo ? "Otro logo" : "Logo"}<input type="file" accept="image/png,image/jpeg" hidden id="sbAddLogo"></label>
       <button class="btn ghost" id="sbAddTxt" style="padding:8px 12px;font-size:13px">＋ Texto</button>
       </div>
-    ${sbPersEls(k).filter(e => e.mtx).map(e => `<div class="mini" style="margin-top:8px">💪 Esta manga lleva el texto <b>"${VT.esc(e.texto)}"</b> (${sbCm(sbTam(e).w)} × ${sbCm(sbTam(e).h)} cm): se cambia en el paso 6.</div>`).join("")}
-    ${sbPersEls(k).filter(e => e.pers).length ? `<div class="mini" style="margin-top:8px">🔢 Esta pieza lleva ${sbPersEls(k).filter(e => e.pers).map(e => `${e.id.startsWith("pNom") ? "nombre" : "número"} (${sbCm(sbTam(e).w)} × ${sbCm(sbTam(e).h)} cm)`).join(" y ")}: se cambian en el paso 6.</div>` : ""}
     ${k === "espalda" ? `<label class="chk" style="margin-top:10px"><input type="checkbox" checked disabled><span>Logo de <b>VITUMA</b> de 5 cm debajo del cuello</span></label>` : ""}`;
   const P0 = SB.piezas[k], byE = id => P0.els.find(e => e.id === id), cambio = (todo) => { SB.mockup = null; if (todo) { sbTabs(); sbPanel(); } sbDibujar(); };
   document.querySelectorAll("[data-fc]").forEach(b => b.onclick = () => { P0.fondo.tipo = "color"; P0.fondo.color = b.dataset.fc; cambio(true); });
@@ -2757,7 +2837,7 @@ function sbPanel(){
   document.querySelectorAll("[data-et]").forEach(i => i.oninput = () => { byE(i.dataset.et).texto = i.value; cambio(false); const t = i.closest(".sbel").querySelector(".mini"); if (t) { const s = sbTam(byE(i.dataset.et)); t.textContent = `${sbCm(s.w)} × ${sbCm(s.h)} cm`; } });
   document.querySelectorAll("[data-efu] button").forEach(b => b.onclick = () => { const e = byE(b.parentNode.dataset.efu); e.fuente = b.dataset.v; ctCargarFuenteDe(e.fuente).then(() => cambio(true)); });
   document.querySelectorAll("[data-ec]").forEach(b => b.onclick = () => { byE(b.dataset.ec).color = b.dataset.v; cambio(true); });
-  sbBordeEventos($("#sbPanel"), id => byE(id), todo => cambio(todo));
+  sbBordeEventos($("#sbPanel"), id => id === "pers" ? SB.pers : id === "mtx" ? SB.mangaTxt : byE(id), todo => cambio(todo));
   document.querySelectorAll("[data-ecc]").forEach(i => i.oninput = () => { byE(i.dataset.ecc).color = i.value.toUpperCase(); cambio(false); });
   document.querySelectorAll("[data-es]").forEach(s => s.onchange = () => { byE(s.dataset.es).cm = +s.value; cambio(true); });
   /* poner el logo o texto también en otra pieza (copia ligada por "grupo"), o quitarlo de esa pieza */
@@ -2781,6 +2861,7 @@ function sbPanel(){
   document.querySelectorAll("[data-ez]").forEach(s => s.onchange = () => { byE(s.dataset.ez).zona = s.value; cambio(true); });
   document.querySelectorAll("[data-el]").forEach(s => s.onchange = () => { byE(s.dataset.el).lado = s.value; cambio(true); });
   document.querySelectorAll("[data-ev]").forEach(s => s.onchange = () => { byE(s.dataset.ev).vertical = s.value === "1"; cambio(true); });
+  sbPersEventos(k);
 }
 const toast2 = t => { const el = $("#toast"); if (!el) return; const old = el.innerHTML; el.textContent = "✔ " + t; el.classList.add("on"); setTimeout(() => { el.classList.remove("on"); el.innerHTML = old; }, 1600); };
 const ctCargarFuenteDe = id => document.fonts && document.fonts.load ? document.fonts.load(sbFont(id, 40)).catch(() => {}) : Promise.resolve();
@@ -2888,10 +2969,67 @@ function sbPasoMockup(){
   $("#sbRefBox").innerHTML = `<label class="upload${r ? " has" : ""}" style="cursor:pointer">${r ? `<img src="${r.src}" alt=""><div><b>✓ Mockup listo</b><span class="muted" style="font-size:12px">${VT.esc(r.nombre)} · toca para cambiarlo</span></div>`
     : `<span>⬆️</span><div><b>Adjunta el mockup que te gustó</b><span class="muted" style="font-size:12px">La imagen con el frente y la espalda que te dio la IA.</span></div>`}<input type="file" id="sbRefFile" accept="image/png,image/jpeg,image/webp" hidden></label>`;
   $("#sbRefFile").onchange = async e => { const f = e.target.files[0]; if (!f) return; const x = await sbLeer(f, 1600, "image/jpeg");
-    SB.referencia = { src: x.src, nombre: f.name, w: x.w, h: x.h }; sbRender(); setTimeout(() => $("#sbPzCard").scrollIntoView({ behavior:"smooth", block:"start" }), 80); };
+    SB.referencia = { src: x.src, nombre: f.name, w: x.w, h: x.h }; SB.referencia.cuello = await sbCuelloDeMockup(x.src); SB.mockup = null; sbRender(); setTimeout(() => $("#sbPzCard").scrollIntoView({ behavior:"smooth", block:"start" }), 80); };
+}
+/* ---------- las 4 piezas en un solo paso: una "lámina" con las piezas separadas y su nombre abajo ---------- */
+function sbPromptLamina(){
+  const F = k => sbFormato(k).txt, larga = sbLarga();
+  return `Te adjunto el mockup de mi playera (frente y espalda). A partir de ese mockup, genera UNA sola imagen horizontal sobre FONDO BLANCO liso con las 4 piezas de tela extendidas y planas, listas para sublimar, separadas entre sí por un espacio blanco amplio, en este orden de izquierda a derecha:\n1) FRENTE (rectángulo ${F("frente")})\n2) ESPALDA (rectángulo ${F("espalda")})\n3) MANGA DERECHA (rectángulo ${F("mangaD")}; es la manga que en la vista FRENTE del mockup se ve del lado IZQUIERDO de la imagen)\n4) MANGA IZQUIERDA (rectángulo ${F("mangaI")})\nDebajo de cada rectángulo, fuera de él y en letras negras pequeñas, escribe el nombre de la pieza: FRENTE, ESPALDA, MANGA DERECHA, MANGA IZQUIERDA.\n\nInstrucciones obligatorias:\n- Cada pieza es un RECTÁNGULO lleno de diseño de orilla a orilla. NO dibujes la forma de la playera, ni cuello, hombros, sisas, costuras, sombras o arrugas.\n- Usa EXACTAMENTE los mismos colores, franjas, formas y estilo del mockup, con diseño de sobra en las orillas.\n- Las mangas solo llevan el diseño de las mangas (no el del cuerpo)${larga ? "; acomódalas verticales, con el hombro arriba y el puño abajo" : "; acomódalas horizontales, con el hombro arriba"}.\n- CONTINUIDAD: lo que pasa del cuerpo a las mangas (franjas, colores, degradados) debe coincidir en las orillas que se cosen.\n- DENTRO de las piezas NO pongas logotipos, textos, nombres ni números: donde estaban, continúa el mismo fondo. Lo único escrito son los nombres de las piezas, abajo y fuera de cada rectángulo.\n- Alta resolución, sin marcas de agua.\n\nSi no puedes hacerlo en una sola imagen, entrega 4 imágenes, una por pieza, en ese mismo orden.`;
+}
+function sbPromptLaminaMal(){
+  return `No quedó como te pedí. Hazla de nuevo: UNA imagen sobre fondo blanco con 4 RECTÁNGULOS separados por espacio blanco (FRENTE, ESPALDA, MANGA DERECHA, MANGA IZQUIERDA, en ese orden), cada uno lleno de diseño de orilla a orilla, sin silueta de playera, sin logos ni textos adentro, y con el nombre de cada pieza escrito abajo, fuera del rectángulo. Mismos colores y estilo del mockup.`;
+}
+/* separa las piezas de la lámina: busca los rectángulos de diseño sobre el fondo blanco (los nombres de abajo son chicos y se ignoran) */
+function sbSepararLamina(im){
+  const W0 = im.naturalWidth, H0 = im.naturalHeight, k = Math.min(1, 700 / Math.max(W0, H0)), W = Math.max(1, Math.round(W0 * k)), H = Math.max(1, Math.round(H0 * k));
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d", { willReadFrequently:true }); x.drawImage(im, 0, 0, W, H);
+  const d = x.getImageData(0, 0, W, H).data, blanco = i => d[i*4] > 232 && d[i*4+1] > 232 && d[i*4+2] > 232;
+  const lleno = new Uint8Array(W * H); for (let i = 0; i < W * H; i++) lleno[i] = blanco(i) ? 0 : 1;
+  /* cierra huecos chicos (franjas blancas dentro del diseño) */
+  const r = 2, cerr = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) for (let z = 0; z < W; z++){ let v = 0; for (let dy = -r; dy <= r && !v; dy++) for (let dx = -r; dx <= r; dx++){ const yy = y + dy, xx = z + dx; if (yy >= 0 && yy < H && xx >= 0 && xx < W && lleno[yy * W + xx]){ v = 1; break; } } cerr[y * W + z] = v; }
+  const visto = new Uint8Array(W * H), cajas = [];
+  for (let i = 0; i < W * H; i++){ if (!cerr[i] || visto[i]) continue;
+    let x0 = W, y0 = H, x1 = 0, y1 = 0, n = 0; const pila = [i]; visto[i] = 1;
+    while (pila.length){ const j = pila.pop(), xx = j % W, yy = (j / W) | 0; n++; if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy;
+      for (const q of [j - 1, j + 1, j - W, j + W]) if (q >= 0 && q < W * H && !visto[q] && cerr[q] && Math.abs((q % W) - xx) <= 1){ visto[q] = 1; pila.push(q); } }
+    const area = (x1 - x0 + 1) * (y1 - y0 + 1);
+    if (area > W * H * .015 && n > area * .5) cajas.push({ x0, y0, x1, y1, area }); }
+  if (cajas.length < 4) return null;
+  cajas.sort((a, b) => b.area - a.area); const top = cajas.slice(0, 4);
+  /* recorta orillas casi blancas (por si se pegó el nombre de la pieza) */
+  for (const b of top){
+    const filaBl = y => { let w = 0; for (let z = b.x0; z <= b.x1; z++) if (!lleno[y * W + z]) w++; return w / (b.x1 - b.x0 + 1) > .6; };
+    const colBl = z => { let w = 0; for (let y = b.y0; y <= b.y1; y++) if (!lleno[y * W + z]) w++; return w / (b.y1 - b.y0 + 1) > .6; };
+    while (b.y1 > b.y0 && filaBl(b.y1)) b.y1--; while (b.y0 < b.y1 && filaBl(b.y0)) b.y0++;
+    while (b.x1 > b.x0 && colBl(b.x1)) b.x1--; while (b.x0 < b.x1 && colBl(b.x0)) b.x0++;
+  }
+  /* las dos más grandes son el cuerpo (frente a la izquierda) y las dos chicas las mangas (derecha a la izquierda) */
+  const cuerpo = top.slice(0, 2).sort((a, b) => a.x0 - b.x0 || a.y0 - b.y0), mangas = top.slice(2).sort((a, b) => a.x0 - b.x0 || a.y0 - b.y0);
+  const recorte = b => { const m = .012, bw = b.x1 - b.x0 + 1, bh = b.y1 - b.y0 + 1, sx = (b.x0 + bw * m) / k, sy = (b.y0 + bh * m) / k, sw = bw * (1 - 2 * m) / k, sh = bh * (1 - 2 * m) / k;
+    const s = Math.min(1, 1600 / Math.max(sw, sh)), o = document.createElement("canvas"); o.width = Math.round(sw * s); o.height = Math.round(sh * s);
+    o.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, o.width, o.height); return { src: o.toDataURL("image/jpeg", .9), w: Math.round(sw), h: Math.round(sh) }; };
+  return { frente: recorte(cuerpo[0]), espalda: recorte(cuerpo[1]), mangaD: recorte(mangas[0]), mangaI: recorte(mangas[1]) };
+}
+const sbCargarImg = f => new Promise((ok, no) => { const fr = new FileReader(); fr.onerror = no; fr.onload = () => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = fr.result; }; fr.readAsDataURL(f); });
+async function sbSubirLamina(files){
+  const res = $("#sbLamRes"); res.innerHTML = `<div class="mini" style="margin-top:10px">⏳ Separando las piezas…</div>`;
+  let piezas = null;
+  try {
+    if (files.length >= 4){   // la IA las dio separadas: van en el orden que se pidió
+      piezas = {}; const ks = ["frente","espalda","mangaD","mangaI"];
+      for (let i = 0; i < 4; i++){ const r = await sbLeer(files[i], 1600, "image/jpeg"); piezas[ks[i]] = { src: r.src, w: r.w, h: r.h }; }
+    } else piezas = sbSepararLamina(await sbCargarImg(files[0]));
+  } catch(e){ piezas = null; }
+  if (!piezas){ res.innerHTML = `<div class="warn" style="margin-top:10px">No pudimos encontrar las 4 piezas en esa imagen. Toca <b>🔁 No salió bien</b>, pega el mensaje en la IA y sube la imagen nueva, o súbelas una por una (abajo).</div>`; return; }
+  for (const [k, p] of Object.entries(piezas)) SB.piezas[k].fondo = { tipo:"imagen", src: p.src, nombre: "lamina_" + k, w: p.w, h: p.h, color: SB.piezas[k].fondo.color, silueta: await sbSilueta(p.src) };
+  SB.mockup = null; sbRender();
+  $("#sbLamRes").innerHTML = `<div class="okbox" style="margin-top:12px">✅ Separamos tus 4 piezas. Revisa que cada una esté en su lugar; si alguna quedó cambiada, súbela en "una por una".</div>
+    <div class="lamres">${SB_PIEZAS.map(([k, t]) => `<figure><img src="${SB.piezas[k].fondo.src}" alt="${t}" data-zoom><figcaption>${t}</figcaption></figure>`).join("")}</div>`;
 }
 function sbPasoPiezas(){
   const { m } = sbBase(), r = SB.referencia;
+  if ($("#sbLamTxt")) $("#sbLamTxt").value = sbPromptLamina();
   $("#sbPzRef").innerHTML = r ? `<div class="sbref2"><figure><img src="${r.src}" alt="Tu mockup" data-zoom class="sbref"><figcaption>Como lo dibujó la IA (pantalla)</figcaption></figure>
       <figure>${r.prueba ? `<img src="${r.prueba}" alt="Colores de impresión" data-zoom class="sbref">` : `<div class="sbref muted" style="display:flex;align-items:center;justify-content:center">Calculando…</div>`}<figcaption>🎨 Así se verían los colores impresos (aprox.)</figcaption></figure></div>
       <div class="mini" style="margin:-4px 0 10px">La pantalla muestra colores más brillantes de los que se pueden imprimir (RGB). La imprenta usa tintas CMYK: los azules, naranjas y verdes muy intensos salen un poco más apagados.</div>` : `<div class="warn">Primero adjunta tu mockup en el paso 4. Si ya tienes tu diseño por piezas, súbelas directo aquí.</div>`;
@@ -2917,9 +3055,9 @@ function sbPersLista(){
   SB.pers.lista = nueva;
 }
 function sbPersDatos(){
-  const P = SB.pers; if (!(P.espalda || P.pecho) || !(P.nombre || P.numero)) return null;
+  const P = SB.pers; sbPersSync(); if (!(P.espalda || P.pecho) || !(P.nombre || P.numero)) return null;
   return { nombre: P.nombre, numero: P.numero, fuente: sbFuente(P.fuente).t, color: P.color, contorno: P.borde && P.borde.on ? { color: P.borde.color, grosor: P.borde.grosor } : null,
-    espalda: P.espalda ? { nombreCm: P.nombre ? P.espNomCm : null, numeroCm: P.numero ? P.espNumCm : null } : null,
+    espalda: P.espalda ? { nombreCm: P.espNom ? P.espNomCm : null, numeroCm: P.espNum ? P.espNumCm : null } : null,
     pecho: P.pecho ? { que: P.pechoQue, lado: P.pechoLado, cm: P.pechoCm } : null,
     lista: P.lista.map(r => ({ talla: r.talla, nombre: (r.nombre || "").trim(), numero: (r.numero || "").trim() })) };
 }
@@ -2935,71 +3073,71 @@ function sbMangaMed(){
   el.innerHTML = ["mangaD","mangaI"].map(k => sbPersEls(k).find(e => e.mtx)).filter(Boolean).map(e => { const t = sbTam(e), n = e.id === "mtxmangaD" ? "Manga derecha" : "Manga izquierda";
         return `<div class="mini" style="margin-top:4px">📏 ${n}: <b>${sbCm(t.w)} × ${sbCm(t.h)} cm</b>${e.ajustado ? " (se achicó para caber entre las líneas de 10 cm)" : ""}${t.w < 6 * PT - 1 ? `<br>⚠️ Quedó de menos de 6 cm de ancho${SB.piezas[e.id.slice(3)].els.length ? " porque esa manga también lleva logo" : ""}: <b>usa un texto más corto${SB.piezas[e.id.slice(3)].els.length ? " o quita el logo de esa manga" : ""}</b> para respetar la franja de 6 a 10 cm.` : ""}</div>`; }).join("");
 }
-function sbPasoPers(){
-  sbPersLista();
-  const P = SB.pers, box = $("#sbPersBox"), sel = (id, lista, v) => `<select id="${id}">${lista.map(n => `<option value="${n}"${+v===n?" selected":""}>${n} cm</option>`).join("")}</select>`;
+/* sección de la pestaña: nombre y número (frente / espalda) o texto a lo largo de la manga (manga larga) */
+function sbPersSeccion(k){
+  const P = SB.pers, M = SB.mangaTxt, sel = (id, lista, v) => `<select id="${id}">${lista.map(n => `<option value="${n}"${+v===n?" selected":""}>${n} cm</option>`).join("")}</select>`;
   const chk = (id, on, t) => `<label class="chk${on ? " on" : ""}"><input type="checkbox" id="${id}"${on ? " checked" : ""}><span>${t}</span></label>`;
-  const activo = (P.espalda || P.pecho) && (P.nombre || P.numero);
-  const ques = [["numero","Solo el número"],["nombre","Solo el nombre"],["ambos","Nombre y número"]].filter(([v]) => v === "ambos" ? P.nombre && P.numero : P[v]);
-  if (!ques.some(([v]) => v === P.pechoQue) && ques.length) P.pechoQue = ques[0][0];
-  const ML = sbLarga(), M = SB.mangaTxt;
-  if ($("#sbPersSubML")) $("#sbPersSubML").style.display = ML ? "" : "none";
-  const mangas = !ML ? "" : `<div class="sbblock"><b>💪 Texto en las mangas</b> <span class="mini">· igual en todas las playeras, a lo largo de la manga (vertical)</span>
-      <div class="grid2" style="margin-top:10px"><div><span class="label">Manga derecha</span><input type="text" id="smD" maxlength="22" value="${VT.esc(M.D)}" placeholder="Ej. ESCUINAPA"></div>
-        <div><span class="label">Manga izquierda</span><input type="text" id="smI" maxlength="22" value="${VT.esc(M.I)}" placeholder="Ej. SINALOA"></div></div>
-      ${M.D.trim() || M.I.trim() ? `<div class="sbrow" style="margin-top:10px"><span class="label" style="margin:0">Alto de letra</span>${sel("smCm", [6,7,8,9,10], M.cm)}<span class="mini">La regla del ajustador: franja central de 6 a 10 cm.</span></div>
-      <div id="smMed"></div>
-      <span class="label" style="margin-top:10px">Tipo de letra</span>
-      <div class="ctfonts" id="smFu">${CT_FUENTES.map(f => `<button class="${M.fuente===f.id?"on":""}" data-v="${f.id}" style="font-family:'${f.fam}',Arial;font-weight:${f.w}">${f.t}</button>`).join("")}</div>
+  const estilo = (pref, X, bid) => `<span class="label" style="margin-top:10px">Tipo de letra</span>
+      <div class="ctfonts" id="${pref}Fu">${CT_FUENTES.map(f => `<button class="${X.fuente===f.id?"on":""}" data-v="${f.id}" style="font-family:'${f.fam}',Arial;font-weight:${f.w}">${f.t}</button>`).join("")}</div>
       <span class="label" style="margin-top:10px">Color de la letra</span>
-      <div class="ctcols" id="smCo">${CT_COLORES.map(([nm, h]) => `<button class="sw${M.color===h?" on":""}" data-v="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="smCc" value="${M.color}" title="Otro color"></div>
-      ${sbBordeHTML("mtx", M.borde)}` : `<div class="mini" style="margin-top:6px">Escribe el texto y escoge su letra, color y contorno.</div>`}</div>`;
-  box.innerHTML = `<div class="sbblock" style="margin-top:0"><b>🔢 Nombre y número</b> <span class="mini">· uno distinto por playera</span>
-    <span class="label" style="margin-top:10px">¿Qué lleva?</span>
-    <div class="ctrows">${chk("spNom", P.nombre, "Nombre")}${chk("spNum", P.numero, "Número")}</div>
-    <span class="label" style="margin-top:10px">¿Dónde va?</span>
-    <div class="ctrows">${chk("spEsp", P.espalda, "🔙 En la espalda")}${chk("spPec", P.pecho, "👕 En el pecho")}</div>
-    ${P.espalda ? `<div class="sbel"><b>🔙 Espalda</b> <span class="muted">· al centro: ${[P.nombre ? "el nombre arriba" : "", P.numero ? "el número abajo" : ""].filter(Boolean).join(" y ")}</span>
-      <div class="sbrow">${P.nombre ? `<span class="label" style="margin:0">Alto del nombre</span>${sel("spENc", [3,4,5,6,7,8,10], P.espNomCm)}` : ""}
-        ${P.numero ? `<span class="label" style="margin:0">Alto del número</span>${sel("spEUc", [10,12,15,18,20,22,25,28,30], P.espNumCm)}` : ""}</div>
-      ${P.nombre ? `<div class="mini">Los nombres largos se achican solos para no pasar de 30 cm de ancho. Tip: la letra <b>Bebas Neue</b> es angosta y deja los nombres más grandes.</div>` : ""}</div>` : ""}
-    ${P.pecho ? `<div class="sbel"><b>👕 Pecho</b>
-      <div class="seg" id="spLado" style="margin:8px 0">${[["centro","Centro"],["izquierda","Lado izquierdo"],["derecha","Lado derecho"]].map(([v, t]) => `<button class="${P.pechoLado===v?"on":""}" data-v="${v}">${t}</button>`).join("")}</div>
-      <div class="sbrow">${ques.length > 1 ? `<select id="spQue">${ques.map(([v, t]) => `<option value="${v}"${P.pechoQue===v?" selected":""}>${t}</option>`).join("")}</select>` : ""}
-        <span class="label" style="margin:0">Alto</span>${sel("spPc", [3,4,5,6,8,10,12,15], P.pechoCm)}</div>
-      <div class="mini">Izquierdo o derecho de quien viste la playera.</div></div>` : ""}
-    ${activo ? `<div class="pasosbox" style="margin-top:12px"><b>✍️ Escoge el tipo de letra y el color</b> que llevarán el nombre y el número. Se ven en el dibujo del paso 7.</div>
-      <div class="mini" id="spMedidas" style="margin-bottom:6px"></div>
-      <span class="label" style="margin-top:10px">Tipo de letra</span>
-      <div class="ctfonts" id="spFu">${CT_FUENTES.map(f => `<button class="${P.fuente===f.id?"on":""}" data-v="${f.id}" style="font-family:'${f.fam}',Arial;font-weight:${f.w}">${f.t}</button>`).join("")}</div>
-      <span class="label" style="margin-top:10px">Color de la letra</span>
-      <div class="ctcols" id="spCo">${CT_COLORES.map(([nm, h]) => `<button class="sw${P.color===h?" on":""}" data-v="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="spCc" value="${P.color}" title="Otro color"></div>
-      ${sbBordeHTML("pers", P.borde)}
-      <span class="label" style="margin-top:12px">Lista de nombres y números (una por playera)</span>
-      ${P.lista.length ? `<div class="perslist"><div class="plh"><span>Talla</span>${P.nombre ? "<span>Nombre</span>" : ""}${P.numero ? "<span>Número</span>" : ""}</div>
-        ${P.lista.map((r, i) => `<div class="plr"><b>${r.talla}</b>${P.nombre ? `<input data-pl="${i}" data-pf="nombre" maxlength="18" value="${VT.esc(r.nombre)}" placeholder="Nombre">` : ""}${P.numero ? `<input data-pl="${i}" data-pf="numero" maxlength="3" inputmode="numeric" value="${VT.esc(r.numero)}" placeholder="#">` : ""}</div>`).join("")}</div>
-        <div class="mini" style="margin-top:6px">En el dibujo se ve el nombre de la talla que estés viendo (botones "Ver cómo queda en la talla" del paso 7). Si aún no los tienes, puedes mandarlos después por WhatsApp.</div>`
-        : `<div class="muted">Elige tus tallas en el paso 2 y aquí aparece un renglón por cada playera.</div>`}` : ""}</div>${mangas}`;
-  const cambio = (todo) => { SB.mockup = null; if (todo) sbPasoPers(); sbDibujar(); sbPrecio(); };
+      <div class="ctcols" id="${pref}Co">${CT_COLORES.map(([nm, h]) => `<button class="sw${X.color===h?" on":""}" data-v="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="${pref}Cc" value="${X.color}" title="Otro color"></div>
+      ${sbBordeHTML(bid, X.borde)}`;
+  if (k === "espalda") return `<div class="sbsec" id="sbPersSec" style="margin-top:14px"><b>2. Nombre y número</b> <span class="mini">· uno distinto en cada playera</span>
+      <div class="ctrows" style="margin-top:8px">${chk("spEN", P.espNom, "Nombre")}${chk("spEU", P.espNum, "Número")}</div>
+      ${P.espalda ? `<div class="sbrow">${P.espNom ? `<span class="label" style="margin:0">Alto del nombre</span>${sel("spENc", [3,4,5,6,7,8,10], P.espNomCm)}` : ""}
+          ${P.espNum ? `<span class="label" style="margin:0">Alto del número</span>${sel("spEUc", [10,12,15,18,20,22,25,28,30], P.espNumCm)}` : ""}</div>
+        <div class="mini">Van al centro${P.espNom && P.espNum ? ": el nombre arriba y el número abajo" : ""}. Los nombres largos se achican o se parten en 2 renglones solos.</div>
+        ${estilo("sp", P, "pers")}<div class="mini" id="spMedidas" style="margin-top:6px"></div>
+        <div class="note" style="margin-top:8px">✍️ Escribe los nombres y números de cada playera en la <b>lista de abajo</b>.</div>` : ""}</div>`;
+  if (k === "frente") return `<div class="sbsec" id="sbPersSec" style="margin-top:14px"><b>2. Nombre o número en el pecho</b> <span class="mini">· opcional</span>
+      <div class="seg" id="spQue" style="margin-top:8px">${[["no","Nada"],["nombre","Nombre"],["numero","Número"],["ambos","Nombre y número"]].map(([v, t]) => `<button class="${P.pechoQue===v?"on":""}" data-v="${v}">${t}</button>`).join("")}</div>
+      ${P.pecho ? `<div class="seg" id="spLado" style="margin:8px 0">${[["izquierda","Lado izquierdo"],["centro","Centro"],["derecha","Lado derecho"]].map(([v, t]) => `<button class="${P.pechoLado===v?"on":""}" data-v="${v}">${t}</button>`).join("")}</div>
+        <div class="sbrow"><span class="label" style="margin:0">Alto</span>${sel("spPc", [3,4,5,6,8,10,12,15], P.pechoCm)}<span class="mini">Izquierdo o derecho de quien viste la playera.</span></div>
+        ${estilo("sp", P, "pers")}<div class="mini" id="spMedidas" style="margin-top:6px"></div>
+        <div class="note" style="margin-top:8px">✍️ Escribe los nombres y números de cada playera en la <b>lista de abajo</b>.</div>` : ""}</div>`;
+  if (k.startsWith("manga") && sbLarga()){ const l = k === "mangaD" ? "D" : "I", t = M[l].trim();
+    return `<div class="sbsec" id="sbPersSec" style="margin-top:14px"><b>2. Texto a lo largo de la manga</b> <span class="mini">· opcional, igual en todas las playeras</span>
+      <input type="text" id="smX" maxlength="22" value="${VT.esc(M[l])}" placeholder="${l === "D" ? "Ej. ESCUINAPA" : "Ej. SINALOA"}" style="margin-top:8px">
+      ${t ? `<div class="sbrow" style="margin-top:8px"><span class="label" style="margin:0">Alto de letra</span>${sel("smCm", [6,7,8,9,10], M.cm)}<span class="mini">Franja central de 6 a 10 cm (regla del ajustador).</span></div>
+        <div id="smMed"></div>${estilo("sm", M, "mtx")}<div class="mini" style="margin-top:6px">La letra, el color y el contorno son los mismos en las dos mangas.</div>` : ""}</div>`; }
+  return "";
+}
+function sbPersEventos(k){
+  const sec = $("#sbPersSec"); if (!sec) return;
+  const P = SB.pers, M = SB.mangaTxt, cambio = todo => { sbPersSync(); SB.mockup = null; if (todo){ sbPanel(); sbTabs(); } sbPasoPers(); sbDibujar(); sbPrecio(); };
   const on = (id, f) => { const el = $("#" + id); if (el) el.onchange = e => { f(e.target); cambio(true); }; };
-  on("spNom", t => P.nombre = t.checked); on("spNum", t => P.numero = t.checked);
-  on("spEsp", t => P.espalda = t.checked); on("spPec", t => P.pecho = t.checked);
-  on("spENc", t => P.espNomCm = +t.value); on("spEUc", t => P.espNumCm = +t.value); on("spPc", t => P.pechoCm = +t.value); on("spQue", t => P.pechoQue = t.value);
-  box.querySelectorAll("#spLado button").forEach(b => b.onclick = () => { P.pechoLado = b.dataset.v; cambio(true); });
-  box.querySelectorAll("#spFu button").forEach(b => b.onclick = () => { P.fuente = b.dataset.v; ctCargarFuenteDe(P.fuente).then(() => cambio(true)); });
-  box.querySelectorAll("#spCo button").forEach(b => b.onclick = () => { P.color = b.dataset.v; cambio(true); });
+  on("spEN", t => P.espNom = t.checked); on("spEU", t => P.espNum = t.checked);
+  on("spENc", t => P.espNomCm = +t.value); on("spEUc", t => P.espNumCm = +t.value); on("spPc", t => P.pechoCm = +t.value);
+  sec.querySelectorAll("#spQue button").forEach(b => b.onclick = () => { P.pechoQue = b.dataset.v; cambio(true); });
+  sec.querySelectorAll("#spLado button").forEach(b => b.onclick = () => { P.pechoLado = b.dataset.v; cambio(true); });
+  sec.querySelectorAll("#spFu button").forEach(b => b.onclick = () => { P.fuente = b.dataset.v; ctCargarFuenteDe(P.fuente).then(() => cambio(true)); });
+  sec.querySelectorAll("#spCo button").forEach(b => b.onclick = () => { P.color = b.dataset.v; cambio(true); });
   if ($("#spCc")) $("#spCc").oninput = e => { P.color = e.target.value.toUpperCase(); cambio(false); };
-  sbBordeEventos(box, id => id === "mtx" ? M : P, todo => cambio(todo));
-  ["D","I"].forEach(l => { const i = $("#sm" + l); if (!i) return; i.oninput = () => { const antes = !!(M.D.trim() || M.I.trim()); M[l] = i.value.toUpperCase(); i.value = M[l]; SB.mockup = null; sbDibujar(); if (antes !== !!(M.D.trim() || M.I.trim())){ sbPasoPers(); const n = $("#sm" + l); n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }; });
+  sbBordeEventos(sec, id => id === "mtx" ? M : P, todo => cambio(todo));
+  const x = $("#smX"); if (x) x.oninput = () => { const l = k === "mangaD" ? "D" : "I", antes = !!M[l].trim(); M[l] = x.value.toUpperCase(); x.value = M[l]; SB.mockup = null; sbDibujar();
+    if (antes !== !!M[l].trim()){ sbPanel(); const n = $("#smX"); if (n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } } };
   on("smCm", t => M.cm = +t.value);
-  box.querySelectorAll("#smFu button").forEach(b => b.onclick = () => { M.fuente = b.dataset.v; ctCargarFuenteDe(M.fuente).then(() => cambio(true)); });
-  box.querySelectorAll("#smCo button").forEach(b => b.onclick = () => { M.color = b.dataset.v; cambio(true); });
+  sec.querySelectorAll("#smFu button").forEach(b => b.onclick = () => { M.fuente = b.dataset.v; ctCargarFuenteDe(M.fuente).then(() => cambio(true)); });
+  sec.querySelectorAll("#smCo button").forEach(b => b.onclick = () => { M.color = b.dataset.v; cambio(true); });
   if ($("#smCc")) $("#smCc").oninput = e => { M.color = e.target.value.toUpperCase(); cambio(false); };
-  box.querySelectorAll("[data-pl]").forEach(i => i.oninput = () => { P.lista[+i.dataset.pl][i.dataset.pf] = i.dataset.pf === "numero" ? i.value.replace(/\D/g, "") : i.value; if (i.dataset.pf === "numero") i.value = P.lista[+i.dataset.pl].numero; cambio(false); });
-  const med = () => { const el = $("#spMedidas"); if (el) el.innerHTML = sbPersMedidas() ? "📏 Así queda (ancho × alto) en la talla " + (SB.verTalla || sbBase().app) + ":<br>" + sbPersMedidas() : ""; };
-  med(); box.querySelectorAll("[data-pl]").forEach(i => i.addEventListener("input", med));
+  const med = $("#spMedidas"); if (med) med.innerHTML = sbPersMedidas() ? "📏 Así queda (ancho × alto) en la talla " + (SB.verTalla || sbBase().app) + ":<br>" + sbPersMedidas() : "";
   sbMangaMed();
-  if (activo) ctCargarFuenteDe(P.fuente).then(() => { sbDibujar(); med(); });
+  if (P.nombre || P.numero) ctCargarFuenteDe(P.fuente).then(() => sbDibujar());
+}
+/* lista de nombres y números: una por playera (debajo del editor) */
+function sbPasoPers(){
+  sbPersLista(); sbPersSync();
+  const P = SB.pers, box = $("#sbPersBox"); if (!box) return;
+  document.querySelectorAll(".soloML").forEach(e => e.style.display = sbLarga() ? "" : "none");
+  if (!(P.nombre || P.numero)){ box.innerHTML = ""; return; }
+  box.innerHTML = `<div class="sbblock"><b>🔢 Lista de nombres y números</b> <span class="mini">· una por playera</span>
+    ${P.lista.length ? `<div class="perslist" style="margin-top:8px"><div class="plh"><span>Talla</span>${P.nombre ? "<span>Nombre</span>" : ""}${P.numero ? "<span>Número</span>" : ""}</div>
+      ${P.lista.map((r, i) => `<div class="plr"><b>${r.talla}</b>${P.nombre ? `<input data-pl="${i}" data-pf="nombre" maxlength="18" value="${VT.esc(r.nombre)}" placeholder="Nombre">` : ""}${P.numero ? `<input data-pl="${i}" data-pf="numero" maxlength="3" inputmode="numeric" value="${VT.esc(r.numero)}" placeholder="#">` : ""}</div>`).join("")}</div>
+      <div class="mini" style="margin-top:6px">En el dibujo de arriba se ve el de la talla que elijas en "Ver cómo queda en la talla". Si aún no los tienes, puedes mandarlos después por WhatsApp.</div>`
+      : `<div class="muted" style="margin-top:6px">Elige tus tallas en el paso 2 y aquí aparece un renglón por cada playera.</div>`}</div>`;
+  box.querySelectorAll("[data-pl]").forEach(i => i.oninput = () => { P.lista[+i.dataset.pl][i.dataset.pf] = i.dataset.pf === "numero" ? i.value.replace(/\D/g, "") : i.value;
+    if (i.dataset.pf === "numero") i.value = P.lista[+i.dataset.pl].numero; SB.mockup = null; sbDibujar(); sbPrecio();
+    const med = $("#spMedidas"); if (med) med.innerHTML = sbPersMedidas() ? "📏 Así queda (ancho × alto) en la talla " + (SB.verTalla || sbBase().app) + ":<br>" + sbPersMedidas() : ""; });
 }
 /* ---------- precio ---------- */
 function sbItem(){
@@ -3028,7 +3166,7 @@ function sbPrecio(){
   const pd = sbPersDatos(); if (n && pd){ const falta = pd.lista.filter(r => (pd.nombre && !r.nombre) || (pd.numero && !r.numero)).length;
     if (falta) av.push(`Faltan nombres o números en ${falta} ${falta === 1 ? "playera" : "playeras"} (paso 6). Puedes mandarlos después por WhatsApp.`); }
   if (SB.servicio === "logo" && !(SB.logoDesc || "").trim()) av.push("Describe cómo deseas tu logo (en el paso 3).");
-  if (n && SB.errores) av.push(`<b>Hay elementos fuera del área de impresión</b> (mira los avisos en el paso 7). Corrígelos para poder agregar tu pedido: usa un texto más corto, achica o quita algún logo.`);
+  if (n && SB.errores) av.push(`<b>Hay elementos fuera del área de impresión</b> (mira los avisos en el paso 6). Corrígelos para poder agregar tu pedido: usa un texto más corto, achica o quita algún logo.`);
   $("#sbWarn").innerHTML = av.map(a => `<div class="warn">${a}</div>`).join("");
   $("#sbAdd").disabled = !n || (SB.servicio === "logo" && !(SB.logoDesc || "").trim()) || !!SB.errores;
 }
@@ -3170,6 +3308,9 @@ $("#sbAdd").onclick = sbAgregar;
 $("#sbNotas").oninput = sbPrecio;
 $("#sbIdea").oninput = e => { SB.idea = e.target.value; $("#sbMkPrompt").value = sbPromptMockup(); sbPrecio(); };
 $("#sbMkCopy").onclick = () => sbCopiar($("#sbMkPrompt").value, $("#sbMkCopy"));
+$("#sbLamCopy").onclick = () => sbCopiar(sbPromptLamina(), $("#sbLamCopy"));
+$("#sbLamMal").onclick = () => sbCopiar(sbPromptLaminaMal(), $("#sbLamMal"));
+$("#sbLamFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) sbSubirLamina(f); };
 $("#sbIATxt").oninput = sbIATexto;
 $("#sbIACopy").onclick = async () => { const t = $("#sbIAOut"); try { await navigator.clipboard.writeText(t.value); } catch(e){ t.select(); document.execCommand("copy"); } const b = $("#sbIACopy"); b.textContent = "✔ Copiado"; setTimeout(() => b.textContent = "📋 Copiar", 1500); };
 $("#sbCanvas").onclick = e => { const r = e.target.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
