@@ -1163,8 +1163,11 @@ function abrirOT(id, vista){
       ${its.filter(i => i.sub).map(i => `<div class="li" style="align-items:center"><span><b>${esc(i.prenda)} · ${esc(i.modelo)}</b>
         <div class="muted">Molde: <b>${esc(i.sub.modeloTxt)}</b> · talla en la que se diseñó: <b>${esc(i.sub.tallaBase)}</b>${i.sub.tallaApp !== i.sub.tallaBase ? ` (${esc(i.sub.tallaApp)} en la app)` : ""} · tallas: ${Object.entries(i.qty || {}).map(([t, n]) => `${t}×${n}`).join(", ")}</div>
         <div class="muted">${Object.entries(i.sub.piezas).map(([k, p]) => `${{frente:"Frente",espalda:"Espalda",mangaD:"Manga D",mangaI:"Manga I",cuello:"Cuello"}[k]}: ${k === "cuello" ? "color " + esc(p.fondo.color || "") : ""}${k === "cuello" ? "" : p.els.filter(e => !e.pers).map(e => esc(e.nombre)).join(", ") || "solo fondo"}`).join(" · ")}</div>
-        ${i.pers ? `<div class="muted">🔢 Lleva nombre y número (${[i.pers.espalda ? "espalda" : "", i.pers.pecho ? "pecho " + (LADO_TXT[i.pers.pecho.lado] || "") : ""].filter(Boolean).join(" y ")}, letra ${esc(i.pers.fuente)}): no van en el PDF, se ponen por playera con la lista. <button class="btn sec sm" data-perscsv="${its.indexOf(i)}" style="margin-top:4px">⬇ Lista CSV</button></div>` : ""}</span>
-        <button class="btn pri sm" data-ajpdf="${its.indexOf(i)}">⬇ PDF sin molde</button></div>`).join("")}
+        ${i.pers ? `<div class="muted">🔢 Lleva nombre y número (${[i.pers.espalda ? "espalda" : "", i.pers.pecho ? "pecho " + (LADO_TXT[i.pers.pecho.lado] || "") : ""].filter(Boolean).join(" y ")}, letra ${esc(i.pers.fuente)}): no van en el PDF, se ponen por playera con la lista. <button class="btn sec sm" data-perscsv="${its.indexOf(i)}" style="margin-top:4px">⬇ Lista CSV</button></div>` : ""}
+        <div class="muted" style="margin-top:6px">¿Ya mejoraste las piezas con ✨? Súbelas aquí antes de descargar el PDF:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${["frente","espalda","mangaD","mangaI"].map(k => { const ya = ((_mejoradas[v.folio + "|" + its.indexOf(i)]) || {})[k];
+          return `<label class="btn sec sm" style="cursor:pointer">${ya ? "✅" : "⬆"} ${{frente:"Frente",espalda:"Espalda",mangaD:"Manga D",mangaI:"Manga I"}[k]}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-mej="${its.indexOf(i)}|${k}"></label>`; }).join("")}</div></span>
+        <button class="btn pri sm" data-ajpdf="${its.indexOf(i)}">⬇ PDF sin molde (CMYK)</button></div>`).join("")}
       <p class="muted" style="margin-top:8px">1) Descarga el PDF. 2) Abre el ajustador y sube el PDF. 3) Elige el modelo y la talla en la que se diseñó (la que dice arriba). 4) Revisa el acomodo y genera las tallas.</p>
       <a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none;margin-top:8px;display:inline-block">Abrir ajustador de tallas ↗</a></div>` : ""}
     <div class="card" id="upCard"><h3>✨ Mejorar resolución con IA</h3>
@@ -1200,9 +1203,11 @@ function abrirOT(id, vista){
       `${v.folio}_${(i.color || "").replace(/\s+/g,"")}_${z.zona.replace(/[^\wáéíóúñ]+/gi,"-")}_${z.ancho}x${z.alto}cm_300ppp.png`);
   });
   document.querySelectorAll("[data-perscsv]").forEach(b => b.onclick = () => persCSV(its[+b.dataset.perscsv], v.folio));
+  document.querySelectorAll("[data-mej]").forEach(inp => inp.onchange = () => { const f = inp.files[0]; if (!f) return; const [n, k] = inp.dataset.mej.split("|"), key = v.folio + "|" + n, fr = new FileReader();
+    fr.onload = () => { (_mejoradas[key] = _mejoradas[key] || {})[k] = fr.result; toast("Pieza mejorada lista para el PDF"); abrirOT(id, "archivos"); }; fr.readAsDataURL(f); });
   document.querySelectorAll("[data-ajpdf]").forEach(b => b.onclick = async () => {
     const i = its[+b.dataset.ajpdf], t = b.textContent; b.disabled = true; b.textContent = "Generando…";
-    try { await pdfSinMolde(i.sub, `SIN_MOLDE_SUBLIMADA_MANGA_${(i.sub.larga != null ? i.sub.larga : /larga/.test(i.sub.modelo || "")) ? "LARGA" : "CORTA"}_${i.sub.tallaBase}_${(i.modelo || "").toUpperCase()}_${VT.nombreArchivo ? VT.nombreArchivo(v.cliente.nombre) : (v.cliente.nombre || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}_${v.folio}.pdf`); toast("PDF para el ajustador descargado"); }
+    try { await pdfSinMolde(i.sub, `SIN_MOLDE_SUBLIMADA_MANGA_${(i.sub.larga != null ? i.sub.larga : /larga/.test(i.sub.modelo || "")) ? "LARGA" : "CORTA"}_${i.sub.tallaBase}_${(i.modelo || "").toUpperCase()}_${VT.nombreArchivo ? VT.nombreArchivo(v.cliente.nombre) : (v.cliente.nombre || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}_${v.folio}.pdf`, _mejoradas[v.folio + "|" + b.dataset.ajpdf] || {}); toast("PDF para el ajustador descargado"); }
     catch(e){ toast("No se pudo generar el PDF", true); }
     b.disabled = false; b.textContent = t;
   });
@@ -1317,9 +1322,37 @@ function persCSV(i, folio){
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + filas.join("\r\n")], { type:"text/csv;charset=utf-8" }));
   a.download = `${folio}_nombres_y_numeros.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
 }
-async function pdfSinMolde(sub, nombre){
+const _mejoradas = {};   // piezas mejoradas con ✨ (solo en memoria, para armar el PDF)
+/* RGB → CMYK con la misma tabla del RIP (perfil Japan Web Coated, calibrada contra Photoshop), sin transparencia asociada */
+function lutCMYK(lut, r, g, b){
+  const N = 33, F = (N - 1) / 255, N2 = N * N, R = r * F, G = g * F, B = b * F;
+  const ri = Math.min(R | 0, N - 2), gi = Math.min(G | 0, N - 2), bi = Math.min(B | 0, N - 2), tr = R - ri, tg = G - gi, tb = B - bi, p0 = (ri * N2 + gi * N + bi) * 4, d1 = N2 * 4, d2 = N * 4, o = [];
+  for (let c = 0; c < 4; c++){ const q = p0 + c;
+    const c00 = lut[q] + (lut[q + d1] - lut[q]) * tr, c01 = lut[q + 4] + (lut[q + d1 + 4] - lut[q + 4]) * tr;
+    const c10 = lut[q + d2] + (lut[q + d1 + d2] - lut[q + d2]) * tr, c11 = lut[q + d2 + 4] + (lut[q + d1 + d2 + 4] - lut[q + d2 + 4]) * tr;
+    o.push((c00 + (c10 - c00) * tg) * (1 - tb) + (c01 + (c11 - c01) * tg) * tb); }
+  return o;
+}
+const desinflar = async u8 => new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer());
+/* imagen CMYK (DeviceCMYK, Flate) con su máscara de transparencia, como las que exporta Illustrator */
+async function imagenCMYK(doc, c, lut){
+  const { PDFName, PDFRawStream } = window.PDFLib, W = c.width, H = c.height, d = c.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, W, H).data;
+  const cm = new Uint8Array(W * H * 4), al = new Uint8Array(W * H), op = new Uint8Array(W * 4 * 256 + 4), tmp = new Uint8Array(W * 256 * 6); let hayA = false;
+  for (let y0 = 0; y0 < H; y0 += 256){
+    const filas = Math.min(256, H - y0);
+    for (let i = 0; i < W * filas; i++){ const j = (y0 * W + i) * 4; op[i*4] = d[j]; op[i*4+1] = d[j+1]; op[i*4+2] = d[j+2]; op[i*4+3] = 255; al[y0 * W + i] = d[j+3]; if (d[j+3] < 255) hayA = true; }
+    aCMYK(lut, op, W, filas, tmp);
+    for (let i = 0; i < W * filas; i++){ const o = (y0 * W + i) * 4; cm[o] = tmp[i*6]; cm[o+1] = tmp[i*6+1]; cm[o+2] = tmp[i*6+2]; cm[o+3] = tmp[i*6+3]; }
+  }
+  const dic = doc.context.obj({ Type:"XObject", Subtype:"Image", Width: W, Height: H, ColorSpace:"DeviceCMYK", BitsPerComponent: 8, Filter:"FlateDecode", Intent:"RelativeColorimetric" });
+  if (hayA){ const m = doc.context.obj({ Type:"XObject", Subtype:"Image", Width: W, Height: H, ColorSpace:"DeviceGray", BitsPerComponent: 8, Filter:"FlateDecode" });
+    dic.set(PDFName.of("SMask"), doc.context.register(PDFRawStream.of(m, await desinflar(al)))); }
+  return doc.context.register(PDFRawStream.of(dic, await desinflar(cm)));
+}
+async function pdfSinMolde(sub, nombre, reemplazos = {}){
   if (!window.PDFLib) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js");
-  const { PDFDocument, rgb } = window.PDFLib, CM = 72 / 2.54, gap = 5 * CM, P = sub.piezas;
+  const { PDFDocument, cmyk, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = window.PDFLib, CM = 72 / 2.54, gap = 5 * CM, P = sub.piezas;
+  const lut = (await datosRIP()).lut;
   /* mismo acomodo que los PDF de los diseñadores:
      manga corta: mangas una arriba de otra (arriba la derecha), el cuello abajo, luego frente y espalda.
      manga larga: el cuello a la izquierda, las mangas paradas lado a lado (izquierda primero), luego frente y espalda. */
@@ -1337,19 +1370,22 @@ async function pdfSinMolde(sub, nombre){
   pos.frente = [x, 0]; x += P.frente.w + gap; pos.espalda = [x, 0];
   const W = pos.espalda[0] + P.espalda.w;
   const doc = await PDFDocument.create(), pg = doc.addPage([W, H]);
-  const hex = h => { const n = parseInt(h.slice(1), 16); return rgb((n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255); };
-  const bytes = src => Uint8Array.from(atob(src.split(",")[1]), c => c.charCodeAt(0));
-  const emb = src => src.startsWith("data:image/png") ? doc.embedPng(bytes(src)) : doc.embedJpg(bytes(src));
-  const recorte = (src, w, h) => new Promise((ok, no) => { const im = new Image(); im.onerror = no; im.onload = () => {   // fondo en imagen: se recorta a la proporción del panel
-    const k = Math.min(1, 2400 / Math.max(w, h) * CM), c = document.createElement("canvas"); c.width = Math.round(w / CM * 60); c.height = Math.round(h / CM * 60);
-    const x = c.getContext("2d"), r = Math.max(c.width / im.width, c.height / im.height); x.drawImage(im, (c.width - im.width * r) / 2, (c.height - im.height * r) / 2, im.width * r, im.height * r);
-    ok(c.toDataURL("image/jpeg", .9)); }; im.src = src; });
+  /* todo en CMYK, como los PDF de Illustrator de los diseñadores */
+  const hex = h => { const n = parseInt((h || "#FFFFFF").slice(1), 16), [c, m, y, k] = lutCMYK(lut, n >> 16 & 255, n >> 8 & 255, n & 255); return cmyk(c / 255, m / 255, y / 255, k / 255); };
+  const lienzo = (src, w, h) => new Promise((ok, no) => { const im = new Image(); im.onerror = no; im.onload = () => {
+    const c = document.createElement("canvas");
+    if (w){   // fondo: se recorta a la proporción del panel; hasta 60 px/cm (152 ppp) según la resolución de la imagen
+      const ppc = Math.max(20, Math.min(60, Math.max(im.width / (w / CM), im.height / (h / CM)))); c.width = Math.round(w / CM * ppc); c.height = Math.round(h / CM * ppc);
+      const r = Math.max(c.width / im.width, c.height / im.height); c.getContext("2d").drawImage(im, (c.width - im.width * r) / 2, (c.height - im.height * r) / 2, im.width * r, im.height * r);
+    } else { c.width = im.width; c.height = im.height; c.getContext("2d").drawImage(im, 0, 0); }
+    ok(c); }; im.src = src; });
+  const pon = (ref, x, y, w, h) => { const n = pg.node.newXObject("Im", ref); pg.pushOperators(pushGraphicsState(), concatTransformationMatrix(w, 0, 0, h, x, y), drawObject(n), popGraphicsState()); };
   for (const k of ["cuello", "mangaD", "mangaI", "frente", "espalda"]){
     if (!P[k]) continue;
-    const p = P[k], [x0, y0] = pos[k], Y = (y, h) => H - (y0 + y + h);
-    if (p.fondo.src) pg.drawImage(await emb(await recorte(p.fondo.src, p.w, p.h)), { x: x0, y: Y(0, p.h), width: p.w, height: p.h });
-    else pg.drawRectangle({ x: x0, y: Y(0, p.h), width: p.w, height: p.h, color: hex(p.fondo.color || "#FFFFFF") });
-    for (const e of p.els){ if (!e.src || e.pers) continue; pg.drawImage(await emb(e.src), { x: x0 + e.x, y: Y(e.y, e.h), width: e.w, height: e.h }); }
+    const p = P[k], [x0, y0] = pos[k], Y = (y, h) => H - (y0 + y + h), fsrc = reemplazos[k] || p.fondo.src;
+    if (fsrc) pon(await imagenCMYK(doc, await lienzo(fsrc, p.w, p.h), lut), x0, Y(0, p.h), p.w, p.h);
+    else pg.drawRectangle({ x: x0, y: Y(0, p.h), width: p.w, height: p.h, color: hex(p.fondo.color) });
+    for (const e of p.els){ if (!e.src || e.pers) continue; pon(await imagenCMYK(doc, await lienzo(e.src), lut), x0 + e.x, Y(e.y, e.h), e.w, e.h); }
   }
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([await doc.save()], { type: "application/pdf" })); a.download = nombre;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
