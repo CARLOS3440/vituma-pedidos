@@ -1175,14 +1175,18 @@ function pintarConfig(){
   $("#cfgFan").innerHTML = abanicoHTML(p, actual.color); $("#cfgImg").alt = p.nombre + " " + actual.modelo;
   $("#cfgMedidas").innerHTML = p.medidas ? `<details style="margin-top:8px"><summary>📏 Ver tabla de medidas de ${actual.modelo.toLowerCase()}</summary>${tablaMedidas(p, actual.modelo)}</details>` : "";
 
-  $("#genderSeg").innerHTML = Object.keys(p.modelos).map(m => `<button class="${m===actual.modelo?"on":""}" data-m="${m}">${m}</button>`).join("");
-  document.querySelectorAll("#genderSeg button").forEach(b => b.onclick = () => { actual.modelo = b.dataset.m; actual.qty = {}; pintarConfig(); });
+  /* cada modelo guarda sus cantidades: se pueden pedir caballero y dama juntos */
+  actual.qtyM = actual.qtyM || {}; actual.colorM = actual.colorM || {}; actual.qtyM[actual.modelo] = actual.qty; actual.colorM[actual.modelo] = actual.color;
+  $("#genderSeg").innerHTML = Object.keys(p.modelos).map(m => { const n = piezas(actual.qtyM[m] || {}); return `<button class="${m===actual.modelo?"on":""}" data-m="${m}">${m}${n ? ` · ${n}` : ""}</button>`; }).join("");
+  document.querySelectorAll("#genderSeg button").forEach(b => b.onclick = () => { const m = b.dataset.m; if (m === actual.modelo) return;
+    actual.qtyM[actual.modelo] = actual.qty; actual.colorM[actual.modelo] = actual.color;
+    actual.modelo = m; actual.qty = actual.qtyM[m] || {}; if (actual.colorM[m]) actual.color = actual.colorM[m]; pintarConfig(); });
 
   $("#rowColor").style.display = p.colores ? "block" : "none";
   if (p.colores){
     if (!coloresDe(p, actual.modelo).includes(actual.color)) actual.color = coloresDe(p, actual.modelo)[0];
     $("#colorSel").innerHTML = coloresDe(p, actual.modelo).map(c => `<option${c===actual.color?" selected":""}>${c}</option>`).join("");
-    $("#colorSel").onchange = e => { actual.color = e.target.value; const f = fotoColor(p, actual.color, actual.modelo); $("#cfgImg").src = f || imgDe(p, actual.modelo); $("#cfgImg").style.maxHeight = (fotoMaxDe(p, actual.modelo) && f) ? fotoMaxDe(p, actual.modelo) + "px" : ""; $("#cfgFan").innerHTML = abanicoHTML(p, actual.color); };
+    $("#colorSel").onchange = e => { actual.color = e.target.value; actual.colorM[actual.modelo] = actual.color; const f = fotoColor(p, actual.color, actual.modelo); $("#cfgImg").src = f || imgDe(p, actual.modelo); $("#cfgImg").style.maxHeight = (fotoMaxDe(p, actual.modelo) && f) ? fotoMaxDe(p, actual.modelo) + "px" : ""; $("#cfgFan").innerHTML = abanicoHTML(p, actual.color); };
   }
 
   const tallas = p.modelos[actual.modelo];
@@ -1193,7 +1197,8 @@ function pintarConfig(){
     </div>`).join("");
   document.querySelectorAll("#sizeGrid .size").forEach(box => {
     const t = box.dataset.t, inp = box.querySelector("input");
-    const set = v => { v = Math.max(0, Math.min(999, parseInt(v)||0)); actual.qty[t] = v; inp.value = v; box.classList.toggle("has", v>0); actualizarPreview(); };
+    const set = v => { v = Math.max(0, Math.min(999, parseInt(v)||0)); actual.qty[t] = v; actual.qtyM[actual.modelo] = actual.qty; inp.value = v; box.classList.toggle("has", v>0); actualizarPreview();
+      const gb = document.querySelector(`#genderSeg button[data-m="${actual.modelo}"]`); if (gb){ const n = piezas(actual.qty); gb.textContent = actual.modelo + (n ? ` · ${n}` : ""); } };
     box.querySelectorAll("button").forEach(b => b.onclick = () => set((actual.qty[t]||0) + +b.dataset.d));
     inp.oninput = () => set(inp.value);
     inp.onfocus = () => inp.select();
@@ -1241,29 +1246,36 @@ function pintarPersona(p){
   if ($("#dMa")) $("#dMa").onchange = e => { per.manga = e.target.value; actualizarPreview(); };
 }
 
+/* lo que se va a agregar: una partida por modelo (caballero, dama…) con sus tallas */
+function partidasActuales(){
+  if (!actual) return [];
+  actual.qtyM = actual.qtyM || {}; actual.qtyM[actual.modelo] = actual.qty;
+  return Object.entries(actual.qtyM).filter(([, q]) => piezas(q)).map(([m, q]) => ({ ...actual, modelo: m, qty: q, color: (actual.colorM && actual.colorM[m]) || actual.color }));
+}
 function actualizarPreview(){
-  const n = piezas(actual.qty);
+  const ps = partidasActuales(), n = ps.reduce((a, x) => a + piezas(x.qty), 0);
   $("#addBtn").disabled = n === 0;
   if (!n){ $("#pvDetail").textContent = "Agrega piezas"; $("#pvAmt").textContent = "$0.00"; pintarPrecios(); return; }
-  const sim = calcular([...carrito, {...actual}]);
-  const r = sim[sim.length-1];
+  const sim = calcular([...carrito, ...ps]), rs = sim.slice(-ps.length);
+  const sub = rs.reduce((a, r) => a + r.subtotal, 0), ant = rs.reduce((a, r) => a + r.anticipo, 0);
   const prev = carrito.filter(c=>c.prod===actual.prod).reduce((a,c)=>a+piezas(c.qty),0);
-  $("#pvDetail").textContent = n + (n===1?" pieza":" piezas") + (prev ? ` (+${prev} ya en tu pedido)` : "") + " · Anticipo " + money(r.anticipo);
-  $("#pvAmt").textContent = money(r.subtotal);
+  const det = ps.length > 1 ? " (" + ps.map(x => `${x.modelo.toLowerCase()} ${piezas(x.qty)}`).join(" + ") + ")" : "";
+  $("#pvDetail").textContent = n + (n===1?" pieza":" piezas") + det + (prev ? ` (+${prev} ya en tu pedido)` : "") + " · Anticipo " + money(ant);
+  $("#pvAmt").textContent = money(sub);
   pintarPrecios();
 }
 function pintarPrecios(){
   if (!actual) return;
   const p = byId(actual.prod);
-  const total = carrito.filter(c=>c.prod===actual.prod).reduce((a,c)=>a+piezas(c.qty),0) + piezas(actual.qty);
+  const total = carrito.filter(c=>c.prod===actual.prod).reduce((a,c)=>a+piezas(c.qty),0) + partidasActuales().reduce((a, x) => a + piezas(x.qty), 0);
   $("#cfgPrecios").innerHTML = tablaPrecios(p, total);
 }
 
 $("#addBtn").onclick = () => {
-  const qty = {}; Object.entries(actual.qty).forEach(([t,c]) => { if (c) qty[t]=c; });
-  carrito.push({ id: Date.now(), prod: actual.prod, modelo: actual.modelo, color: actual.color, qty, per: JSON.parse(JSON.stringify(actual.per)), notas: $("#notes").value.trim() });
+  partidasActuales().forEach((x, i) => { const qty = {}; Object.entries(x.qty).forEach(([t,c]) => { if (c) qty[t]=c; });
+    carrito.push({ id: Date.now() + i, prod: actual.prod, modelo: x.modelo, color: x.color, qty, per: JSON.parse(JSON.stringify(actual.per)), notas: $("#notes").value.trim() }); });
   guardar();
-  actual.qty = {}; $("#notes").value = "";
+  actual.qty = {}; actual.qtyM = {}; $("#notes").value = "";
   pintarConfig(); pintarCarrito();
   const t = $("#toast"); t.classList.add("on"); setTimeout(()=>t.classList.remove("on"), 1600);
 };
@@ -2603,7 +2615,7 @@ async function sbElegir(id){
     if (t){ t.classList.remove("on"); t.innerHTML = old; } }
   SB.prod = id; const p = byId(id);
   if (!p.modelos[SB.modelo]) SB.modelo = Object.keys(p.modelos)[0];
-  SB.qty = {}; SB.mockup = null;
+  SB.qty = {}; SB.qtyM = {}; SB.mockup = null;
   dzRender();
   setTimeout(() => $("#sbRest").scrollIntoView({ behavior:"smooth", block:"start" }), 60);
 }
@@ -2611,8 +2623,14 @@ function sbRender(){
   const p = byId(SB.prod); if (!p) return;
   const { app, molde, m } = sbBase();
   $("#sbTitulo").textContent = p.nombre;
-  $("#sbGender").innerHTML = Object.keys(p.modelos).map(g => `<button class="${g===SB.modelo?"on":""}" data-g="${g}">${g}</button>`).join("");
-  document.querySelectorAll("#sbGender button").forEach(b => b.onclick = () => { SB.modelo = b.dataset.g; SB.qty = {}; sbRender(); });
+  /* cada modelo guarda sus tallas; el diseño se conserva al cambiar de modelo */
+  SB.qtyM = SB.qtyM || {}; SB.qtyM[SB.modelo] = SB.qty;
+  $("#sbGender").innerHTML = Object.keys(p.modelos).map(g => { const n = piezas(SB.qtyM[g] || {}); return `<button class="${g===SB.modelo?"on":""}" data-g="${g}">${g}${n ? ` · ${n}` : ""}</button>`; }).join("");
+  const otros = Object.keys(p.modelos).filter(g => g !== SB.modelo && piezas(SB.qtyM[g] || {}));
+  if (!$("#sbGenNota")) $("#sbGender").insertAdjacentHTML("afterend", `<div class="mini" id="sbGenNota" style="margin-top:6px"></div>`);
+  $("#sbGenNota").innerHTML = otros.length ? `⚠️ También elegiste tallas de <b>${otros.join(", ").toLowerCase()}</b>. Agrega primero esta playera a tu pedido y luego cambia de modelo para agregar la otra: tu diseño se conserva.`
+    : `¿Caballero y dama? Agrega primero uno a tu pedido y luego cambia de modelo: tu diseño se conserva.`;
+  document.querySelectorAll("#sbGender button").forEach(b => b.onclick = () => { if (b.dataset.g === SB.modelo) return; SB.qtyM[SB.modelo] = SB.qty; SB.modelo = b.dataset.g; SB.qty = SB.qtyM[SB.modelo] || {}; sbRender(); });
   $("#sbSizes").innerHTML = p.modelos[SB.modelo].map(t => `<div class="size${SB.qty[t]?" has":""}" data-t="${t}"><b>${t}</b>
       <div class="ctl"><button data-d="-1" aria-label="menos">−</button><input inputmode="numeric" value="${SB.qty[t]||0}" aria-label="piezas ${t}"><button data-d="1" aria-label="más">+</button></div></div>`).join("");
   document.querySelectorAll("#sbSizes .size").forEach(box => {
@@ -3139,7 +3157,7 @@ async function sbAgregar(){
     }
   } catch(e){}
   carrito.push(it); guardarOk();
-  pintarCarrito(); SB.qty = {}; sbRender();
+  pintarCarrito(); SB.qty = {}; if (SB.qtyM) SB.qtyM[SB.modelo] = {}; sbRender();
   b.textContent = "Agregar a mi pedido";
   const t = $("#toast"); t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1600);
 }
