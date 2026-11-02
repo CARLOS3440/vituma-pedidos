@@ -184,6 +184,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 .upload b{display:block}.upload span{font-size:28px}
 .upload.has{border-style:solid;border-color:var(--ok);background:#F2FBF5}
 .upload img{width:56px;height:56px;object-fit:contain;background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/12px 12px;border-radius:8px}
+.sbdesc{display:grid;gap:8px}.sbdesc label{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start}.sbdesc span{font-weight:700;padding-top:10px}.sbdesc textarea{min-height:54px;margin:0}
+@media(max-width:600px){.sbdesc label{grid-template-columns:1fr;gap:4px}.sbdesc span{padding-top:0}}
+.sbcol{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);cursor:pointer;position:relative}.sbcol.on{outline:3px solid var(--orange);outline-offset:2px}.sbcol.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;text-shadow:0 0 3px #000}
 .sbwrap{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:8px;overflow:hidden}.sbwrap canvas{display:block;cursor:pointer;max-width:100%}
 .sbel{border:1.5px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;display:grid;gap:8px;background:#fff}.sbelh{display:flex;justify-content:space-between;align-items:center}
 .sbel>input{width:100%;padding:9px 10px;border:1.5px solid var(--line);border-radius:9px;font:inherit}
@@ -403,9 +406,21 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
         <div id="sbIASlot"></div>
         <div id="sbLogoServ"></div>
       </div>
+      <div class="card">
+        <h3>4. Cuéntanos cómo quieres tu camisa</h3>
+        <p class="muted" style="margin-bottom:10px">Escríbelo con tus palabras, como se lo dirías a nuestro diseñador. No tienes que saber diseñar: con esto armamos tu camisa y te mandamos la vista previa para que la autorices.</p>
+        <div class="sbdesc">
+          <label><span>👕 Frente</span><textarea id="sbDfrente" placeholder="Ej. Mi logo al centro del pecho y abajo el nombre del equipo"></textarea></label>
+          <label><span>🔙 Espalda</span><textarea id="sbDespalda" placeholder="Ej. Arriba el nombre de cada jugador y abajo su número grande"></textarea></label>
+          <label><span>💪 Mangas</span><textarea id="sbDmangas" placeholder="Ej. En la manga derecha la bandera de México; en la izquierda nada"></textarea></label>
+        </div>
+        <span class="label" style="margin-top:12px">🎨 ¿Qué colores quieres? <span class="muted" style="font-weight:500">(toca los que te gusten)</span></span>
+        <div class="ctcols" id="sbDcolores"></div>
+        <input type="text" id="sbDcolorTxt" placeholder="¿Algún tono en especial? Ej. el mismo azul de mi logo, dorado brillante…" style="margin-top:8px">
+      </div>
       <div class="card" id="sbEditor">
-        <h3>4. Diseña cada pieza</h3>
-        <p class="muted" style="margin-bottom:8px">Toca una pieza para editarla. Las líneas naranjas son las reglas de acomodo que usa VITUMA para que tu diseño quede igual en todas las tallas.</p>
+        <h3>5. Arma tu diseño</h3>
+        <p class="muted" style="margin-bottom:8px">Aquí ves tu camisa pieza por pieza. Toca una pieza para cambiar su fondo y agregar logos o textos; las líneas naranjas son las reglas para que quede igual en todas las tallas. <b>Si prefieres, déjalo así</b>: nuestro diseñador la termina con lo que nos contaste arriba.</p>
         <div class="sbwrap"><canvas id="sbCanvas"></canvas></div>
         <div id="sbAvisos"></div>
         <div class="seg" id="sbTabs" style="margin:12px 0"></div>
@@ -2356,7 +2371,7 @@ const SB_FONDOS = [["Blanco","#FFFFFF"],["Negro","#111111"],["Azul marino","#1C2
   ["Naranja","#F26B21"],["Amarillo","#FFC300"],["Verde","#2A9D4B"],["Gris","#8A8F98"]];
 const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,25,28];
 const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25];
-const SB = { tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"fondo", mockup:null };
+const SB = { desc:{ frente:"", espalda:"", mangas:"", colores:[], colorTxt:"" }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"fondo", mockup:null };
 const sbNueva = () => ({ fondo:{ tipo:"color", color:"#1C2340", img:null, src:null }, els:[] });
 const sbReset = () => { SB.piezas = { frente: sbNueva(), espalda: sbNueva(), mangaD: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } }, mangaI: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } } }; SB.mockup = null; };
 sbReset();
@@ -2542,7 +2557,8 @@ function sbRender(){
     if (SB.tiene === "no"){ if (SB.servicio === "digitalizar") SB.servicio = "ninguno"; sbAbrirIA("logo", true); }
     else { if (SB.servicio === "logo") SB.servicio = "ninguno"; if (SB.iaQue !== "fondo") $("#sbIA").style.display = "none"; }
     sbRender(); });
-  const motivos = lg ? [!lg.alfa ? "no tiene <b>fondo transparente</b> (se necesita PNG con fondo transparente para ponerlo sobre tu diseño)" : "",
+  const motivos = lg ? [!lg.alfa && !lg.limpio ? "no tiene <b>fondo transparente</b> y no pudimos quitarle el fondo (se necesita PNG con fondo transparente para ponerlo sobre tu diseño)" : "",
+    lg.cuadros ? "traía un <b>fondo de cuadritos</b> dibujado (no era transparente de verdad); se lo quitamos para la vista previa, pero conviene redibujarlo" : "",
     Math.max(lg.w, lg.h) < 1500 ? `tiene <b>baja resolución</b> (${lg.w} × ${lg.h} px; lo ideal son 2000 px o más)` : ""].filter(Boolean) : [];
   SB.noOptimo = motivos.length > 0;
   const calidad = !lg || no ? "" : SB.noOptimo
@@ -2568,7 +2584,7 @@ function sbRender(){
     : (lg && SB.noOptimo ? `<div class="servbox">
         ${chk("sbSrvDig", SB.servicio === "digitalizar", `Si no queda como lo deseas: que un diseñador de VITUMA digitalice mi logo · ${money(SERVICIOS.digitalizar.precio)}`, "El diseñador lo redibuja a partir del logo que adjuntaste y lo deja listo para imprimir.")}</div>` : "");
   $("#sbLogoFile").onchange = async e => { const f = e.target.files[0]; if (!f) return; const r = await sbLeer(f, 1600, "image/png", true);
-    const antes = lg && lg.src; SB.logo = { src: r.src, nombre: f.name, w: r.w, h: r.h, asp: r.w / r.h, alfa: r.alfa };
+    const antes = lg && lg.src; SB.logo = { src: r.src, nombre: f.name, w: r.w, h: r.h, asp: r.w / r.h, alfa: r.alfa, limpio: r.limpio, cuadros: r.cuadros };
     let usado = false; SB_PIEZAS.forEach(([k]) => SB.piezas[k].els.forEach(el => { if (el.tipo === "logo" && antes && el.src === antes){ el.src = r.src; el.nombre = f.name; el.asp = r.w / r.h; usado = true; } }));
     if (!usado) SB.piezas.frente.els.unshift({ id: "e" + Date.now(), tipo:"logo", src: r.src, nombre: f.name, asp: r.w / r.h, cm: 10, zona:"arriba", lado:"centro" });
     SB.mockup = null; sbRender(); };
@@ -2576,6 +2592,8 @@ function sbRender(){
   if ($("#sbSrvLogo")) $("#sbSrvLogo").onchange = e => { SB.servicio = e.target.checked ? "logo" : "ninguno"; sbRender(); if (e.target.checked) setTimeout(() => $("#sbLogoDesc") && $("#sbLogoDesc").focus(), 50); };
   if ($("#sbSrvDig")) $("#sbSrvDig").onchange = e => { SB.servicio = e.target.checked ? "digitalizar" : "ninguno"; sbRender(); };
   if ($("#sbLogoDesc")) $("#sbLogoDesc").oninput = e => { SB.logoDesc = e.target.value; sbPrecio(); };
+  $("#sbDcolores").innerHTML = SB_FONDOS.map(([n, h]) => `<button class="sbcol${SB.desc.colores.includes(n)?" on":""}" data-dc="${n}" title="${n}" aria-label="${n}" style="background:${h}"></button>`).join("");
+  document.querySelectorAll("[data-dc]").forEach(b => b.onclick = () => { const n = b.dataset.dc, l = SB.desc.colores; l.includes(n) ? l.splice(l.indexOf(n), 1) : l.push(n); b.classList.toggle("on"); });
   sbTabs(); sbPanel(); setTimeout(sbDibujar, 0);
   sbPrecio();
 }
@@ -2655,13 +2673,34 @@ function sbPanel(){
 const toast2 = t => { const el = $("#toast"); if (!el) return; const old = el.innerHTML; el.textContent = "✔ " + t; el.classList.add("on"); setTimeout(() => { el.classList.remove("on"); el.innerHTML = old; }, 1600); };
 const ctCargarFuenteDe = id => document.fonts && document.fonts.load ? document.fonts.load(sbFont(id, 40)).catch(() => {}) : Promise.resolve();
 /* lee una imagen reducida (en la muestra; con la base de datos se guardará el original) */
+/* quita el fondo liso o el fondo de cuadritos falso que traen muchos logos (igual que en DTF) */
+function sbLimpiar(c){
+  const W = c.width, H = c.height, x = c.getContext("2d", { willReadFrequently:true }), datos = x.getImageData(0, 0, W, H), s = datos.data;
+  const tonos = esCuadricula(s, W, H), bg = tonos ? [230,230,230] : colorFondo(s, W, H);
+  if (!bg) return { c, cuadros:false, limpio:false };
+  const cuadros = !!tonos;
+  const esFondo = j => cuadros
+    ? (Math.max(s[j],s[j+1],s[j+2]) - Math.min(s[j],s[j+1],s[j+2]) < 16 && (s[j]+s[j+1]+s[j+2])/3 > tonos[0] - 16 && (s[j]+s[j+1]+s[j+2])/3 < tonos[1] + 16)
+    : Math.hypot(s[j]-bg[0], s[j+1]-bg[1], s[j+2]-bg[2]) < 45;
+  const fuera = new Uint8Array(W*H), pila = [];
+  for (let i = 0; i < W; i++) pila.push(i, (H-1)*W + i);
+  for (let y = 0; y < H; y++) pila.push(y*W, y*W + W - 1);
+  while (pila.length){ const i = pila.pop(); if (fuera[i] || !esFondo(i*4)) continue; fuera[i] = 1; const xx = i % W;
+    if (xx > 0) pila.push(i-1); if (xx < W-1) pila.push(i+1); if (i >= W) pila.push(i-W); if (i < W*(H-1)) pila.push(i+W); }
+  for (let i = 0; i < W*H; i++){ if (fuera[i]) s[i*4+3] = 0;
+    else { const xx = i % W, y = (i / W) | 0; if ((xx > 0 && fuera[i-1]) || (xx < W-1 && fuera[i+1]) || (y > 0 && fuera[i-W]) || (y < H-1 && fuera[i+W])) s[i*4+3] = Math.round(s[i*4+3] * .55); } }
+  const c2 = document.createElement("canvas"); c2.width = W; c2.height = H; c2.getContext("2d").putImageData(datos, 0, 0);
+  return { c: c2, cuadros, limpio:true };
+}
 function sbLeer(file, max, tipo, alfa){
   return new Promise((ok, no) => { const fr = new FileReader(); fr.onerror = no; fr.onload = () => { const im = new Image(); im.onerror = no; im.onload = () => {
-    const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    const k = Math.min(1, max / Math.max(im.width, im.height)); let c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
     c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
-    const png = alfa && (file.type === "image/png");
-    let trans = false; if (png){ const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < d.length; i += 28) if (d[i] < 250){ trans = true; break; } }
-    ok({ src: c.toDataURL(png ? "image/png" : "image/jpeg", .9), w: im.width, h: im.height, alfa: trans }); }; im.src = fr.result; }; fr.readAsDataURL(file); });
+    if (!alfa) return ok({ src: c.toDataURL("image/jpeg", .9), w: im.width, h: im.height, alfa:false });
+    let trans = false; { const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < d.length; i += 28) if (d[i] < 250){ trans = true; break; } }
+    let cuadros = false, limpio = false;
+    if (!trans){ const r = sbLimpiar(c); c = r.c; cuadros = r.cuadros; limpio = r.limpio; }
+    ok({ src: c.toDataURL(trans || limpio ? "image/png" : "image/jpeg", .9), w: im.width, h: im.height, alfa: trans, limpio, cuadros }); }; im.src = fr.result; }; fr.readAsDataURL(file); });
 }
 
 /* ---------- instrucciones para la IA, pieza por pieza ---------- */
@@ -2674,7 +2713,8 @@ function sbIATexto(){
   const prenda = `playera sublimada de ${sbLarga() ? "manga larga" : "manga corta"} para ${SB.modelo.toLowerCase()}`;
   $("#sbIAQue").innerHTML = (SB.iaQue === "fondo" ? [["fondo",`Fondo de: ${nombre}`]] : SB.tiene === "no" ? [["logo","Crear mi logo"]] : [["logofoto","Redibujar mi logo"]]).map(([v, t]) => `<button class="${SB.iaQue===v?"on":""}" data-iq="${v}">${t}</button>`).join("");
   document.querySelectorAll("[data-iq]").forEach(b => b.onclick = () => { const q = b.dataset.iq; if ((q === "fondo") !== (SB.iaQue === "fondo")) sbAbrirIA(q); else { SB.iaQue = q; sbIATexto(); } });
-  const desc = $("#sbIATxt").value.trim() || (SB.iaQue === "fondo" ? "[describe el estilo, colores y elementos del fondo]" : SB.iaQue === "logofoto" ? "" : "[describe lo que debe llevar tu logo]");
+  const pedido = SB.iaQue === "fondo" ? [SB.desc[k.startsWith("manga") ? "mangas" : k], sbDescripcion() && sbDescripcion().colores ? "colores: " + sbDescripcion().colores : ""].filter(Boolean).join("; ") : "";
+  const desc = $("#sbIATxt").value.trim() || pedido || (SB.iaQue === "fondo" ? "[describe el estilo, colores y elementos del fondo]" : SB.iaQue === "logofoto" ? "" : "[describe lo que debe llevar tu logo]");
   const w = +sbCm(mm.w), h = +sbCm(mm.h), lado = Math.max(w, h), px = Math.round(lado / 2.54 * 150);
   let t;
   if (SB.iaQue === "fondo"){
@@ -2691,6 +2731,12 @@ function sbIATexto(){
   $("#sbIAOut").value = t;
 }
 
+/* lo que el cliente pidió con sus palabras (le llega al diseñador) */
+function sbDescripcion(){
+  const d = SB.desc, colores = [d.colores.join(", "), d.colorTxt.trim()].filter(Boolean).join(" · ");
+  const r = { frente: d.frente.trim(), espalda: d.espalda.trim(), mangas: d.mangas.trim(), colores };
+  return Object.values(r).some(Boolean) ? r : null;
+}
 /* ---------- precio ---------- */
 function sbItem(){
   const qty = {}; Object.entries(SB.qty).forEach(([t, c]) => { if (c) qty[t] = c; });
@@ -2698,7 +2744,7 @@ function sbItem(){
   const modoTxt = `🎨 Diseño por piezas (${nPz} logos/textos)`;
   const serv = SERVICIOS[SB.servicio] ? SB.servicio : "ninguno";
   return { id: Date.now(), prod: SB.prod, modelo: SB.modelo, color: "", qty, per: null, notas: [SB.servicio === "logo" && SB.logoDesc ? "Logo deseado: " + SB.logoDesc.trim() : "", $("#sbNotas").value.trim()].filter(Boolean).join(" · "),
-    diseno: { tecnica:"sublimado", costoPieza: 0, texto: modoTxt + (serv !== "ninguno" ? " · ✏️ " + SERVICIOS[serv].t + " (VITUMA)" : ""), adjunto: false, servicio: serv } };
+    diseno: { descripcion: sbDescripcion(), tecnica:"sublimado", costoPieza: 0, texto: modoTxt + (serv !== "ninguno" ? " · ✏️ " + SERVICIOS[serv].t + " (VITUMA)" : ""), adjunto: false, servicio: serv } };
 }
 function sbPrecio(){
   const it = sbItem(), n = piezas(it.qty), p = byId(SB.prod);
@@ -2711,6 +2757,8 @@ function sbPrecio(){
   $("#sbRes").innerHTML = h;
   const av = [];
   if (!n) av.push("Elige cuántas piezas quieres de cada talla.");
+  const nEls = SB_PIEZAS.reduce((a, [k]) => a + SB.piezas[k].els.length, 0);
+  if (n && !sbDescripcion() && !nEls && !SB.logo) av.push("Cuéntanos en el paso 4 qué quieres en tu camisa (frente, espalda, mangas y colores), o arma tu diseño en el paso 5.");
   if (SB.servicio === "logo" && !(SB.logoDesc || "").trim()) av.push("Describe cómo deseas tu logo (en el paso 3).");
   $("#sbWarn").innerHTML = av.map(a => `<div class="warn">${a}</div>`).join("");
   $("#sbAdd").disabled = !n || (SB.servicio === "logo" && !(SB.logoDesc || "").trim());
@@ -2836,6 +2884,8 @@ $("#sbMkBtn").onclick = sbVerMockup;
 $("#sbMkDown").onclick = () => { if (!SB.mockup) return; const a = document.createElement("a"); a.href = SB.mockup; a.download = "VITUMA_vista_previa_sublimada.jpg"; document.body.appendChild(a); a.click(); a.remove(); };
 $("#sbAdd").onclick = sbAgregar;
 $("#sbNotas").oninput = sbPrecio;
+[["frente","sbDfrente"],["espalda","sbDespalda"],["mangas","sbDmangas"]].forEach(([k, id]) => $("#" + id).oninput = e => { SB.desc[k] = e.target.value; });
+$("#sbDcolorTxt").oninput = e => { SB.desc.colorTxt = e.target.value; };
 $("#sbIATxt").oninput = sbIATexto;
 $("#sbIACopy").onclick = async () => { const t = $("#sbIAOut"); try { await navigator.clipboard.writeText(t.value); } catch(e){ t.select(); document.execCommand("copy"); } const b = $("#sbIACopy"); b.textContent = "✔ Copiado"; setTimeout(() => b.textContent = "📋 Copiar", 1500); };
 $("#sbCanvas").onclick = e => { const r = e.target.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
@@ -2934,6 +2984,7 @@ function generarNota(){
       logos: f.it.diseno ? (f.it.diseno.logos || []) : [],
       impresion: f.it.diseno ? (f.it.diseno.impresion || []) : [],
       sub: f.it.diseno ? (f.it.diseno.sub || null) : null,
+      descripcion: f.it.diseno ? (f.it.diseno.descripcion || null) : null,
       contacto: f.it.diseno ? (f.it.diseno.contacto || null) : null, servicio: f.it.diseno ? (f.it.diseno.servicio || null) : null,
       mockup: (f.it.diseno && f.it.diseno.mockup) || fotoColor(f.p, f.it.color, f.it.modelo) || imgDe(f.p, f.it.modelo) || null,
       mockupTipo: (f.it.diseno && f.it.diseno.mockup) ? "diseno" : "foto"

@@ -137,6 +137,7 @@ table.prod td.pc{padding:5px;min-width:0}
 .bubble{color:#9AA0B4}.bubble.has{color:#579BFC}.bubble:hover{color:#1C2340}
 table.prod td.bub,table.prod th.bubth{padding:0}table.prod .bubble{padding:4px}
 table.prod .badge{font-size:10.5px;white-space:nowrap}table.prod td.cen .sub{text-align:center}
+.pidio{background:#FFF7F2;border-left:4px solid #F26B21;border-radius:8px;padding:8px 10px;margin-top:8px;display:grid;gap:3px}
 .okbox{background:#E7F7EE;color:#067647;border-radius:10px;padding:10px 12px;font-weight:600}
 .bubble{position:relative;border:0;background:none;font-size:22px;cursor:pointer;padding:4px 6px;border-radius:8px}.bubble:hover{background:#EEF1F7}
 .bubble i{position:absolute;right:-2px;bottom:0;background:#579BFC;color:#fff;font-style:normal;font-size:10px;font-weight:800;border-radius:9px;padding:1px 5px}
@@ -1119,6 +1120,7 @@ function abrirOT(id, vista){
         <div class="tallas">${Object.entries(i.qty || {}).sort((a,b)=>ord.indexOf(a[0])-ord.indexOf(b[0])).map(([t,n])=>`<span><b>${t}</b>${n}</span>`).join("")}<span class="tot"><b>Total</b>${i.cant}</span></div>
         <div style="margin-top:6px"><b>Personalización:</b> ${esc(i.personalizacion || (TECNICAS[tecnicaItem(i)]))}</div>
         ${(i.zonas || []).length && !(i.personalizacion||"").includes(i.zonas[0]) ? `<div class="muted">Ubicaciones: ${i.zonas.map(esc).join(" · ")}</div>` : ""}
+        ${i.descripcion ? `<div class="pidio"><b>Lo que pidió el cliente:</b>${[["Frente","frente"],["Espalda","espalda"],["Mangas","mangas"],["Colores","colores"]].filter(([, k]) => i.descripcion[k]).map(([t, k]) => `<div><b>${t}:</b> ${esc(i.descripcion[k])}</div>`).join("")}</div>` : ""}
         ${i.contacto ? `<div style="margin-top:4px"><b>Datos de contacto en la espalda:</b> ${i.contacto.lineas.map(l => `${esc(l.red)}: ${esc(l.texto)}`).join(" · ")} <span class="muted">(letra ${esc(i.contacto.letra || "Montserrat")}, color ${esc(i.contacto.color || "automático")})</span></div>` : ""}
         ${i.notas ? `<div style="margin-top:4px">📝 ${esc(i.notas)}</div>` : ""}
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
@@ -1555,7 +1557,7 @@ function code128svg(txt, alto = 40){
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${x + 10} ${alto}" preserveAspectRatio="none" shape-rendering="crispEdges" fill="#000">${r}</svg>`;
 }
 
-/* ---------- ticket de venta para impresora térmica de 7.8 cm ---------- */
+/* ---------- ticket de venta para impresora térmica de 8 cm ---------- */
 function imprimirTicket(v, pagoId){
   const k = VT.cuentas(v), w = window.open("", "_blank");
   if (!w){ toast("Permite las ventanas emergentes para imprimir", true); return; }
@@ -1563,16 +1565,16 @@ function imprimirTicket(v, pagoId){
   const este = pagoId ? pv.find(p => p.id === pagoId) : null;
   const porForma = Object.entries(pv.reduce((a, p) => (a[p.forma] = (a[p.forma] || 0) + p.monto, a), {}));
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Ticket ${v.folio}</title>
-  <style>@page{size:78mm auto;margin:0}*{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Arial,Helvetica,sans-serif;color:#000;width:78mm;padding:3mm 4mm 6mm;font-size:3.2mm;line-height:1.3}
+  <style>@page{size:80mm auto;margin:0}*{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;color:#000;width:80mm;padding:3mm 4mm 6mm;font-size:3.2mm;line-height:1.3}
   .c{text-align:center}.lg{width:44mm;display:block;margin:0 auto 2mm;filter:grayscale(1) contrast(1.4)}
   .s{border-top:.3mm dashed #000;margin:2mm 0}.r{display:flex;justify-content:space-between;gap:2mm}.b{font-weight:700}
   .it{margin:1.2mm 0}.it small{display:block;font-size:2.8mm;color:#222}.tot{font-size:4.2mm;font-weight:700}
   .pg{margin:1mm 0}.pg small{display:block;font-size:2.8mm}.este{border:.4mm solid #000;border-radius:1.5mm;padding:1.5mm 2mm;margin-top:2mm}
-  .bc{height:13mm;width:60mm;margin:2mm auto 1mm;display:block}.bc svg{width:100%;height:100%;display:block}.fol{font-size:5mm;font-weight:700;letter-spacing:.4mm}
+  .bc{height:13mm;width:62mm;margin:2mm auto 1mm;display:block}.bc svg{width:100%;height:100%;display:block}.fol{font-size:5mm;font-weight:700;letter-spacing:.4mm}
   .bar{background:#1C2340;color:#fff;padding:8px;text-align:center;font:600 13px Arial;margin:-3mm -4mm 3mm}.bar button{margin-left:8px;padding:6px 12px;border:0;border-radius:6px;background:#EE5A24;color:#fff;font-weight:700}
   @media print{.bar{display:none}}</style></head><body>
-  <div class="bar">Ticket ${v.folio} · 7.8 cm<button onclick="print()">Imprimir</button></div>
+  <div class="bar">Ticket ${v.folio} · 8 cm<button onclick="print()">Imprimir</button></div>
   <img class="lg" src="${VT_LOGO_COLOR}" alt="VITUMA">
   <div class="c b">VITUMA · Sucursal ${VT.SUCURSALES[v.sucursal].nombre}</div>
   <div class="c">${esc(VT.SUCURSALES[v.sucursal].direccion || "")}</div>
