@@ -1168,8 +1168,9 @@ function abrirOT(id, vista){
         <div class="muted" style="margin-top:6px">¿Ya mejoraste las piezas con ✨? Súbelas aquí antes de descargar el PDF:</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${["frente","espalda","mangaD","mangaI"].map(k => { const ya = ((_mejoradas[v.folio + "|" + its.indexOf(i)]) || {})[k];
           return `<label class="btn sec sm" style="cursor:pointer">${ya ? "✅" : "⬆"} ${{frente:"Frente",espalda:"Espalda",mangaD:"Manga D",mangaI:"Manga I"}[k]}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-mej="${its.indexOf(i)}|${k}"></label>`; }).join("")}</div></span>
-        <button class="btn pri sm" data-ajpdf="${its.indexOf(i)}">⬇ PDF sin molde (CMYK)</button></div>`).join("")}
-      <p class="muted" style="margin-top:8px">1) Descarga el PDF. 2) Abre el ajustador y sube el PDF. 3) Elige el modelo y la talla en la que se diseñó (la que dice arriba). 4) Revisa el acomodo y genera las tallas.</p>
+        <span style="display:flex;flex-direction:column;gap:6px;align-items:stretch"><button class="btn pri sm" data-ajenv="${its.indexOf(i)}">🧵 Enviar al ajustador</button>
+          <button class="btn sec sm" data-ajpdf="${its.indexOf(i)}">⬇ PDF sin molde (CMYK)</button></span></div>`).join("")}
+      <p class="muted" style="margin-top:8px"><b>🧵 Enviar al ajustador</b> abre el ajustador con el diseño ya cargado, el modelo y la talla en la que se diseñó. Solo revisa el acomodo y genera las tallas. Si prefieres, descarga el PDF y súbelo a mano como siempre.</p>
       <a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none;margin-top:8px;display:inline-block">Abrir ajustador de tallas ↗</a></div>` : ""}
     <div class="card" id="upCard"><h3>✨ Mejorar resolución con IA</h3>
       <p class="muted" style="margin-bottom:8px">Agranda imágenes de baja resolución sin que se pixeleen, como Upscayl, aquí mismo y gratis. Toca <b>✨ Mejorar</b> en cualquier archivo de abajo o elige una imagen de tu computadora.</p>
@@ -1206,6 +1207,13 @@ function abrirOT(id, vista){
   document.querySelectorAll("[data-perscsv]").forEach(b => b.onclick = () => persCSV(its[+b.dataset.perscsv], v.folio));
   document.querySelectorAll("[data-mej]").forEach(inp => inp.onchange = () => { const f = inp.files[0]; if (!f) return; const [n, k] = inp.dataset.mej.split("|"), key = v.folio + "|" + n, fr = new FileReader();
     fr.onload = () => { (_mejoradas[key] = _mejoradas[key] || {})[k] = fr.result; toast("Pieza mejorada lista para el PDF"); abrirOT(id, "archivos"); }; fr.readAsDataURL(f); });
+  const nomPDF = i => `SIN_MOLDE_SUBLIMADA_MANGA_${(i.sub.larga != null ? i.sub.larga : /larga/.test(i.sub.modelo || "")) ? "LARGA" : "CORTA"}_${i.sub.tallaBase}_${(i.modelo || "").toUpperCase()}_${(v.cliente.nombre || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}_${v.folio}.pdf`;
+  document.querySelectorAll("[data-ajenv]").forEach(b => b.onclick = () => {
+    const i = its[+b.dataset.ajenv], t = b.textContent; b.disabled = true; b.textContent = "Enviando…";
+    enviarAlAjustador(() => pdfSinMolde(i.sub, "", _mejoradas[v.folio + "|" + b.dataset.ajenv] || {}, true),
+      { nombre: nomPDF(i), modelo: i.sub.modelo, talla: i.sub.tallaBase, cliente: v.cliente.nombre + " · " + v.folio },
+      () => { b.disabled = false; b.textContent = t; });
+  });
   document.querySelectorAll("[data-ajpdf]").forEach(b => b.onclick = async () => {
     const i = its[+b.dataset.ajpdf], t = b.textContent; b.disabled = true; b.textContent = "Generando…";
     try { await pdfSinMolde(i.sub, `SIN_MOLDE_SUBLIMADA_MANGA_${(i.sub.larga != null ? i.sub.larga : /larga/.test(i.sub.modelo || "")) ? "LARGA" : "CORTA"}_${i.sub.tallaBase}_${(i.modelo || "").toUpperCase()}_${VT.nombreArchivo ? VT.nombreArchivo(v.cliente.nombre) : (v.cliente.nombre || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}_${v.folio}.pdf`, _mejoradas[v.folio + "|" + b.dataset.ajpdf] || {}); toast("PDF para el ajustador descargado"); }
@@ -1350,7 +1358,7 @@ async function imagenCMYK(doc, c, lut){
     dic.set(PDFName.of("SMask"), doc.context.register(PDFRawStream.of(m, await desinflar(al)))); }
   return doc.context.register(PDFRawStream.of(dic, await desinflar(cm)));
 }
-async function pdfSinMolde(sub, nombre, reemplazos = {}){
+async function pdfSinMolde(sub, nombre, reemplazos = {}, soloBytes = false){
   if (!window.PDFLib) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js");
   const { PDFDocument, cmyk, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = window.PDFLib, CM = 72 / 2.54, gap = 5 * CM, P = sub.piezas;
   const lut = (await datosRIP()).lut;
@@ -1388,8 +1396,24 @@ async function pdfSinMolde(sub, nombre, reemplazos = {}){
     else pg.drawRectangle({ x: x0, y: Y(0, p.h), width: p.w, height: p.h, color: hex(p.fondo.color) });
     for (const e of p.els){ if (!e.src || e.pers) continue; pon(await imagenCMYK(doc, await lienzo(e.src), lut), x0 + e.x, Y(e.y, e.h), e.w, e.h); }
   }
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([await doc.save()], { type: "application/pdf" })); a.download = nombre;
+  const pdf = await doc.save(); if (soloBytes) return pdf;
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" })); a.download = nombre;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+}
+/* manda el PDF directo al ajustador de tallas (sin descargarlo): abre el ajustador y, cuando avisa que está listo, se lo pasa con el modelo, la talla y el cliente */
+function enviarAlAjustador(generar, datos, alTerminar){
+  const ORIGEN = new URL(AJUSTADOR).origin, w = window.open(AJUSTADOR + (AJUSTADOR.includes("?") ? "&" : "?") + "desde=vituma", "_blank");
+  if (!w){ toast("Tu navegador bloqueó la ventana del ajustador: permite las ventanas emergentes para este sitio", true); alTerminar(false); return; }
+  let listo = false, pdf = null, enviado = false, fin = false;
+  const terminar = ok => { if (fin) return; fin = true; window.removeEventListener("message", oye); clearTimeout(tm); alTerminar(ok); };
+  const mandar = () => { if (enviado || !listo || !pdf) return; enviado = true; const buf = pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength);
+    w.postMessage({ tipo:"vituma-ajustador", pdf: buf, ...datos }, ORIGEN, [buf]); };
+  const oye = e => { if (e.origin !== ORIGEN || e.source !== w || !e.data) return;
+    if (e.data.tipo === "ajustador-listo"){ listo = true; mandar(); }
+    if (e.data.tipo === "ajustador-recibido"){ toast("Diseño enviado al ajustador ✔"); terminar(true); } };
+  window.addEventListener("message", oye);
+  const tm = setTimeout(() => { if (!enviado) toast("El ajustador no respondió. Usa “PDF sin molde” y súbelo a mano.", true); terminar(false); }, 60000);
+  generar().then(b => { pdf = b; mandar(); }).catch(() => { toast("No se pudo generar el PDF", true); try { w.close(); } catch(e){} terminar(false); });
 }
 /* guarda una imagen conservando la transparencia (PNG), reducida para la muestra */
 function pngParaGuardar(file, max){
