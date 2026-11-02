@@ -226,6 +226,7 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
 .porpieza{margin-top:4px}.porpieza>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy);padding:10px 0}
 @media(max-width:600px){.lamres{grid-template-columns:repeat(2,1fr)}}
 .cuellosw{display:inline-block;width:44px;height:22px;border-radius:6px;border:1.5px solid #D5D8E0;vertical-align:middle}
+.lamfalta{height:110px;display:grid;place-items:center;border:2px dashed #D5D8E0;border-radius:10px;color:var(--muted);font-weight:700;font-size:13px}
 .verej{margin:-6px 0 14px;background:#F7F8FB;border-radius:12px;padding:8px 12px}.verej summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy)}
 .persej{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 4px}.persej figure{margin:0;background:#F7F8FB;border-radius:14px;padding:10px;text-align:center}
 .persej svg{width:100%;max-height:190px}.persej figcaption{font-size:12.5px;font-weight:700;color:var(--navy);margin-top:4px}
@@ -353,7 +354,7 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
 
       <div class="row" id="rowPerso"></div>
 
-      <div class="row">
+      <div class="row" id="rowNotas">
         <span class="label">Notas (opcional)</span>
         <textarea id="notes" placeholder="Ej. logo al frente, colores del equipo, fecha en que lo necesitas..."></textarea>
       </div>
@@ -475,12 +476,13 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
         <div class="pasoh"><span class="num">5</span><div><h3>Saca las piezas de tu diseño</h3><p>Para imprimir necesitamos un <b>rectángulo lleno de diseño</b> por cada parte. No tienes que escribir nada: la app te da las instrucciones.</p></div></div>
         <div id="sbPzRef"></div>
         <div class="lamina">
-          <div class="lamh"><span class="tag">⚡ Rápido</span><b>Las 4 piezas en un solo paso</b></div>
+          <div class="lamh"><span class="tag">⚡ Rápido</span><b>Las 4 piezas con una sola instrucción</b></div>
           <ol><li>Toca <b>📋 Copiar instrucciones</b>.</li>
             <li>Pégalas en la <b>misma conversación de la IA</b> donde hiciste tu mockup.</li>
-            <li>Descarga la imagen con las 4 piezas (o las 4 imágenes si te las da separadas) y súbela aquí. <b>La app separa las piezas sola.</b></li></ol>
+            <li>La IA te da <b>4 imágenes</b>: frente, espalda, manga derecha y manga izquierda. Si te da una sola, escríbele <b>"siguiente"</b> para la que sigue.</li>
+            <li>Descárgalas y súbelas aquí (puedes elegir las 4 juntas o una por una). <b>La app las acomoda sola.</b></li></ol>
           <div class="accrow" style="margin-top:10px"><button class="btn pri" id="sbLamCopy">📋 Copiar instrucciones</button>
-            <label class="btn ghost" style="cursor:pointer">⬆ Subir la imagen de las piezas<input type="file" id="sbLamFile" accept="image/png,image/jpeg,image/webp" multiple hidden></label>
+            <label class="btn ghost" style="cursor:pointer">⬆ Subir las imágenes de las piezas<input type="file" id="sbLamFile" accept="image/png,image/jpeg,image/webp" multiple hidden></label>
             <button class="btn ghost" id="sbLamMal">🔁 No salió bien</button></div>
           <div id="sbLamRes"></div>
           <details class="verinst"><summary>Ver las instrucciones</summary><textarea id="sbLamTxt" readonly></textarea></details>
@@ -1248,16 +1250,21 @@ function pintarConfig(){
 }
 
 function pintarPersona(p){
-  const per = actual.per, box = $("#rowPerso");
+  const per = actual.per, box = $("#rowPerso"), disena = p.id === "sub_mc" || p.id === "sub_ml";
+  $("#rowNotas").style.display = disena ? "none" : "";
+  if (disena){ per.nombreNumero = false;
+    box.innerHTML = `<div class="note" style="margin-bottom:12px;border-left-color:var(--orange)"><b>🎨 Realiza tu diseño</b><br>Arma tu playera pieza por pieza (frente, espalda y mangas): ahí eliges el fondo, tu logo, los textos y, si quieres, nombre y número en cada playera.
+        <button class="btn pri" id="irDiseno" style="width:100%;margin-top:10px">🎨 Realiza tu diseño</button></div>`;
+    $("#irDiseno").onclick = async () => { actual.qtyM = actual.qtyM || {}; actual.qtyM[actual.modelo] = actual.qty;
+      const qm = {}; for (const [g, q] of Object.entries(actual.qtyM)) qm[g] = { ...q };
+      SB.modelo = actual.modelo; irA("disena"); await sbElegir(p.id); if (SB.prod !== p.id) return;
+      SB.qtyM = qm; SB.modelo = actual.modelo; SB.qty = qm[SB.modelo] || {}; sbRender(); };
+    return;
+  }
   if (p.persona === "sublimado"){
     box.innerHTML = `<span class="label">Personalización</span>
       <label class="chk"><input type="checkbox" id="nn"${per.nombreNumero?" checked":""}><span><b>Nombre y número en cada playera</b><br><span class="muted">Ideal para equipos. En notas puedes poner la lista o la enviamos por WhatsApp.</span></span></label>`;
     $("#nn").onchange = e => { per.nombreNumero = e.target.checked; actualizarPreview(); };
-    if (p.id === "sub_mc" || p.id === "sub_ml"){
-      box.insertAdjacentHTML("afterbegin", `<div class="note" style="margin-bottom:12px;border-left-color:var(--orange)"><b>🎨 Realiza tu diseño</b><br>Arma tu playera pieza por pieza (frente, espalda y mangas) con fondo, logos, textos y ayuda de la IA, y mira cómo queda.
-        <button class="btn pri" id="irDiseno" style="width:100%;margin-top:10px">🎨 Realiza tu diseño</button></div>`);
-      $("#irDiseno").onclick = async () => { const q = { ...actual.qty }; SB.modelo = actual.modelo; irA("disena"); await sbElegir(p.id); if (SB.prod !== p.id) return; SB.qty = q; SB.modelo = actual.modelo; sbRender(); };
-    }
     return;
   }
   const opciones = p.bordadoIncluido ? [["bordado","Bordado (incluido)"],["dtf","Estampado DTF"]] : [["ninguna","Lisa"],["bordado","Bordado"],["dtf","Estampado DTF"]];
@@ -2709,7 +2716,7 @@ function sbRender(){
   $("#sbGender").innerHTML = Object.keys(p.modelos).map(g => { const n = piezas(SB.qtyM[g] || {}); return `<button class="${g===SB.modelo?"on":""}" data-g="${g}">${g}${n ? ` · ${n}` : ""}</button>`; }).join("");
   const otros = Object.keys(p.modelos).filter(g => g !== SB.modelo && piezas(SB.qtyM[g] || {}));
   if (!$("#sbGenNota")) $("#sbGender").insertAdjacentHTML("afterend", `<div class="mini" id="sbGenNota" style="margin-top:6px"></div>`);
-  $("#sbGenNota").innerHTML = otros.length ? `⚠️ También elegiste tallas de <b>${otros.join(", ").toLowerCase()}</b>. Agrega primero esta playera a tu pedido y luego cambia de modelo para agregar la otra: tu diseño se conserva.`
+  $("#sbGenNota").innerHTML = otros.length ? `👕 También llevas <b>${otros.map(g => `${g.toLowerCase()} (${piezas(SB.qtyM[g])})`).join(", ")}</b>. Arma tu diseño y agrégalo a tu pedido; después la app te pasa a ${otros.length > 1 ? "los otros modelos" : otros[0].toLowerCase()} con el mismo diseño para agregarlo también.`
     : `¿Caballero y dama? Agrega primero uno a tu pedido y luego cambia de modelo: tu diseño se conserva.`;
   document.querySelectorAll("#sbGender button").forEach(b => b.onclick = () => { if (b.dataset.g === SB.modelo) return; SB.qtyM[SB.modelo] = SB.qty; SB.modelo = b.dataset.g; SB.qty = SB.qtyM[SB.modelo] || {}; sbRender(); });
   $("#sbSizes").innerHTML = p.modelos[SB.modelo].map(t => `<div class="size${SB.qty[t]?" has":""}" data-t="${t}"><b>${t}</b>
@@ -2961,6 +2968,52 @@ function sbSilueta(src){
     const d = x.getImageData(0, 0, 64, 64).data, blanca = (x0, y0) => { let n = 0; for (let y = y0; y < y0 + 8; y++) for (let z = x0; z < x0 + 8; z++){ const i = (y * 64 + z) * 4; if (d[i] > 225 && d[i+1] > 225 && d[i+2] > 225) n++; } return n > 56; };
     ok([[0,0],[56,0],[0,56],[56,56]].filter(([a, b]) => blanca(a, b)).length >= 2); }; im.onerror = () => ok(false); im.src = src; });
 }
+/* si la IA dibujó la pieza con forma (cuello, hombros, manga en trapecio) sobre blanco, la convertimos en rectángulo:
+   se queda con la pieza más grande (sin el nombre escrito), la recorta a su caja y rellena los huecos blancos de las
+   orillas estirando los colores vecinos. Las franjas blancas chicas del diseño se respetan. */
+function sbCompletar(src){
+  return new Promise(ok => { const im = new Image(); im.onload = () => { try {
+    const s0 = Math.min(1, 1600 / Math.max(im.width, im.height)), W = Math.round(im.width * s0), H = Math.round(im.height * s0);
+    const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d", { willReadFrequently:true }); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H); x.drawImage(im, 0, 0, W, H);
+    const D = x.getImageData(0, 0, W, H), d = D.data, N = W * H, bl = i => d[i*4] > 236 && d[i*4+1] > 236 && d[i*4+2] > 236;
+    /* blanco que toca la orilla: posibles huecos */
+    const fondo = new Int32Array(N).fill(-1), regiones = [];
+    const inunda = (i0, id) => { const st = [i0]; fondo[i0] = id; let n = 0;
+      while (st.length){ const i = st.pop(), z = i % W; n++;
+        for (const q of [z > 0 ? i - 1 : -1, z < W - 1 ? i + 1 : -1, i - W, i + W]) if (q >= 0 && q < N && fondo[q] < 0 && bl(q)){ fondo[q] = id; st.push(q); } }
+      return n; };
+    const orilla = []; for (let z = 0; z < W; z++) orilla.push(z, N - W + z); for (let y = 0; y < H; y++) orilla.push(y * W, y * W + W - 1);
+    for (const i of orilla) if (fondo[i] < 0 && bl(i)) regiones.push(inunda(i, regiones.length));
+    const hueco = new Uint8Array(N); let hay = 0;
+    for (let i = 0; i < N; i++) if (fondo[i] >= 0 && regiones[fondo[i]] > N * .012){ hueco[i] = 1; hay++; }
+    if (hay < N * .01) return ok(null);
+    /* la pieza: la mancha más grande que no es hueco (los nombres escritos quedan fuera) */
+    const lab = new Int32Array(N), tam = [0]; let id = 0;
+    for (let i = 0; i < N; i++){ if (hueco[i] || lab[i]) continue; id++; let n = 0; const st = [i]; lab[i] = id;
+      while (st.length){ const j = st.pop(), z = j % W; n++;
+        for (const q of [z > 0 ? j - 1 : -1, z < W - 1 ? j + 1 : -1, j - W, j + W]) if (q >= 0 && q < N && !hueco[q] && !lab[q]){ lab[q] = id; st.push(q); } }
+      tam.push(n); }
+    let mejor = 1; for (let i = 2; i < tam.length; i++) if (tam[i] > tam[mejor]) mejor = i;
+    let x0 = W, y0 = H, x1 = 0, y1 = 0;
+    for (let i = 0; i < N; i++) if (lab[i] === mejor){ const z = i % W, y = (i / W) | 0; if (z < x0) x0 = z; if (z > x1) x1 = z; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const w = x1 - x0 + 1, h = y1 - y0 + 1; if (w < 20 || h < 20) return ok(null);
+    /* dentro de la caja: lo que no es la pieza (más 2 px de orilla suavizada) se rellena con el color vecino */
+    const M = w * h, conoce = new Uint8Array(M), col = new Uint8ClampedArray(M * 4);
+    for (let y = 0; y < h; y++) for (let z = 0; z < w; z++){ const i = (y + y0) * W + z + x0, j = y * w + z; if (lab[i] === mejor){ conoce[j] = 1; col.set(d.subarray(i * 4, i * 4 + 4), j * 4); } }
+    /* quita la orilla suavizada (mezcla con el blanco): 3 px o más, y luego los tonos muy claros que sigan pegados al hueco */
+    const pasos = Math.max(3, Math.round(Math.min(w, h) * .012)), claro = j => col[j*4] > 200 && col[j*4+1] > 200 && col[j*4+2] > 200;
+    for (let paso = 0; paso < pasos + 4; paso++){ const quita = [];
+      for (let j = 0; j < M; j++) if (conoce[j] && (paso < pasos || claro(j))){ const z = j % w; if ((z > 0 && !conoce[j-1]) || (z < w-1 && !conoce[j+1]) || (j >= w && !conoce[j-w]) || (j < M-w && !conoce[j+w])) quita.push(j); }
+      if (quita.length < M * .3) for (const j of quita) conoce[j] = 0; }
+    let cola = []; for (let j = 0; j < M; j++) if (conoce[j]){ const z = j % w; if ((z > 0 && !conoce[j-1]) || (z < w-1 && !conoce[j+1]) || (j >= w && !conoce[j-w]) || (j < M-w && !conoce[j+w])) cola.push(j); }
+    while (cola.length){ const sig = [];
+      for (const j of cola){ const z = j % w;
+        for (const q of [z > 0 ? j - 1 : -1, z < w - 1 ? j + 1 : -1, j - w, j + w]) if (q >= 0 && q < M && !conoce[q]){ conoce[q] = 1; col[q*4] = col[j*4]; col[q*4+1] = col[j*4+1]; col[q*4+2] = col[j*4+2]; col[q*4+3] = 255; sig.push(q); } }
+      cola = sig; }
+    const o = document.createElement("canvas"); o.width = w; o.height = h; o.getContext("2d").putImageData(new ImageData(col, w, h), 0, 0);
+    ok({ src: o.toDataURL("image/jpeg", .9), w: Math.round(w / s0), h: Math.round(h / s0) });
+  } catch(e){ ok(null); } }; im.onerror = () => ok(null); im.src = src; });
+}
 function sbPasoMockup(){
   $("#sbMkPrompt").value = sbPromptMockup();
   $("#sbMkLogoAviso").innerHTML = SB.logo ? `📎 <b>No olvides adjuntar tu logotipo</b> en Gemini o ChatGPT junto con las instrucciones.` : SB.tiene === "no" ? "" : `📎 Si tienes tu logotipo, adjúntalo en el paso 3 y también en la IA junto con las instrucciones.`;
@@ -2974,10 +3027,10 @@ function sbPasoMockup(){
 /* ---------- las 4 piezas en un solo paso: una "lámina" con las piezas separadas y su nombre abajo ---------- */
 function sbPromptLamina(){
   const F = k => sbFormato(k).txt, larga = sbLarga();
-  return `Te adjunto el mockup de mi playera (frente y espalda). A partir de ese mockup, genera UNA sola imagen horizontal sobre FONDO BLANCO liso con las 4 piezas de tela extendidas y planas, listas para sublimar, separadas entre sí por un espacio blanco amplio, en este orden de izquierda a derecha:\n1) FRENTE (rectángulo ${F("frente")})\n2) ESPALDA (rectángulo ${F("espalda")})\n3) MANGA DERECHA (rectángulo ${F("mangaD")}; es la manga que en la vista FRENTE del mockup se ve del lado IZQUIERDO de la imagen)\n4) MANGA IZQUIERDA (rectángulo ${F("mangaI")})\nDebajo de cada rectángulo, fuera de él y en letras negras pequeñas, escribe el nombre de la pieza: FRENTE, ESPALDA, MANGA DERECHA, MANGA IZQUIERDA.\n\nInstrucciones obligatorias:\n- Cada pieza es un RECTÁNGULO lleno de diseño de orilla a orilla. NO dibujes la forma de la playera, ni cuello, hombros, sisas, costuras, sombras o arrugas.\n- Usa EXACTAMENTE los mismos colores, franjas, formas y estilo del mockup, con diseño de sobra en las orillas.\n- Las mangas solo llevan el diseño de las mangas (no el del cuerpo)${larga ? "; acomódalas verticales, con el hombro arriba y el puño abajo" : "; acomódalas horizontales, con el hombro arriba"}.\n- CONTINUIDAD: lo que pasa del cuerpo a las mangas (franjas, colores, degradados) debe coincidir en las orillas que se cosen.\n- DENTRO de las piezas NO pongas logotipos, textos, nombres ni números: donde estaban, continúa el mismo fondo. Lo único escrito son los nombres de las piezas, abajo y fuera de cada rectángulo.\n- Alta resolución, sin marcas de agua.\n\nSi no puedes hacerlo en una sola imagen, entrega 4 imágenes, una por pieza, en ese mismo orden.`;
+  return `Te adjunto el mockup de mi playera (frente y espalda). A partir de ese mockup, genera 4 IMÁGENES SEPARADAS, una por cada pieza de tela, listas para sublimar, en este orden:\n1) FRENTE: formato ${F("frente")}\n2) ESPALDA: formato ${F("espalda")}\n3) MANGA DERECHA: formato ${F("mangaD")} (es la manga que en la vista FRENTE del mockup se ve del lado IZQUIERDO de la imagen)\n4) MANGA IZQUIERDA: formato ${F("mangaI")}\n\nInstrucciones obligatorias para cada imagen:\n- Toda la imagen es la tela: un RECTÁNGULO PERFECTO (4 esquinas rectas de 90°) lleno de diseño de orilla a orilla. Sin fondo blanco alrededor, sin marco y sin texto.\n- NO dibujes la forma de la playera: sin hueco de cuello, sin hombros, sin sisas, sin costuras, sombras ni arrugas.\n- Las MANGAS también son rectángulos: NO las dibujes como trapecio ni con la curva del hombro arriba${larga ? "; van verticales, con el hombro arriba y el puño abajo" : "; van horizontales, con el hombro arriba"}. Solo llevan el diseño de las mangas (no el del cuerpo).\n- Usa EXACTAMENTE los mismos colores, franjas, formas y estilo del mockup, con diseño de sobra en las orillas.\n- CONTINUIDAD: lo que pasa del cuerpo a las mangas (franjas, colores, degradados) debe coincidir en las orillas que se cosen.\n- NO pongas logotipos, textos, nombres ni números: donde estaban, continúa el mismo fondo.\n- Alta resolución, sin marcas de agua.\n\nEntrégame las 4 imágenes separadas. Si solo puedes generar una imagen por respuesta, empieza por el FRENTE y cuando te escriba "siguiente" haz la que sigue, en el mismo orden.`;
 }
 function sbPromptLaminaMal(){
-  return `No quedó como te pedí. Hazla de nuevo: UNA imagen sobre fondo blanco con 4 RECTÁNGULOS separados por espacio blanco (FRENTE, ESPALDA, MANGA DERECHA, MANGA IZQUIERDA, en ese orden), cada uno lleno de diseño de orilla a orilla, sin silueta de playera, sin logos ni textos adentro, y con el nombre de cada pieza escrito abajo, fuera del rectángulo. Mismos colores y estilo del mockup.`;
+  return `No quedó como te pedí. Hazlas de nuevo: 4 IMÁGENES SEPARADAS (FRENTE, ESPALDA, MANGA DERECHA, MANGA IZQUIERDA, en ese orden). Cada imagen es solo esa pieza: un RECTÁNGULO lleno de diseño de orilla a orilla, con 4 esquinas rectas, sin fondo blanco alrededor, sin silueta de playera (las mangas tampoco van en trapecio ni con curva arriba) y sin logos ni textos. Mismos colores y estilo del mockup.`;
 }
 /* separa las piezas de la lámina: busca los rectángulos de diseño sobre el fondo blanco (los nombres de abajo son chicos y se ignoran) */
 function sbSepararLamina(im){
@@ -3013,19 +3066,42 @@ function sbSepararLamina(im){
 }
 const sbCargarImg = f => new Promise((ok, no) => { const fr = new FileReader(); fr.onerror = no; fr.onload = () => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = fr.result; }; fr.readAsDataURL(f); });
 async function sbSubirLamina(files){
-  const res = $("#sbLamRes"); res.innerHTML = `<div class="mini" style="margin-top:10px">⏳ Separando las piezas…</div>`;
+  const res = $("#sbLamRes"); res.innerHTML = `<div class="mini" style="margin-top:10px">⏳ Acomodando las piezas…</div>`;
   let piezas = null;
   try {
-    if (files.length >= 4){   // la IA las dio separadas: van en el orden que se pidió
-      piezas = {}; const ks = ["frente","espalda","mangaD","mangaI"];
-      for (let i = 0; i < 4; i++){ const r = await sbLeer(files[i], 1600, "image/jpeg"); piezas[ks[i]] = { src: r.src, w: r.w, h: r.h }; }
-    } else piezas = sbSepararLamina(await sbCargarImg(files[0]));
+    if (files.length === 1) piezas = sbSepararLamina(await sbCargarImg(files[0]));   // ¿una sola imagen con las 4 piezas?
+    if (!piezas){   // imágenes separadas (una por pieza): van en el orden en que se pidieron; cuerpo y manga se distinguen por su forma
+      piezas = {}; const lista = [];
+      for (const f of files.slice(0, 4)){ const r0 = await sbLeer(f, 1600, "image/jpeg"), c = await sbCompletar(r0.src); lista.push({ ...(c || r0), completada: !!c }); }
+      /* manga larga: las mangas son angostas y altas; manga corta: son anchas (horizontales) */
+      const larga = sbLarga(), a = p => p.w / p.h, esManga = p => larga ? a(p) < .48 : a(p) > .95;
+      let cuerpos = lista.filter(p => !esManga(p)), mangas = lista.filter(esManga);
+      if (lista.length === 4 && cuerpos.length !== 2){   // si no se distinguen solas: por forma relativa, y si no, el orden en que se pidieron
+        const ord = lista.map((p, i) => ({ p, i })).sort((x, y) => larga ? a(y.p) - a(x.p) : a(x.p) - a(y.p));
+        if (Math.abs(Math.log(a(ord[1].p) / a(ord[2].p))) > Math.log(1.25)){
+          cuerpos = ord.slice(0, 2).sort((x, y) => x.i - y.i).map(x => x.p); mangas = ord.slice(2).sort((x, y) => x.i - y.i).map(x => x.p); }
+        else { cuerpos = lista.slice(0, 2); mangas = lista.slice(2); } }
+      const tiene = k => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src;
+      const pon = (grupo, ks) => { const lb = lista.length === 4 ? ks : ks.filter(k => !tiene(k)), orden = lb.length >= grupo.length ? lb : ks; grupo.forEach((p, i) => { if (orden[i]) piezas[orden[i]] = p; }); };
+      pon(cuerpos, ["frente","espalda"]); pon(mangas, ["mangaD","mangaI"]);
+      if (!Object.keys(piezas).length) piezas = null;
+    }
   } catch(e){ piezas = null; }
-  if (!piezas){ res.innerHTML = `<div class="warn" style="margin-top:10px">No pudimos encontrar las 4 piezas en esa imagen. Toca <b>🔁 No salió bien</b>, pega el mensaje en la IA y sube la imagen nueva, o súbelas una por una (abajo).</div>`; return; }
-  for (const [k, p] of Object.entries(piezas)) SB.piezas[k].fondo = { tipo:"imagen", src: p.src, nombre: "lamina_" + k, w: p.w, h: p.h, color: SB.piezas[k].fondo.color, silueta: await sbSilueta(p.src) };
-  SB.mockup = null; sbRender();
-  $("#sbLamRes").innerHTML = `<div class="okbox" style="margin-top:12px">✅ Separamos tus 4 piezas. Revisa que cada una esté en su lugar; si alguna quedó cambiada, súbela en "una por una".</div>
-    <div class="lamres">${SB_PIEZAS.map(([k, t]) => `<figure><img src="${SB.piezas[k].fondo.src}" alt="${t}" data-zoom><figcaption>${t}</figcaption></figure>`).join("")}</div>`;
+  if (!piezas){ res.innerHTML = `<div class="warn" style="margin-top:10px">No pudimos leer esa imagen. Toca <b>🔁 No salió bien</b>, pega el mensaje en la IA y sube las imágenes nuevas, o súbelas una por una (abajo).</div>`; return; }
+  const arregladas = [];
+  for (const [k, p0] of Object.entries(piezas)){ const r = "completada" in p0 ? null : await sbCompletar(p0.src), p = r || p0; if (r || p0.completada) arregladas.push(k);
+    SB.piezas[k].fondo = { tipo:"imagen", src: p.src, nombre: "ia_" + k, w: p.w, h: p.h, color: SB.piezas[k].fondo.color, silueta: r || p0.completada ? false : await sbSilueta(p.src), completada: !!(r || p0.completada) }; }
+  SB.mockup = null; sbRender(); sbLamResultado(arregladas);
+}
+/* muestra cómo quedaron acomodadas las piezas, con botones para intercambiarlas si alguna quedó en otro lugar */
+function sbLamResultado(arregladas){
+  const tiene = k => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src, faltan = SB_PIEZAS.filter(([k]) => !tiene(k)).map(([, t]) => t.toLowerCase());
+  const nom = k => SB_PIEZAS.find(x => x[0] === k)[1].toLowerCase();
+  $("#sbLamRes").innerHTML = `<div class="${faltan.length ? "warn" : "okbox"}" style="margin-top:12px">${faltan.length ? `📥 Faltan: <b>${faltan.join(", ")}</b>. Pide en la IA la que sigue (escríbele "siguiente") y súbela con el mismo botón.` : "✅ Listo, tus 4 piezas están en su lugar. Revisa que cada una corresponda; si no, usa los botones ⇄."}
+    ${arregladas && arregladas.length ? `<br>✂️ La IA dibujó con forma de playera: ${arregladas.map(nom).join(", ")}. La${arregladas.length === 1 ? "" : "s"} hicimos rectángulo rellenando las orillas blancas con los colores de junto. Si no te gusta cómo quedó, toca <b>🔁 No salió bien</b> y pídela otra vez.` : ""}</div>
+    <div class="lamres">${SB_PIEZAS.map(([k, t]) => `<figure>${tiene(k) ? `<img src="${SB.piezas[k].fondo.src}" alt="${t}" data-zoom>` : `<div class="lamfalta">Falta</div>`}<figcaption>${t}</figcaption></figure>`).join("")}</div>
+    <div class="accrow" style="margin-top:8px"><button class="btn ghost" data-lsw="frente,espalda" style="padding:7px 12px;font-size:13px">⇄ Cambiar frente y espalda</button><button class="btn ghost" data-lsw="mangaD,mangaI" style="padding:7px 12px;font-size:13px">⇄ Cambiar las mangas</button></div>`;
+  $("#sbLamRes").querySelectorAll("[data-lsw]").forEach(b => b.onclick = () => { const [a, c] = b.dataset.lsw.split(","), fa = SB.piezas[a].fondo; SB.piezas[a].fondo = SB.piezas[c].fondo; SB.piezas[c].fondo = fa; SB.mockup = null; sbRender(); sbLamResultado(arregladas); });
 }
 function sbPasoPiezas(){
   const { m } = sbBase(), r = SB.referencia;
@@ -3045,7 +3121,8 @@ function sbPasoPiezas(){
   document.querySelectorAll("[data-pzc]").forEach(b => b.onclick = () => sbCopiar(sbPromptPieza(b.dataset.pzc), b));
   document.querySelectorAll("[data-pzr]").forEach(b => b.onclick = () => sbCopiar(sbPromptCorregir(b.dataset.pzr), b));
   document.querySelectorAll("[data-pzu]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const k = inp.dataset.pzu;
-    const x = await sbLeer(f, 1600, "image/jpeg"); SB.piezas[k].fondo = { tipo:"imagen", src: x.src, nombre: f.name, w: x.w, h: x.h, color: SB.piezas[k].fondo.color, silueta: await sbSilueta(x.src) };
+    const x0 = await sbLeer(f, 1600, "image/jpeg"), r = await sbCompletar(x0.src), x = r || x0;
+    SB.piezas[k].fondo = { tipo:"imagen", src: x.src, nombre: f.name, w: x.w, h: x.h, color: SB.piezas[k].fondo.color, silueta: r ? false : await sbSilueta(x.src), completada: !!r };
     SB.pieza = k; SB.mockup = null; sbRender(); });
 }
 /* lista de nombres y números: un renglón por playera, según las tallas elegidas (se conserva lo ya escrito) */
@@ -3150,7 +3227,9 @@ function sbItem(){
 }
 function sbPrecio(){
   const it = sbItem(), n = piezas(it.qty), p = byId(SB.prod);
-  const r = n ? calcular([...carrito, it]).pop() : { subtotal: 0, anticipo: 0 };
+  /* las tallas del otro modelo (caballero/dama) que aún no se agregan también cuentan para el precio por cantidad */
+  const otros = Object.keys(SB.qtyM || {}).filter(g => g !== SB.modelo && piezas(SB.qtyM[g] || {})).map(g => ({ ...it, modelo: g, qty: SB.qtyM[g] }));
+  const r = n ? calcular([...carrito, ...otros, it]).pop() : { subtotal: 0, anticipo: 0 };
   let h = `<div><span>${p.nombre} (${SB.modelo.toLowerCase()})</span><b>${n ? money(r.subtotal / n) + " c/u" : "—"}</b></div>`;
   if (SERVICIOS[it.diseno.servicio]) h += `<div><span>✏️ ${SERVICIOS[it.diseno.servicio].t} (una vez por pedido)</span><b>${money(SERVICIOS[it.diseno.servicio].precio)}</b></div>`;
   const sv = SERVICIOS[it.diseno.servicio] && !carrito.some(c => c.diseno && c.diseno.servicio === it.diseno.servicio) ? SERVICIOS[it.diseno.servicio].precio : 0;
@@ -3295,9 +3374,14 @@ async function sbAgregar(){
     }
   } catch(e){}
   carrito.push(it); guardarOk();
-  pintarCarrito(); SB.qty = {}; if (SB.qtyM) SB.qtyM[SB.modelo] = {}; sbRender();
+  pintarCarrito(); SB.qty = {}; if (SB.qtyM) SB.qtyM[SB.modelo] = {};
+  /* si eligió tallas de otro modelo (caballero y dama), pasa a ese modelo con el mismo diseño */
+  const sig = Object.keys(SB.qtyM || {}).find(g => g !== SB.modelo && piezas(SB.qtyM[g] || {}));
+  if (sig){ SB.modelo = sig; SB.qty = SB.qtyM[sig]; SB.mockup = null; }
+  sbRender();
   b.textContent = "Agregar a mi pedido";
-  const t = $("#toast"); t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1600);
+  if (sig){ toast2(`Listo. Ahora revisa la de ${sig.toLowerCase()} (mismo diseño) y agrégala también`); setTimeout(() => { const g = $("#sbGender"); if (g) g.scrollIntoView({ behavior:"smooth", block:"center" }); }, 300); }
+  else { const t = $("#toast"); t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1600); }
 }
 
 /* ---------- eventos fijos ---------- */
