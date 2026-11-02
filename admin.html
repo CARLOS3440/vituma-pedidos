@@ -172,6 +172,10 @@ td.tk{cursor:pointer}
   table.t.resp td[data-h]::before{content:attr(data-h) ": ";color:var(--muted);font-size:11.5px}
   .row3{grid-template-columns:1fr}
 }
+.upwrap{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}.upimg{width:150px;height:150px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/16px 16px}
+.upbar{height:8px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:10px}.upbar i{display:block;height:100%;width:0;background:#F26B21;transition:width .2s}
+#upX{display:flex;gap:6px;flex-wrap:wrap}#upX button{border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:7px 10px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}#upX button.on{background:#1C2340;color:#fff;border-color:#1C2340}#upX button:disabled{opacity:.4;cursor:not-allowed}
+.upbtn{border:0;background:none;color:#F26B21;font-weight:700;font-size:12px;cursor:pointer;padding:2px 0}
 </style>
 </head>
 <body>
@@ -1092,8 +1096,9 @@ function abrirOT(id, vista){
   const archivos = [
     ...its.flatMap(i => (i.logos || []).map(l => ({ nombre: "Logo del cliente · " + l.nombre, src: l.src, tipo:"img" }))),
     ...its.filter(i => i.mockupTipo === "diseno" && i.mockup).map(i => ({ nombre: "Vista previa · " + i.prenda, src: i.mockup, tipo:"img" })),
+    ...its.filter(i => i.referencia).map(i => ({ nombre: "Mockup del cliente (IA) · " + i.prenda, src: i.referencia, tipo:"img" })),
     ...its.filter(i => i.sub).flatMap(i => Object.entries(i.sub.piezas).flatMap(([k, p]) => [...(p.fondo.src ? [{ nombre: `Fondo ${k}`, src: p.fondo.src, tipo:"img" }] : []),
-      ...p.els.filter(e => e.src && e.tipo !== "firma").map(e => ({ nombre: `${k} · ${e.nombre}`, src: e.src, tipo:"img" }))])),
+      ...p.els.filter(e => e.src && e.tipo !== "firma" && !e.pers).map(e => ({ nombre: `${k} · ${e.nombre}`, src: e.src, tipo:"img" }))])),
     ...ot.archivos.map(a => ({ ...a, propio: true }))
   ];
   $("#dBody").innerHTML = det ? `
@@ -1121,6 +1126,8 @@ function abrirOT(id, vista){
         <div style="margin-top:6px"><b>Personalización:</b> ${esc(i.personalizacion || (TECNICAS[tecnicaItem(i)]))}</div>
         ${(i.zonas || []).length && !(i.personalizacion||"").includes(i.zonas[0]) ? `<div class="muted">Ubicaciones: ${i.zonas.map(esc).join(" · ")}</div>` : ""}
         ${i.descripcion ? `<div class="pidio"><b>Lo que pidió el cliente:</b>${[["Frente","frente"],["Espalda","espalda"],["Mangas","mangas"],["Colores","colores"]].filter(([, k]) => i.descripcion[k]).map(([t, k]) => `<div><b>${t}:</b> ${esc(i.descripcion[k])}</div>`).join("")}</div>` : ""}
+        ${i.idea || i.referencia ? `<div class="pidio"><b>Lo que pidió el cliente:</b>${i.idea ? `<div>${esc(i.idea)}</div>` : ""}${i.referencia ? `<div style="margin-top:6px"><img src="${i.referencia}" alt="Mockup del cliente" data-zoom style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--line)"><div class="muted">Mockup que hizo con la IA (referencia para las piezas)</div></div>` : ""}</div>` : ""}
+        ${i.pers ? persHTML(i, its.indexOf(i)) : ""}
         ${i.contacto ? `<div style="margin-top:4px"><b>Datos de contacto en la espalda:</b> ${i.contacto.lineas.map(l => `${esc(l.red)}: ${esc(l.texto)}`).join(" · ")} <span class="muted">(letra ${esc(i.contacto.letra || "Montserrat")}, color ${esc(i.contacto.color || "automático")})</span></div>` : ""}
         ${i.notas ? `<div style="margin-top:4px">📝 ${esc(i.notas)}</div>` : ""}
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
@@ -1155,13 +1162,19 @@ function abrirOT(id, vista){
     ${its.some(i => i.sub) ? `<div class="card"><h3>🧵 Para el ajustador de tallas</h3>
       ${its.filter(i => i.sub).map(i => `<div class="li" style="align-items:center"><span><b>${esc(i.prenda)} · ${esc(i.modelo)}</b>
         <div class="muted">Molde: <b>${esc(i.sub.modeloTxt)}</b> · talla en la que se diseñó: <b>${esc(i.sub.tallaBase)}</b>${i.sub.tallaApp !== i.sub.tallaBase ? ` (${esc(i.sub.tallaApp)} en la app)` : ""} · tallas: ${Object.entries(i.qty || {}).map(([t, n]) => `${t}×${n}`).join(", ")}</div>
-        <div class="muted">${Object.entries(i.sub.piezas).map(([k, p]) => `${{frente:"Frente",espalda:"Espalda",mangaD:"Manga D",mangaI:"Manga I"}[k]}: ${p.els.map(e => esc(e.nombre)).join(", ") || "solo fondo"}`).join(" · ")}</div></span>
+        <div class="muted">${Object.entries(i.sub.piezas).map(([k, p]) => `${{frente:"Frente",espalda:"Espalda",mangaD:"Manga D",mangaI:"Manga I"}[k]}: ${p.els.filter(e => !e.pers).map(e => esc(e.nombre)).join(", ") || "solo fondo"}`).join(" · ")}</div>
+        ${i.pers ? `<div class="muted">🔢 Lleva nombre y número (${[i.pers.espalda ? "espalda" : "", i.pers.pecho ? "pecho " + (LADO_TXT[i.pers.pecho.lado] || "") : ""].filter(Boolean).join(" y ")}, letra ${esc(i.pers.fuente)}): no van en el PDF, se ponen por playera con la lista. <button class="btn sec sm" data-perscsv="${its.indexOf(i)}" style="margin-top:4px">⬇ Lista CSV</button></div>` : ""}</span>
         <button class="btn pri sm" data-ajpdf="${its.indexOf(i)}">⬇ PDF sin molde</button></div>`).join("")}
       <p class="muted" style="margin-top:8px">1) Descarga el PDF. 2) Abre el ajustador y sube el PDF. 3) Elige el modelo y la talla en la que se diseñó (la que dice arriba). 4) Revisa el acomodo y genera las tallas.</p>
       <a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none;margin-top:8px;display:inline-block">Abrir ajustador de tallas ↗</a></div>` : ""}
+    <div class="card" id="upCard"><h3>✨ Mejorar resolución con IA</h3>
+      <p class="muted" style="margin-bottom:8px">Agranda imágenes de baja resolución sin que se pixeleen, como Upscayl, aquí mismo y gratis. Toca <b>✨ Mejorar</b> en cualquier archivo de abajo o elige una imagen de tu computadora.</p>
+      <div id="upBox"></div>
+      <label class="btn sec sm" style="display:inline-block;margin-top:8px;cursor:pointer">🖼 Elegir imagen de mi computadora<input type="file" id="upFile" accept="image/png,image/jpeg,image/webp" hidden></label></div>
     <div class="card"><h3>Archivos para trabajar (${archivos.length})</h3>
       <div class="files">${archivos.map((a, n) => `<div class="file">${a.tipo === "img" ? `<img src="${a.src}" alt="" data-zoom>` : `<div class="pdf">PDF</div>`}
         <span>${esc(a.nombre)}</span><a href="${a.src}" download="${esc((a.nombre || "archivo").replace(/[^\w.-]+/g,"_"))}${a.tipo==="img"?(a.src.startsWith("data:image/png")?".png":".jpg"):".pdf"}">Descargar</a>
+        ${a.tipo === "img" ? `<button class="upbtn" data-upa="${n}">✨ Mejorar</button>` : ""}
         ${a.propio ? `<button class="linkdel" data-del="${a.id}">Quitar</button>` : ""}</div>`).join("") || `<div class="muted">El cliente aún no envía su logo.</div>`}</div>
       <label class="btn sec sm" style="display:inline-block;margin-top:10px;cursor:pointer">＋ Subir archivo (imagen o PDF)<input type="file" id="oFile" accept="image/*,application/pdf" hidden multiple></label></div>
 `;
@@ -1186,6 +1199,7 @@ function abrirOT(id, vista){
     archivoImpresion((i.logos || [])[z.logo] || i.logos[0], z.ancho, z.alto,
       `${v.folio}_${(i.color || "").replace(/\s+/g,"")}_${z.zona.replace(/[^\wáéíóúñ]+/gi,"-")}_${z.ancho}x${z.alto}cm_300ppp.png`);
   });
+  document.querySelectorAll("[data-perscsv]").forEach(b => b.onclick = () => persCSV(its[+b.dataset.perscsv], v.folio));
   document.querySelectorAll("[data-ajpdf]").forEach(b => b.onclick = async () => {
     const i = its[+b.dataset.ajpdf], t = b.textContent; b.disabled = true; b.textContent = "Generando…";
     try { await pdfSinMolde(i.sub, `${v.folio}_${(i.prenda || "").replace(/\s+/g, "_")}_${i.modelo}_base-${i.sub.tallaBase}_SIN_MOLDE.pdf`); toast("PDF para el ajustador descargado"); }
@@ -1216,12 +1230,93 @@ function abrirOT(id, vista){
     window.open(`https://api.whatsapp.com/send?phone=52${v.cliente.tel}&text=${encodeURIComponent(m)}`, "_blank");
     if (ot.estado !== "Esperando autorización" && can("cambiar_estado")) cambiarOT(id, "estado", "Esperando autorización", true);
   };
+  document.querySelectorAll("[data-upa]").forEach(b => b.onclick = () => { const a = archivos[+b.dataset.upa]; upPanel(a.src, a.nombre); $("#upCard").scrollIntoView({ behavior:"smooth", block:"start" }); });
+  if ($("#upFile")) $("#upFile").onchange = e => { const f = e.target.files[0]; if (!f) return; const fr = new FileReader(); fr.onload = () => upPanel(fr.result, f.name.replace(/\.[^.]+$/, "")); fr.readAsDataURL(f); e.target.value = ""; };
   document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { ot.archivos = ot.archivos.filter(a => a.id !== b.dataset.del); save(); abrirOT(id); });
 }
 
 /* ---------- PDF "sin molde" para el ajustador de tallas: piezas a tamaño real, como el ejemplo del ajustador ----------
    mangas a la izquierda (derecha arriba, izquierda abajo), frente y espalda como paneles con su fondo; cada logo o texto va aparte */
 function cargarScript(src){ return new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
+/* ---------- mejorar resolución con IA (modelo ESRGAN, el mismo tipo que usa Upscayl), en el navegador y gratis ---------- */
+const UP_CDN = "https://cdn.jsdelivr.net/npm/", UP_MAX = 8000, _upMod = {};
+async function upModelo(x){
+  if (!window.tf) await cargarScript(UP_CDN + "@tensorflow/tfjs@4.11.0/dist/tf.min.js");
+  if (!window.Upscaler) await cargarScript(UP_CDN + "upscaler@1.0.0/dist/browser/umd/upscaler.min.js");
+  const g = `ESRGANMedium${x}x`;
+  if (!window[g]) await cargarScript(UP_CDN + `@upscalerjs/esrgan-medium@1.0.0/dist/umd/models/esrgan-medium/src/x${x}/index.min.js`);
+  if (!_upMod[x]) _upMod[x] = new window.Upscaler({ model: window[g] });
+  return _upMod[x];
+}
+/* se procesa por cuadros para no llenar la memoria; la transparencia se agranda aparte y se vuelve a poner */
+async function upMejorar(src, x, avance){
+  const im = await cargarImg(src), W = im.naturalWidth, H = im.naturalHeight, up = await upModelo(x);
+  const base = document.createElement("canvas"); base.width = W; base.height = H; const bx = base.getContext("2d", { willReadFrequently:true }); bx.drawImage(im, 0, 0);
+  const d = bx.getImageData(0, 0, W, H).data; let alfa = false; for (let i = 3; i < d.length; i += 4) if (d[i] < 255){ alfa = true; break; }
+  const rgb = document.createElement("canvas"); rgb.width = W; rgb.height = H; const rx = rgb.getContext("2d"); rx.fillStyle = "#fff"; rx.fillRect(0, 0, W, H); rx.drawImage(im, 0, 0);
+  const out = document.createElement("canvas"); out.width = W * x; out.height = H * x; const ox = out.getContext("2d");
+  const T = 192, O = 12, tiles = []; for (let y = 0; y < H; y += T) for (let z = 0; z < W; z += T) tiles.push([z, y]);
+  const tc = document.createElement("canvas"), tx = tc.getContext("2d");
+  for (let n = 0; n < tiles.length; n++){
+    const [z, y] = tiles[n], sx = Math.max(0, z - O), sy = Math.max(0, y - O), ex = Math.min(W, z + T + O), ey = Math.min(H, y + T + O);
+    tc.width = ex - sx; tc.height = ey - sy; tx.drawImage(rgb, sx, sy, tc.width, tc.height, 0, 0, tc.width, tc.height);
+    const b64 = await up.upscale(tc, { patchSize: 64, padding: 4 }), t = await cargarImg(b64);
+    const cw = Math.min(T, W - z), ch = Math.min(T, H - y);
+    ox.drawImage(t, (z - sx) * x, (y - sy) * x, cw * x, ch * x, z * x, y * x, cw * x, ch * x);
+    avance((n + 1) / tiles.length); await new Promise(r => setTimeout(r, 0));
+  }
+  if (alfa){
+    const a = document.createElement("canvas"); a.width = W; a.height = H; const ax = a.getContext("2d"), ad = ax.createImageData(W, H);
+    for (let i = 0; i < d.length; i += 4){ ad.data[i] = ad.data[i+1] = ad.data[i+2] = d[i+3]; ad.data[i+3] = 255; } ax.putImageData(ad, 0, 0);
+    const A = document.createElement("canvas"); A.width = W * x; A.height = H * x; const Ax = A.getContext("2d", { willReadFrequently:true }); Ax.imageSmoothingQuality = "high"; Ax.drawImage(a, 0, 0, A.width, A.height);
+    const od = ox.getImageData(0, 0, out.width, out.height), Ad = Ax.getImageData(0, 0, A.width, A.height).data;
+    for (let i = 3; i < od.data.length; i += 4) od.data[i] = Ad[i - 1]; ox.putImageData(od, 0, 0);
+  }
+  return out;
+}
+let _upSrc = null, _upNom = "", _upX = 2;
+async function upPanel(src, nombre){
+  _upSrc = src; _upNom = nombre || "imagen"; const im = await cargarImg(src), W = im.naturalWidth, H = im.naturalHeight, L = Math.max(W, H);
+  const puede = x => L * x <= UP_MAX; if (!puede(_upX)) _upX = 2;
+  $("#upBox").innerHTML = `<div class="upwrap"><img src="${src}" alt="" class="upimg"><div style="flex:1;min-width:220px">
+      <b>${esc(_upNom)}</b><div class="muted">Mide ${W.toLocaleString("es-MX")} × ${H.toLocaleString("es-MX")} px</div>
+      ${L * 2 > UP_MAX ? `<div class="okbox" style="margin-top:8px">Esta imagen ya es grande (${L.toLocaleString("es-MX")} px); no hace falta agrandarla.</div>` : `
+      <div class="seg" id="upX" style="margin:8px 0">${[2, 4].map(x => `<button data-x="${x}" class="${_upX===x?"on":""}"${puede(x) ? "" : " disabled"}>×${x} → ${(W*x).toLocaleString("es-MX")} × ${(H*x).toLocaleString("es-MX")} px</button>`).join("")}</div>
+      <button class="btn pri sm" id="upGo">✨ Mejorar imagen</button>
+      <div class="upbar" id="upBar" style="display:none"><i></i></div><div class="muted" id="upMsg" style="font-size:12px;margin-top:4px"></div>`}</div></div><div id="upRes"></div>`;
+  document.querySelectorAll("#upX button").forEach(b => b.onclick = () => { _upX = +b.dataset.x; upPanel(_upSrc, _upNom); });
+  if ($("#upGo")) $("#upGo").onclick = async () => {
+    const go = $("#upGo"), bar = $("#upBar"), msg = $("#upMsg"); go.disabled = true; bar.style.display = "block"; msg.textContent = "Cargando la IA (solo la primera vez tarda un poco)…";
+    const t0 = Date.now();
+    try {
+      const c = await upMejorar(src, _upX, p => { bar.firstChild.style.width = Math.round(p * 100) + "%"; const s = (Date.now() - t0) / 1000, faltan = p > .03 ? Math.round(s / p - s) : null;
+        msg.textContent = `Mejorando… ${Math.round(p * 100)} %${faltan != null ? ` · faltan unos ${faltan > 90 ? Math.round(faltan / 60) + " min" : faltan + " s"}` : ""}`; });
+      const url = await new Promise(ok => c.toBlob(b => ok(URL.createObjectURL(b)), "image/png"));
+      msg.textContent = `Listo en ${Math.round((Date.now() - t0) / 1000)} s.`;
+      $("#upRes").innerHTML = `<div class="upwrap" style="margin-top:10px"><img src="${url}" alt="" class="upimg" data-zoom><div><b>✅ Imagen mejorada</b><div class="muted">${c.width.toLocaleString("es-MX")} × ${c.height.toLocaleString("es-MX")} px · PNG</div>
+        <a class="btn pri sm" href="${url}" download="${_upNom.replace(/[^\w.-]+/g, "_")}_x${_upX}.png" style="text-decoration:none;display:inline-block;margin-top:8px">⬇ Descargar PNG</a>
+        <div class="muted" style="font-size:12px;margin-top:6px">Ábrela en grande para revisarla antes de imprimir.</div></div></div>`;
+    } catch(e){ console.error(e); msg.textContent = ""; $("#upRes").innerHTML = `<div class="warn" style="margin-top:8px">No se pudo mejorar la imagen. Revisa tu internet y vuelve a intentar; si la imagen es muy grande, prueba con ×2.</div>`; }
+    go.disabled = false; bar.style.display = "none";
+  };
+}
+/* nombre y número por playera (sublimado) */
+const LADO_TXT = { centro:"al centro", izquierda:"lado izquierdo", derecha:"lado derecho" };
+function persHTML(i, n){
+  const p = i.pers, lugares = [p.espalda ? `espalda al centro (${[p.espalda.nombreCm ? `nombre ${p.espalda.nombreCm} cm arriba` : "", p.espalda.numeroCm ? `número ${p.espalda.numeroCm} cm abajo` : ""].filter(Boolean).join(", ")})` : "",
+    p.pecho ? `pecho ${LADO_TXT[p.pecho.lado] || ""} (${({ numero:"número", nombre:"nombre", ambos:"nombre y número" })[p.pecho.que]} de ${p.pecho.cm} cm)` : ""].filter(Boolean);
+  const llenos = p.lista.filter(r => r.nombre || r.numero).length;
+  return `<div class="pidio"><b>🔢 Nombre y número:</b> ${lugares.join(" · ")} · letra <b>${esc(p.fuente)}</b> · color <span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #999;vertical-align:middle;background:${esc(p.color)}"></span> ${esc(p.color)}
+    <div style="max-height:180px;overflow:auto;margin-top:6px;font-size:13px">${p.lista.map(r => `<div><b>${esc(r.talla)}</b> · ${esc(r.nombre || "—")}${p.numero ? ` · <b>${esc(r.numero || "—")}</b>` : ""}</div>`).join("")}</div>
+    <div class="muted" style="margin-top:4px">${llenos} de ${p.lista.length} con datos.</div>
+    <button class="btn sec sm" data-perscsv="${n}" style="margin-top:6px">⬇ Lista en Excel (CSV)</button></div>`;
+}
+function persCSV(i, folio){
+  const p = i.pers, q = t => `"${String(t || "").replace(/"/g, '""')}"`;
+  const filas = [["Talla", "Nombre", "Número"].map(q).join(","), ...p.lista.map(r => [r.talla, r.nombre, r.numero].map(q).join(","))];
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + filas.join("\r\n")], { type:"text/csv;charset=utf-8" }));
+  a.download = `${folio}_nombres_y_numeros.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+}
 async function pdfSinMolde(sub, nombre){
   if (!window.PDFLib) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js");
   const { PDFDocument, rgb } = window.PDFLib, CM = 72 / 2.54, gap = 5 * CM, P = sub.piezas;
@@ -1240,7 +1335,7 @@ async function pdfSinMolde(sub, nombre){
     const p = P[k], [x0, y0] = pos[k], Y = (y, h) => H - (y0 + y + h);
     if (p.fondo.src) pg.drawImage(await emb(await recorte(p.fondo.src, p.w, p.h)), { x: x0, y: Y(0, p.h), width: p.w, height: p.h });
     else pg.drawRectangle({ x: x0, y: Y(0, p.h), width: p.w, height: p.h, color: hex(p.fondo.color || "#FFFFFF") });
-    for (const e of p.els){ if (!e.src) continue; pg.drawImage(await emb(e.src), { x: x0 + e.x, y: Y(e.y, e.h), width: e.w, height: e.h }); }
+    for (const e of p.els){ if (!e.src || e.pers) continue; pg.drawImage(await emb(e.src), { x: x0 + e.x, y: Y(e.y, e.h), width: e.w, height: e.h }); }
   }
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([await doc.save()], { type: "application/pdf" })); a.download = nombre;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
