@@ -1162,7 +1162,7 @@ function abrirOT(id, vista){
     ${its.some(i => i.sub) ? `<div class="card"><h3>🧵 Para el ajustador de tallas</h3>
       ${its.filter(i => i.sub).map(i => `<div class="li" style="align-items:center"><span><b>${esc(i.prenda)} · ${esc(i.modelo)}</b>
         <div class="muted">Molde: <b>${esc(i.sub.modeloTxt)}</b> · talla en la que se diseñó: <b>${esc(i.sub.tallaBase)}</b>${i.sub.tallaApp !== i.sub.tallaBase ? ` (${esc(i.sub.tallaApp)} en la app)` : ""} · tallas: ${Object.entries(i.qty || {}).map(([t, n]) => `${t}×${n}`).join(", ")}</div>
-        <div class="muted">${Object.entries(i.sub.piezas).map(([k, p]) => `${{frente:"Frente",espalda:"Espalda",mangaD:"Manga D",mangaI:"Manga I"}[k]}: ${p.els.filter(e => !e.pers).map(e => esc(e.nombre)).join(", ") || "solo fondo"}`).join(" · ")}</div>
+        <div class="muted">${Object.entries(i.sub.piezas).map(([k, p]) => `${{frente:"Frente",espalda:"Espalda",mangaD:"Manga D",mangaI:"Manga I",cuello:"Cuello"}[k]}: ${k === "cuello" ? "color " + esc(p.fondo.color || "") : ""}${k === "cuello" ? "" : p.els.filter(e => !e.pers).map(e => esc(e.nombre)).join(", ") || "solo fondo"}`).join(" · ")}</div>
         ${i.pers ? `<div class="muted">🔢 Lleva nombre y número (${[i.pers.espalda ? "espalda" : "", i.pers.pecho ? "pecho " + (LADO_TXT[i.pers.pecho.lado] || "") : ""].filter(Boolean).join(" y ")}, letra ${esc(i.pers.fuente)}): no van en el PDF, se ponen por playera con la lista. <button class="btn sec sm" data-perscsv="${its.indexOf(i)}" style="margin-top:4px">⬇ Lista CSV</button></div>` : ""}</span>
         <button class="btn pri sm" data-ajpdf="${its.indexOf(i)}">⬇ PDF sin molde</button></div>`).join("")}
       <p class="muted" style="margin-top:8px">1) Descarga el PDF. 2) Abre el ajustador y sube el PDF. 3) Elige el modelo y la talla en la que se diseñó (la que dice arriba). 4) Revisa el acomodo y genera las tallas.</p>
@@ -1202,7 +1202,7 @@ function abrirOT(id, vista){
   document.querySelectorAll("[data-perscsv]").forEach(b => b.onclick = () => persCSV(its[+b.dataset.perscsv], v.folio));
   document.querySelectorAll("[data-ajpdf]").forEach(b => b.onclick = async () => {
     const i = its[+b.dataset.ajpdf], t = b.textContent; b.disabled = true; b.textContent = "Generando…";
-    try { await pdfSinMolde(i.sub, `${v.folio}_${(i.prenda || "").replace(/\s+/g, "_")}_${i.modelo}_base-${i.sub.tallaBase}_SIN_MOLDE.pdf`); toast("PDF para el ajustador descargado"); }
+    try { await pdfSinMolde(i.sub, `SIN_MOLDE_SUBLIMADA_MANGA_${(i.sub.larga != null ? i.sub.larga : /larga/.test(i.sub.modelo || "")) ? "LARGA" : "CORTA"}_${i.sub.tallaBase}_${(i.modelo || "").toUpperCase()}_${VT.nombreArchivo ? VT.nombreArchivo(v.cliente.nombre) : (v.cliente.nombre || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}_${v.folio}.pdf`); toast("PDF para el ajustador descargado"); }
     catch(e){ toast("No se pudo generar el PDF", true); }
     b.disabled = false; b.textContent = t;
   });
@@ -1320,9 +1320,22 @@ function persCSV(i, folio){
 async function pdfSinMolde(sub, nombre){
   if (!window.PDFLib) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js");
   const { PDFDocument, rgb } = window.PDFLib, CM = 72 / 2.54, gap = 5 * CM, P = sub.piezas;
-  const mW = Math.max(P.mangaD.w, P.mangaI.w);
-  const pos = { mangaD: [0, 0], mangaI: [0, P.mangaD.h + gap], frente: [mW + gap, 0], espalda: [mW + gap + P.frente.w + gap, 0] };
-  const W = pos.espalda[0] + P.espalda.w, H = Math.max(P.frente.h, P.espalda.h, P.mangaD.h + gap + P.mangaI.h);
+  /* mismo acomodo que los PDF de los diseñadores:
+     manga corta: mangas una arriba de otra (arriba la derecha), el cuello abajo, luego frente y espalda.
+     manga larga: el cuello a la izquierda, las mangas paradas lado a lado (izquierda primero), luego frente y espalda. */
+  const larga = sub.larga != null ? sub.larga : /larga/.test(sub.modelo || ""), Cu = P.cuello, pos = {};
+  let x = 0, H;
+  if (larga){
+    const hM = Math.max(P.mangaD.h, P.mangaI.h), hB = Math.max(P.frente.h, P.espalda.h); H = Math.max(hM, hB);
+    if (Cu){ pos.cuello = [0, Math.round(H * .67)]; x = Cu.w + 3 * CM; }
+    pos.mangaI = [x, 0]; x += P.mangaI.w + gap; pos.mangaD = [x, 0]; x += P.mangaD.w + gap;
+  } else {
+    const mW = Math.max(P.mangaD.w, P.mangaI.w, Cu ? Cu.w : 0);
+    pos.mangaD = [0, 0]; pos.mangaI = [0, P.mangaD.h + gap]; if (Cu) pos.cuello = [0, P.mangaD.h + gap + P.mangaI.h + gap];
+    H = Math.max(P.frente.h, P.espalda.h, P.mangaD.h + gap + P.mangaI.h + (Cu ? gap + Cu.h : 0)); x = mW + gap;
+  }
+  pos.frente = [x, 0]; x += P.frente.w + gap; pos.espalda = [x, 0];
+  const W = pos.espalda[0] + P.espalda.w;
   const doc = await PDFDocument.create(), pg = doc.addPage([W, H]);
   const hex = h => { const n = parseInt(h.slice(1), 16); return rgb((n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255); };
   const bytes = src => Uint8Array.from(atob(src.split(",")[1]), c => c.charCodeAt(0));
@@ -1331,7 +1344,8 @@ async function pdfSinMolde(sub, nombre){
     const k = Math.min(1, 2400 / Math.max(w, h) * CM), c = document.createElement("canvas"); c.width = Math.round(w / CM * 60); c.height = Math.round(h / CM * 60);
     const x = c.getContext("2d"), r = Math.max(c.width / im.width, c.height / im.height); x.drawImage(im, (c.width - im.width * r) / 2, (c.height - im.height * r) / 2, im.width * r, im.height * r);
     ok(c.toDataURL("image/jpeg", .9)); }; im.src = src; });
-  for (const k of ["mangaD", "mangaI", "frente", "espalda"]){
+  for (const k of ["cuello", "mangaD", "mangaI", "frente", "espalda"]){
+    if (!P[k]) continue;
     const p = P[k], [x0, y0] = pos[k], Y = (y, h) => H - (y0 + y + h);
     if (p.fondo.src) pg.drawImage(await emb(await recorte(p.fondo.src, p.w, p.h)), { x: x0, y: Y(0, p.h), width: p.w, height: p.h });
     else pg.drawRectangle({ x: x0, y: Y(0, p.h), width: p.w, height: p.h, color: hex(p.fondo.color || "#FFFFFF") });

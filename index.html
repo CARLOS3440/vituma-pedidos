@@ -447,6 +447,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
         <p class="muted" style="margin-bottom:8px">Aquí ves tu camisa pieza por pieza con las piezas que subiste. Toca una pieza para <b>acomodar tu logo y agregar los textos</b> que lleva tu mockup (eslogan, nombre del equipo…). Las líneas naranjas son las reglas para que quede igual en todas las tallas.</p>
         <div class="sbwrap"><canvas id="sbCanvas"></canvas></div>
         <div id="sbAvisos"></div>
+        <div id="sbCuello" class="sbrow" style="margin-top:10px;flex-wrap:wrap"></div>
         <div class="seg" id="sbTabs" style="margin:12px 0"></div>
         <div id="sbPanel"></div>
         <div id="sbIA" class="ia" style="display:none;margin-top:12px">
@@ -2395,7 +2396,7 @@ const SB_FONDOS = [["Blanco","#FFFFFF"],["Negro","#111111"],["Azul marino","#1C2
   ["Naranja","#F26B21"],["Amarillo","#FFC300"],["Verde","#2A9D4B"],["Gris","#8A8F98"]];
 const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,25,28];
 const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25];
-const SB = { idea:"", referencia:null, pers:{ espalda:false, pecho:false, nombre:true, numero:true, espNomCm:6, espNumCm:20, pechoQue:"numero", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null };
+const SB = { idea:"", referencia:null, pers:{ espalda:false, pecho:false, nombre:true, numero:true, espNomCm:6, espNumCm:20, pechoQue:"numero", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null, cuello:null };
 const sbNueva = () => ({ fondo:{ tipo:"color", color:"#1C2340", img:null, src:null }, els:[] });
 const sbReset = () => { SB.piezas = { frente: sbNueva(), espalda: sbNueva(), mangaD: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } }, mangaI: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } } }; SB.mockup = null; };
 sbReset();
@@ -2411,6 +2412,8 @@ function sbBase(){
   let molde = sbTallaMolde(app); if (!tallas[molde]) molde = Object.keys(tallas).find(t => tallas[t]) ;
   return { app, molde, m: tallas[molde] };
 }
+/* color del cuello: el que elija el cliente o, si no, el del fondo de la espalda */
+const sbCuelloColor = () => SB.cuello || (SB.piezas.espalda.fondo.tipo === "color" ? SB.piezas.espalda.fondo.color : "#111111");
 const sbCm = v => (v / PT).toFixed(1).replace(/\.0$/, "");
 
 /* ---------- imágenes cargadas ---------- */
@@ -2541,13 +2544,19 @@ let _sbZonas = [], _sbFs = 22;
 function sbDibujar(){
   const cv = $("#sbCanvas"); if (!cv || !SB.prod) return;
   const { m, molde } = sbBase(), M = m, gap = 4 * PT;
-  const anchoM = Math.max(M.mangaD.w, M.mangaI.w), altoM = M.mangaD.h + gap + M.mangaI.h + 3 * PT;
+  const lado = sbLarga(), Cu = M.cuello || { w: 50 * PT, h: 3 * PT }, et = 3 * PT;
+  const anchoM = lado ? M.mangaI.w + gap + M.mangaD.w : Math.max(M.mangaD.w, M.mangaI.w, Cu.w);
+  const altoMangas = lado ? Math.max(M.mangaD.h, M.mangaI.h) : M.mangaD.h + et + gap + M.mangaI.h;
+  const altoM = altoMangas + et + gap + Cu.h + et;
   const W = anchoM + gap + M.frente.w + gap + M.espalda.w, H = Math.max(M.frente.h, M.espalda.h, altoM) + 3 * PT;
   const ancho = cv.parentNode.clientWidth || 900, esc = ancho / W;
   cv.width = Math.round(W * esc * 2); cv.height = Math.round(H * esc * 2); cv.style.width = Math.round(W * esc) + "px"; cv.style.height = Math.round(H * esc) + "px";
   const x = cv.getContext("2d"), e2 = esc * 2; _sbFs = Math.max(13, Math.min(22, cv.width / 50));
   x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = "#fff"; x.fillRect(0, 0, cv.width, cv.height);
-  const pos = { mangaD: [0, 0], mangaI: [0, M.mangaD.h + gap], frente: [anchoM + gap, 0], espalda: [anchoM + gap + M.frente.w + gap, 0] };
+  const pos = lado ? { mangaI: [0, 0], mangaD: [M.mangaI.w + gap, 0] } : { mangaD: [0, 0], mangaI: [0, M.mangaD.h + et + gap] };
+  pos.frente = [anchoM + gap, 0]; pos.espalda = [anchoM + gap + M.frente.w + gap, 0];
+  { const cy = altoMangas + et + gap; x.setTransform(e2, 0, 0, e2, 0, cy * e2); x.fillStyle = sbCuelloColor(); x.fillRect(0, 0, Cu.w, Cu.h); x.lineWidth = 1.2 / e2; x.strokeStyle = "rgba(0,0,0,.4)"; x.strokeRect(0, 0, Cu.w, Cu.h);
+    x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = "#16191d"; x.font = `700 ${_sbFs}px Montserrat, Arial`; x.textAlign = "center"; x.fillText("CUELLO", Cu.w / 2 * e2, (cy + Cu.h + 2.2 * PT) * e2); }
   _sbZonas = [];
   for (const [k, t] of SB_PIEZAS){
     const [px, py] = pos[k], mm = M[k];
@@ -2558,9 +2567,16 @@ function sbDibujar(){
     _sbZonas.push([k, px * esc, py * esc, mm.w * esc, mm.h * esc]);
   }
   const av = SB_PIEZAS.flatMap(([k, t]) => sbAvisos(k, M[k]).map(a => `<b>${t}:</b> ${a}`));
+  sbCuelloUI();
   $("#sbAvisos").innerHTML = av.map(a => `<div class="warn" style="margin-top:6px">${a}</div>`).join("");
 }
 
+function sbCuelloUI(){
+  const c = sbCuelloColor(), b = $("#sbCuello"); if (!b) return;
+  b.innerHTML = `<span class="label" style="margin:0">Color del cuello</span><div class="ctcols">${SB_FONDOS.map(([nm, h]) => `<button class="sw${c===h?" on":""}" data-cu="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="sbCuC" value="${c}" title="Otro color"></div>${SB.cuello ? "" : `<span class="mini">(igual que la espalda)</span>`}`;
+  b.querySelectorAll("[data-cu]").forEach(x => x.onclick = () => { SB.cuello = x.dataset.cu; SB.mockup = null; sbDibujar(); });
+  $("#sbCuC").onchange = e => { SB.cuello = e.target.value.toUpperCase(); SB.mockup = null; sbDibujar(); };
+}
 /* ---------- interfaz ---------- */
 function sbElegir(id){
   SB.prod = id; const p = byId(id);
@@ -2984,6 +3000,8 @@ async function sbDatosProduccion(){
     }
     out.piezas[k] = pz;
   }
+  if (m.cuello) out.piezas.cuello = { w: m.cuello.w, h: m.cuello.h, fondo: { color: sbCuelloColor() }, els: [] };
+  out.larga = sbLarga();
   return out;
 }
 
