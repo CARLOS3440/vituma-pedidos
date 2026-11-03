@@ -383,7 +383,7 @@ const VT = (() => {
   function estadoNube(){
     if (S.modo !== "admin" || !S.srv) return;
     let el = document.getElementById("vtNube");
-    if (!el){ el = document.createElement("div"); el.id = "vtNube"; el.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9999;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:6px 12px;font:600 12px Montserrat,Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.08)"; document.body.appendChild(el); }
+    if (!el){ el = document.createElement("div"); el.id = "vtNube"; el.style.cssText = "position:fixed;right:14px;bottom:14px;z-index:9999;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:6px 12px;font:600 12px Montserrat,Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.08)"; document.body.appendChild(el); }
     el.textContent = S.error ? "⚠️ " + S.error : S.pend ? "☁️ Guardando…" : "☁️ Guardado";
     el.style.color = S.error ? "#B42318" : S.pend ? "#6B7280" : "#1E8E4A";
   }
@@ -671,6 +671,7 @@ $("#reset").onclick = e => { e.preventDefault(); if (!window.confirm("¿Borrar t
   const us = DB.usuarios; try { localStorage.removeItem("vituma_demo_db"); } catch(x){} DB = VT.cargar(); DB.usuarios = us; save(); ir(sec); toast("Datos borrados"); };
 $("#logout").onclick = async e => { e.preventDefault(); if (VT.nube.enLinea()) await VT.nube.salir(); try { sessionStorage.removeItem("vituma_ses"); } catch(x){} location.reload(); };
 /* con base de datos: si la sesión vence, vuelve a pedir contraseña; si otra persona cambia algo, se actualiza la pantalla */
+VT.nube.iniciar("admin").then(n => { if (n){ const d = document.querySelector(".demo"); if (d) d.style.display = "none"; $("#reset").style.display = "none"; } });   // con base de datos ya no es muestra
 VT.nube.alSalir = () => { try { sessionStorage.removeItem("vituma_ses"); sessionStorage.removeItem("vituma_tok"); } catch(x){} alert("Tu sesión terminó. Vuelve a entrar."); location.reload(); };
 VT.nube.alCambio = () => { if (!SES) return; const abierto = $("#drawer").classList.contains("on") || $("#zoom").classList.contains("on") || document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
   if (abierto){ DB = VT.cargar(); nav(); toast("🔄 Hay cambios nuevos"); } else refrescar(); };
@@ -1296,6 +1297,7 @@ function abrirOT(id, vista){
     ...its.flatMap(i => (i.logos || []).map(l => ({ nombre: "Logo del cliente · " + l.nombre, src: l.src, tipo:"img" }))),
     ...its.filter(i => i.mockupTipo === "diseno" && i.mockup).map(i => ({ nombre: "Vista previa · " + i.prenda, src: i.mockup, tipo:"img" })),
     ...its.filter(i => i.referencia).map(i => ({ nombre: "Mockup del cliente (IA) · " + i.prenda, src: i.referencia, tipo:"img" })),
+    ...its.filter(i => i.lamina).map(i => ({ nombre: "Lámina de piezas del cliente (IA) · " + i.prenda, src: i.lamina, tipo:"img" })),
     ...its.filter(i => i.sub).flatMap(i => Object.entries(i.sub.piezas).flatMap(([k, p]) => [...(p.fondo.src ? [{ nombre: `Fondo ${k}`, src: p.fondo.src, tipo:"img" }] : []),
       ...p.els.filter(e => e.src && e.tipo !== "firma" && !e.pers).map(e => ({ nombre: `${k} · ${e.nombre}`, src: e.src, tipo:"img" }))])),
     ...ot.archivos.map(a => ({ ...a, propio: true }))

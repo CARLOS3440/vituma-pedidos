@@ -191,7 +191,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:10px 0 20px}
 .sbedit{background:#1C2340;color:#fff;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:14px}.sbedit .muted{color:#c9cde0;font-size:12px}
 .pasosbox{background:#FFF5EE;border:1.5px solid #F7C9AE;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14px}.pasosbox ol{margin:6px 0 6px 20px;display:grid;gap:3px}
 .sbborde{border-left:3px solid var(--line);padding-left:10px;margin-top:4px}
-.sbsec{margin-top:4px}.sbsec>b{display:block;font-size:15px;color:var(--navy)}
+.sbsec{margin-top:4px}
+#sbRest .sbbloque{border:2px solid var(--line);border-radius:14px;padding:14px;margin:14px 0 0;background:#fff}
+#sbRest .sbbloque .sbbh{font-size:16.5px;font-weight:800;color:var(--navy);margin:-14px -14px 10px;padding:11px 14px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#sbRest .sbbloque .sbbh span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:#fff;border-radius:999px;padding:3px 9px;color:var(--muted)}
+#sbRest .sblogo{border-color:#F7B58C}#sbRest .sblogo .sbbh{background:#FFF1E8;color:#B4400F}
+#sbRest .sbnum{border-color:#A9BBEA}#sbRest .sbnum .sbbh{background:#EEF2FC;color:#1E3A8A}
+#sbRest .sbfondo{margin-top:14px;border:1px dashed var(--line);border-radius:12px;padding:8px 12px}#sbRest .sbfondo>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy)}.sbsec>b{display:block;font-size:15px;color:var(--navy)}
 .sbchips{display:flex;gap:6px;flex-wrap:wrap}.sbchips button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--navy)}.sbchips button.on{background:#1C2340;color:#fff;border-color:#1C2340}
 
 /* ---- sublimada: estilo del flujo para el cliente ---- */
@@ -232,7 +238,10 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
 .lamslot{display:block;cursor:pointer;position:relative;text-align:center}.lamslot img{width:100%;height:110px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff}
 .lamslot .lamcap{display:block;font-size:12px;font-weight:700;margin-top:4px}.lamslot.lleno .lamcap{color:#1E8E4A}
 .lamslot .lamcambia{position:absolute;top:6px;right:6px;background:rgba(28,35,64,.85);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:3px 8px}
-.lamslot .lamfalta{line-height:1.3;text-align:center;font-size:12.5px}.lamslot .lamfalta b{display:block;font-size:22px}
+.lamslot .lamres.lamres5{grid-template-columns:repeat(6,1fr)}.lamres5 .lamorig img{border-color:#F7B58C}.lamcu{height:110px;display:flex;align-items:center}.lamcu{border-radius:8px;border:1px solid var(--line);height:22px;margin-top:44px}
+@media(max-width:700px){.lamres.lamres5{grid-template-columns:repeat(3,1fr)}}
+.lamej{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin:0 0 12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}.lamej svg{width:100%;max-height:220px}
+.lamfalta{line-height:1.3;text-align:center;font-size:12.5px}.lamslot .lamfalta b{display:block;font-size:22px}
 .lamslot.sigue .lamfalta{border-color:#F26B21;border-style:solid;background:#FFF1E8;color:#C2410C;animation:lampulso 1.6s ease-in-out infinite}
 .lamslot.cargando{opacity:.5;pointer-events:none}
 @keyframes lampulso{0%,100%{box-shadow:0 0 0 0 rgba(242,107,33,.45)}50%{box-shadow:0 0 0 6px rgba(242,107,33,0)}}
@@ -485,30 +494,20 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
         <p class="mini" style="margin-top:6px">No le pidas nombres ni números: esos los agregas en el paso 6 y nosotros los ponemos nítidos.</p>
       </div>
       <div class="card" id="sbPzCard">
-        <div class="pasoh"><span class="num">5</span><div><h3>Saca las piezas de tu diseño</h3><p>Para imprimir necesitamos un <b>rectángulo lleno de diseño</b> por cada parte. No tienes que escribir nada: la app te da las instrucciones.</p></div></div>
+        <div class="pasoh"><span class="num">5</span><div><h3>Pide tu diseño en una sola lámina</h3><p>La IA acomoda las piezas de tu camisa en <b>una sola imagen</b>, como la usa nuestro taller: mangas, cuello, frente y espalda. Tú solo copias, pegas y subes.</p></div></div>
         <div id="sbPzRef"></div>
         <div class="lamina">
-          <div class="lamh"><span class="tag">⚡ Rápido</span><b>Las 4 piezas con una sola instrucción</b></div>
+          <div class="lamej"><div id="sbLamEj"></div><div class="mini">Así debe verse la imagen que te dé la IA: cada pieza es un rectángulo lleno de diseño, <b>sin logos ni textos</b>.</div></div>
           <ol><li>Toca <b>📋 Copiar instrucciones</b>.</li>
             <li>Pégalas en la <b>misma conversación de la IA</b> donde hiciste tu mockup.</li>
-            <li>La IA te da <b>4 imágenes</b>: frente, espalda, manga derecha y manga izquierda. Si te da una sola, escríbele <b>"siguiente"</b> para la que sigue.</li>
-            <li>Descárgalas y súbelas: <b>todas juntas</b> con el botón ⬆, o <b>toca cada cuadro</b> de abajo para subir esa pieza. La app las acomoda sola.</li></ol>
+            <li>Descarga la imagen que te dé y súbela con <b>⬆ Subir la lámina</b>. <b>La app separa las piezas sola.</b></li></ol>
           <div class="accrow" style="margin-top:10px"><button class="btn pri" id="sbLamCopy">📋 Copiar instrucciones</button>
-            <label class="btn ghost" style="cursor:pointer">⬆ Subir todas juntas<input type="file" id="sbLamFile" accept="image/png,image/jpeg,image/webp" multiple hidden></label>
+            <label class="btn ghost" style="cursor:pointer">⬆ Subir la lámina<input type="file" id="sbLamFile" accept="image/png,image/jpeg,image/webp" hidden></label>
             <button class="btn ghost" id="sbLamMal">🔁 No salió bien</button></div>
           <div id="sbLamRes"></div>
           <details class="verinst"><summary>Ver las instrucciones</summary><textarea id="sbLamTxt" readonly></textarea></details>
         </div>
-        <details class="porpieza" id="sbPorPieza"><summary><span style="font-size:24px">🎯</span><span>¿Prefieres hacerlas una por una?<span class="ppsub">Mejor calidad: una instrucción para cada pieza. Úsalo también si la IA no te sale bien.</span></span><span class="ppbtn"></span></summary>
-        <div class="pasosbox"><b>📋 Cómo sacar tus piezas (en orden: frente, espalda y luego las mangas):</b>
-          <ol><li>Toca <b>📋 Copiar instrucciones</b> de la pieza.</li>
-            <li>Pégalas en la <b>misma conversación de la IA</b> (Gemini o ChatGPT) donde hiciste el mockup de tu camisa.</li>
-            <li><b>Descarga</b> la imagen que te dé.</li>
-            <li>Súbela con <b>⬆ Subir la pieza</b> en ese mismo apartado. Cuando esté bien, se marca <b>✓ Lista</b>.</li></ol>
-          <div class="mini">Si la IA dibujó la forma de la playera, dejó textos o no llenó todo el rectángulo, toca <b>🔁 No salió bien</b>, pega ese mensaje en la misma conversación y sube la imagen nueva.</div></div>
-        <div id="sbPzList" class="pzgrid"></div>
-        </details>
-        <p class="mini" style="margin-top:10px">Las instrucciones le piden a la IA usar exactamente lo mismo que en tu mockup, sin tu logo ni textos (esos los acomodas en el paso 6), y con diseño de sobra en las orillas para ajustarlo a todas las tallas. Si alguna pieza no te sale, súbela como la tengas: nuestro diseñador la revisa.</p>
+        <p class="mini" style="margin-top:10px">Tu logo, textos y nombres los acomodas en el paso 6. Nuestro equipo de diseño ajusta la lámina a cada talla con el ajustador. Si la IA no te sale, sube lo que tengas: nuestro diseñador lo revisa.</p>
       </div>
       <div class="card" id="sbEditor">
         <div class="pasoh"><span class="num">6</span><div><h3>Acomoda y personaliza tu camisa</h3><p>Toca una parte de la camisa (abajo del dibujo) y ahí mismo acomodas tu <b>logo</b>, agregas <b>textos</b> y, si quieres, <b>nombre y número</b> distinto en cada playera.</p></div></div>
@@ -820,7 +819,7 @@ const VT = (() => {
   function estadoNube(){
     if (S.modo !== "admin" || !S.srv) return;
     let el = document.getElementById("vtNube");
-    if (!el){ el = document.createElement("div"); el.id = "vtNube"; el.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9999;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:6px 12px;font:600 12px Montserrat,Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.08)"; document.body.appendChild(el); }
+    if (!el){ el = document.createElement("div"); el.id = "vtNube"; el.style.cssText = "position:fixed;right:14px;bottom:14px;z-index:9999;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:6px 12px;font:600 12px Montserrat,Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.08)"; document.body.appendChild(el); }
     el.textContent = S.error ? "⚠️ " + S.error : S.pend ? "☁️ Guardando…" : "☁️ Guardado";
     el.style.color = S.error ? "#B42318" : S.pend ? "#6B7280" : "#1E8E4A";
   }
@@ -2549,7 +2548,7 @@ const SB_FONDOS = [["Blanco","#FFFFFF"],["Negro","#111111"],["Azul marino","#1C2
 /* tamaños que se ofrecen; solo se muestran los que caben en TODAS las tallas del pedido sin salirse de los márgenes */
 const SB_TAM_LOGO = [5,6,7,8,10,12,15,18,20,22,25,28,30,32,35,38,40,42,45,48,50,55,60];
 const SB_TAM_TEXTO = [1.5,2,3,4,5,6,8,10,12,15,20,25,30,35,40];
-const SB = { idea:"", referencia:null, pers:{ espalda:false, pecho:false, nombre:false, numero:false, espNom:false, espNum:false, espNomCm:6, espNumCm:20, pechoQue:"no", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" }, lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null, cuello:null, prueba:true, verTalla:null, mangaTxt:{ D:"", I:"", cm:7, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" } } };
+const SB = { idea:"", referencia:null, lamina:null, cuelloLam:null, pers:{ espalda:false, pecho:false, nombre:false, numero:false, espNom:false, espNum:false, espNomCm:6, espNumCm:20, pechoQue:"no", pechoLado:"izquierda", pechoCm:8, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" }, lista:[] }, tiene:"si", logo:null, logoDesc:"", prod:null, modelo:"Caballero", qty:{}, modo:"piezas", pieza:"frente", piezas:null, notas:"", archivos:[], servicio:"ninguno", firma:true, iaQue:"logo", mockup:null, cuello:null, prueba:true, verTalla:null, mangaTxt:{ D:"", I:"", cm:7, fuente:"bebas", color:"#FFFFFF", borde:{ on:false, color:"#111111", grosor:"medio" } } };
 const sbNueva = () => ({ fondo:{ tipo:"color", color:"#1C2340", img:null, src:null }, els:[] });
 const sbReset = () => { SB.piezas = { frente: sbNueva(), espalda: sbNueva(), mangaD: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } }, mangaI: { ...sbNueva(), fondo:{ tipo:"color", color:"#111111", img:null, src:null } } }; SB.mockup = null; };
 sbReset();
@@ -2608,7 +2607,7 @@ function sbMockAuto(){
   clearTimeout(_sbMkT); _sbMkT = setTimeout(async () => { if (SB.mockup || _sbMkGen) return; _sbMkGen = true; try { await sbVerMockup(); } finally { _sbMkGen = false; } }, 900);
 }
 /* color del cuello: el que trae el mockup (color sólido, sin degradados) o, si no hay mockup, el del fondo de la espalda */
-const sbCuelloColor = () => (SB.referencia && SB.referencia.cuello) || (SB.piezas.espalda.fondo.tipo === "color" ? SB.piezas.espalda.fondo.color : "#111111");
+const sbCuelloColor = () => SB.cuelloLam || (SB.referencia && SB.referencia.cuello) || (SB.piezas.espalda.fondo.tipo === "color" ? SB.piezas.espalda.fondo.color : "#111111");
 /* busca el cuello en el mockup: separa cada camisa del fondo y, en su centro, baja desde arriba.
    La primera franja de color es el resorte del cuello; si es gris oscuro (el interior de la camisa, cuando el cuello
    se confunde con el fondo) toma la franja que sigue. Devuelve un color sólido (la mediana de esa franja). */
@@ -2786,11 +2785,11 @@ function sbFallas(k, m, L, r){
   (() => { if (r.e.tipo === "firma") return; const nom = `"${r.e.texto || r.e.nombre || "Logo"}"`;
     if (mangaL){   // manga larga (reglas del ajustador): entre 10 cm del hombro y 10 cm del puño, franja central de 6 a 10 cm
       if (r.w > 10 * PT + 1) a.push(`${nom} mide ${sbCm(r.w)} cm de ancho: en manga larga debe ir en la franja central de 6 a 10 cm. ${r.e.tipo === "texto" ? "Ponlo <b>a lo largo de la manga</b> o baja el alto de letra." : "Hazlo más chico."}`);
-      if (r.y + r.h > m.h - H + 1) a.push(`${nom} pasa la línea de ${SB_REGLAS.hombro} cm del puño: ${r.e.mtx || L.some(x => x.e.mtx) ? "usa un texto más corto (sección 2 de esta manga) o quita el logo." : "hazlo más chico o quita algún elemento."}`);
+      if (r.y + r.h > m.h - H + 1) a.push(`${nom} pasa la línea de ${SB_REGLAS.hombro} cm del puño: ${r.e.mtx || L.some(x => x.e.mtx) ? "usa un texto más corto (en «Texto a lo largo de la manga») o quita el logo." : "hazlo más chico o quita algún elemento."}`);
       if (r.e.mtx && r.w < 6 * PT - 1) a.push(`El texto ${nom} quedó de ${sbCm(r.w)} cm de ancho y la franja de la manga es de 6 a 10 cm${L.some(x => !x.e.mtx) ? ": no cabe junto con el logo. Usa un texto más corto o quita el logo de esta manga." : ": usa un texto más corto."}`);
       return; }
     if (mangaC && r.y < 2 * PT) a.push(`${nom} no cabe en la manga corta: hazlo más chico.`);
-    if (r.x < margen || r.x + r.w > m.w - margen) a.push(`${nom} es muy ancho para esta pieza (${sbCm(r.w)} cm); ${r.e.pers ? "baja el alto en la sección 2 de esta pieza." : "hazlo más chico."}`);
+    if (r.x < margen || r.x + r.w > m.w - margen) a.push(`${nom} es muy ancho para esta pieza (${sbCm(r.w)} cm); ${r.e.pers ? "baja el alto en \"Nombre y número\"." : "hazlo más chico."}`);
     if (r.y + r.h > m.h - (k.startsWith("manga") ? SB_REGLAS.margenManga * PT * .5 : 2 * PT)) a.push(`"${r.e.texto || r.e.nombre || "Logo"}" se sale por abajo; hazlo más chico o quita algún elemento.`); })();
   return a;
 }
@@ -2909,7 +2908,7 @@ function sbDibujar(){
 
 function sbCuelloUI(){
   const c = sbCuelloColor(), b = $("#sbCuello"); if (!b) return;
-  const de = SB.referencia && SB.referencia.cuello ? "tomado de tu mockup" : SB.piezas.espalda.fondo.tipo === "color" ? "igual que la espalda (adjunta tu mockup en el paso 4 y se toma de ahí)" : "negro (adjunta tu mockup en el paso 4 y se toma de ahí)";
+  const de = SB.cuelloLam ? "tomado de la tira del cuello de tu lámina" : SB.referencia && SB.referencia.cuello ? "tomado de tu mockup" : SB.piezas.espalda.fondo.tipo === "color" ? "igual que la espalda (adjunta tu mockup en el paso 4 y se toma de ahí)" : "negro (adjunta tu mockup en el paso 4 y se toma de ahí)";
   b.innerHTML = `<span class="label" style="margin:0">Cuello</span><span class="cuellosw" style="background:${c}"></span><span class="mini">${c} · ${de}</span>`;
 }
 /* ---------- interfaz ---------- */
@@ -3028,23 +3027,26 @@ function sbPanel(){
   $("#sbPanel").innerHTML = `
     <div class="sbedit">✏️ Estás editando: <b>${nomK.toUpperCase()}</b> <span class="muted">· cambia de pieza con los botones de arriba o tocándola en el dibujo</span></div>
     <div class="note" style="margin-bottom:10px">📏 ${sbReglasTexto(k)}</div>
-    <div class="sbsec"><b>1. Fondo de ${nomK.toLowerCase()}</b>
-    ${P.fondo.tipo === "imagen" && P.fondo.src
-      ? `<div class="sbrow" style="margin-top:6px"><img src="${P.fondo.src}" class="sbthumb" alt=""><span>✅ Usa la pieza que subiste en el <b>paso 5</b>.</span></div>
-         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px"><button class="linkbtn" id="sbFia">Cambiarla (ir al paso 5)</button><button class="linkbtn" id="sbAColor">Mejor un color liso</button></div>`
-      : `<div class="mini" style="margin:4px 0 6px">${SB.referencia ? "Aún no subes esta pieza en el paso 5. Mientras, puedes usar un color liso:" : "Elige un color liso, o sube el diseño de esta pieza en el paso 5."}</div>
-         <div class="ctcols">${SB_FONDOS.map(([nm, h]) => `<button class="sw${P.fondo.tipo==="color" && P.fondo.color===h?" on":""}" data-fc="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="sbFcc" value="${P.fondo.color || "#1C2340"}" title="Otro color"></div>
-         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px"><button class="linkbtn" id="sbCopiar">Usar este color en todas las piezas</button>${P.fondo.src ? `<button class="linkbtn" id="sbAImagen">Volver a la pieza del paso 5</button>` : `<button class="linkbtn" id="sbFia">Subir la pieza (paso 5)</button>`}</div>`}
-    </div>
-    ${sbPersSeccion(k)}
-    <div class="sbsec" style="margin-top:10px"><b>${sbPersSeccion(k) ? "3" : "2"}. Logos y textos en ${nomK.toLowerCase()}</b></div>
+    <div class="sbbloque sblogo"><div class="sbbh">🖼 Acomoda tu logotipo en el lugar que deseas <span>${nomK.toLowerCase()}</span></div>
+    <div class="mini" style="margin:-2px 0 10px">Tu logo y los textos que son <b>iguales en todas las playeras</b> (por ejemplo el nombre del equipo).</div>
+
     ${P.els.map(tarjeta).join("") || `<div class="muted" style="margin-bottom:8px">Esta pieza aún no lleva logos ni textos.</div>`}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${SB.logo ? (P.els.some(x => x.tipo === "logo" && x.src === SB.logo.src) ? `<span class="mini" style="align-self:center">✓ Tu logo ya está en ${nomK.toLowerCase()} (cámbiale el tamaño arriba)</span>` : `<button class="btn ghost" id="sbMiLogo" style="padding:8px 12px;font-size:13px">＋ Mi logo en ${nomK.toLowerCase()}</button>`) : ""}
       <label class="btn ghost" style="cursor:pointer;padding:8px 12px;font-size:13px">＋ ${SB.logo ? "Otro logo" : "Logo"}<input type="file" accept="image/png,image/jpeg" hidden id="sbAddLogo"></label>
       <button class="btn ghost" id="sbAddTxt" style="padding:8px 12px;font-size:13px">＋ Texto</button>
       </div>
-    ${k === "espalda" ? `<label class="chk" style="margin-top:10px"><input type="checkbox" checked disabled><span>Logo de <b>VITUMA</b> de 5 cm debajo del cuello</span></label>` : ""}`;
+    ${k === "espalda" ? `<label class="chk" style="margin-top:10px"><input type="checkbox" checked disabled><span>Logo de <b>VITUMA</b> de 5 cm debajo del cuello</span></label>` : ""}</div>
+    ${sbPersSeccion(k)}
+    <details class="sbfondo"${P.fondo.tipo === "imagen" && P.fondo.src ? "" : " open"}><summary>🎨 Fondo de ${nomK.toLowerCase()} <span class="mini">${P.fondo.tipo === "imagen" && P.fondo.src ? "· de tu lámina (paso 5)" : "· color liso"}</span></summary>
+    ${P.fondo.tipo === "imagen" && P.fondo.src
+      ? `<div class="sbrow" style="margin-top:6px"><img src="${P.fondo.src}" class="sbthumb" alt=""><span>✅ Usa la pieza que subiste en el <b>paso 5</b>.</span></div>
+         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px"><button class="linkbtn" id="sbFia">Cambiarla (ir al paso 5)</button><button class="linkbtn" id="sbAColor">Mejor un color liso</button></div>`
+      : `<div class="mini" style="margin:4px 0 6px">${SB.referencia ? "Aún no subes esta pieza en el paso 5. Mientras, puedes usar un color liso:" : "Elige un color liso, o sube el diseño de esta pieza en el paso 5."}</div>
+         <div class="ctcols">${SB_FONDOS.map(([nm, h]) => `<button class="sw${P.fondo.tipo==="color" && P.fondo.color===h?" on":""}" data-fc="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="sbFcc" value="${P.fondo.color || "#1C2340"}" title="Otro color"></div>
+         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px"><button class="linkbtn" id="sbCopiar">Usar este color en todas las piezas</button>${P.fondo.src ? `<button class="linkbtn" id="sbAImagen">Volver a la pieza del paso 5</button>` : `<button class="linkbtn" id="sbFia">Subir la pieza (paso 5)</button>`}</div>`}
+    </details>
+`;
   const P0 = SB.piezas[k], byE = id => P0.els.find(e => e.id === id), cambio = (todo) => { SB.mockup = null; if (todo) { sbTabs(); sbPanel(); } sbDibujar(); };
   document.querySelectorAll("[data-fc]").forEach(b => b.onclick = () => { P0.fondo.tipo = "color"; P0.fondo.color = b.dataset.fc; cambio(true); });
   if ($("#sbFcc")) $("#sbFcc").oninput = e => { P0.fondo.tipo = "color"; P0.fondo.color = e.target.value.toUpperCase(); cambio(false); };
@@ -3249,20 +3251,34 @@ function sbPasoMockup(){
     SB.referencia = { src: x.src, nombre: f.name, w: x.w, h: x.h }; SB.referencia.cuello = await sbCuelloDeMockup(x.src); SB.mockup = null; sbRender(); setTimeout(() => $("#sbPzCard").scrollIntoView({ behavior:"smooth", block:"start" }), 80); };
 }
 /* ---------- las 4 piezas en un solo paso: una "lámina" con las piezas separadas y su nombre abajo ---------- */
+/* esquema de la lámina (igual que los archivos del taller) */
+function sbLamDisposicion(){
+  return sbLarga()
+    ? "a la IZQUIERDA las dos MANGAS una junto a la otra y verticales (primero la MANGA IZQUIERDA y a su derecha la MANGA DERECHA), con el hombro arriba y el puño abajo; debajo de las mangas, la TIRA DEL CUELLO acostada; en el CENTRO el FRENTE; a la DERECHA la ESPALDA"
+    : "a la IZQUIERDA las dos MANGAS acostadas, una arriba de la otra (arriba la MANGA DERECHA y abajo la MANGA IZQUIERDA), con el hombro hacia arriba; debajo de las mangas, la TIRA DEL CUELLO acostada; en el CENTRO el FRENTE; a la DERECHA la ESPALDA";
+}
 function sbPromptLamina(){
-  const F = k => sbFormato(k).txt, larga = sbLarga();
-  return `Te adjunto el mockup de mi playera. NO quiero piezas de ropa: quiero 4 RECTÁNGULOS DE TELA ESTAMPADA, como 4 muestras de tela cortadas con tijera en forma rectangular, vistas de frente y planas, para imprimirlas en sublimación.\n\nGenera 4 IMÁGENES SEPARADAS, una por rectángulo, en este orden:\n1) Rectángulo con el estampado del FRENTE de la playera (formato ${F("frente")}).\n2) Rectángulo con el estampado de la ESPALDA (formato ${F("espalda")}).\n3) Rectángulo con el estampado que lleva la manga derecha (formato ${F("mangaD")}). Es la manga que en la vista de frente del mockup se ve del lado IZQUIERDO de la imagen.\n4) Rectángulo con el estampado que lleva la manga izquierda (formato ${F("mangaI")}).\n\nReglas para LAS 4 imágenes, sin excepción:\n- La imagen ENTERA es el estampado, de orilla a orilla: un rectángulo con 4 esquinas rectas de 90°, igual de ancho arriba que abajo. Sin fondo blanco, sin marco y sin texto.\n- Los rectángulos 3 y 4 NO son mangas: no tienen forma redondeada arriba, no se angostan hacia abajo y no tienen puño. Son rectángulos ${larga ? "verticales (lo de arriba es lo que va junto al hombro)" : "horizontales (lo de arriba es lo que va junto al hombro)"}, llenos de estampado igual que el 1 y el 2.\n- Nada de siluetas de ropa: sin cuello, hombros, sisas, costuras, sombras ni arrugas.\n- Usa EXACTAMENTE los mismos colores, figuras y estilo del mockup, con estampado de sobra en las orillas.\n- CONTINUIDAD: lo que pasa del cuerpo a las mangas (franjas, colores, degradados) debe coincidir en las orillas que se cosen.\n- Sin logotipos, textos, nombres ni números: donde estaban, continúa el mismo estampado.\n- Alta resolución, sin marcas de agua.\n\nEntrégame las 4 imágenes separadas. Si solo puedes generar una imagen por respuesta, empieza por la 1 y cuando te escriba "siguiente" haz la que sigue.`;
+  const F = k => sbFormato(k).txt;
+  return `Te adjunto el mockup de mi playera. A partir de ese mockup, genera UNA SOLA IMAGEN horizontal sobre FONDO BLANCO liso con las piezas de tela de la playera extendidas y planas, listas para sublimar, separadas entre sí por espacio blanco, acomodadas así: ${sbLamDisposicion()}.\n\nPiezas:\n- FRENTE: rectángulo ${F("frente")}.\n- ESPALDA: rectángulo ${F("espalda")}, del mismo alto que el frente.\n- MANGA DERECHA y MANGA IZQUIERDA: rectángulos ${F("mangaD")}, más chicos que el frente. La manga derecha es la que en la vista de frente del mockup se ve del lado IZQUIERDO de la imagen.\n- CUELLO: una tira larga y delgada (unas 16 veces más larga que alta) del color del cuello del mockup.\n\nReglas obligatorias:\n- Cada pieza es un RECTÁNGULO PERFECTO (4 esquinas rectas de 90°) lleno de diseño de orilla a orilla. NO dibujes la forma de la playera: sin hueco de cuello, sin hombros, sin sisas, sin costuras, sombras ni arrugas. Las mangas tampoco van en trapecio ni con curva arriba.\n- Usa EXACTAMENTE los mismos colores, franjas, figuras y estilo del mockup, con diseño de sobra en las orillas.\n- CONTINUIDAD: lo que pasa del cuerpo a las mangas (franjas, colores, degradados) debe coincidir en las orillas que se cosen.\n- SIN logotipos, SIN textos, SIN nombres ni números: donde estaban, continúa el mismo fondo (nosotros los ponemos después).\n- No escribas nada en la imagen. Alta resolución, sin marcas de agua.`;
 }
 function sbPromptLaminaMal(){
-  return `No quedó como te pedí: los rectángulos 3 y 4 tienen forma de manga. Hazlos de nuevo como RECTÁNGULOS de tela estampada con 4 esquinas rectas, igual de anchos arriba que abajo, sin curva arriba y sin fondo blanco: la imagen entera es el estampado, igual que los rectángulos 1 y 2. Una imagen por rectángulo, sin logos ni textos, mismos colores y estilo del mockup.`;
+  return `No quedó como te pedí. Hazla de nuevo: UNA SOLA IMAGEN sobre fondo blanco con las piezas separadas por espacio blanco, acomodadas así: ${sbLamDisposicion()}. Cada pieza es un RECTÁNGULO lleno de diseño de orilla a orilla, con 4 esquinas rectas (las mangas tampoco van en trapecio ni con curva arriba), sin silueta de playera, sin logotipos, sin textos y sin escribir nada. El cuello es una tira larga y delgada. Mismos colores y estilo del mockup.`;
 }
-/* separa las piezas de la lámina: busca los rectángulos de diseño sobre el fondo blanco (los nombres de abajo son chicos y se ignoran) */
+function sbLamEsquema(){
+  const L = sbLarga(), r = (x, y, w, h, t, c) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${c || "#1C2340"}"/><text x="${x + w / 2}" y="${y + h / 2 + 4}" text-anchor="middle" font-family="Montserrat,Arial" font-weight="700" font-size="${Math.min(11, w / 7)}" fill="#fff">${t}</text>`;
+  return `<svg viewBox="0 0 420 200" aria-label="Ejemplo de lámina">
+    ${L ? r(8, 14, 50, 140, "MANGA IZQ.", "#3B4A7A") + r(64, 14, 50, 140, "MANGA DER.", "#3B4A7A") + r(8, 166, 106, 12, "CUELLO", "#6B7280")
+        : r(8, 18, 116, 58, "MANGA DERECHA", "#3B4A7A") + r(8, 84, 116, 58, "MANGA IZQUIERDA", "#3B4A7A") + r(8, 154, 116, 12, "CUELLO", "#6B7280")}
+    ${r(140, 10, 128, 180, "FRENTE")}${r(282, 10, 128, 180, "ESPALDA")}</svg>`;
+}
+/* separa la lámina: busca los rectángulos de diseño sobre el fondo blanco.
+   La tira larga y delgada es el cuello; las dos piezas más grandes son el cuerpo (frente a la izquierda, espalda a la derecha);
+   las otras dos, las mangas (una arriba de otra: arriba la derecha; una junto a otra: a la izquierda la izquierda). */
 function sbSepararLamina(im){
-  const W0 = im.naturalWidth, H0 = im.naturalHeight, k = Math.min(1, 700 / Math.max(W0, H0)), W = Math.max(1, Math.round(W0 * k)), H = Math.max(1, Math.round(H0 * k));
+  const W0 = im.naturalWidth, H0 = im.naturalHeight, k = Math.min(1, 900 / Math.max(W0, H0)), W = Math.max(1, Math.round(W0 * k)), H = Math.max(1, Math.round(H0 * k));
   const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d", { willReadFrequently:true }); x.drawImage(im, 0, 0, W, H);
   const d = x.getImageData(0, 0, W, H).data, blanco = i => d[i*4] > 232 && d[i*4+1] > 232 && d[i*4+2] > 232;
   const lleno = new Uint8Array(W * H); for (let i = 0; i < W * H; i++) lleno[i] = blanco(i) ? 0 : 1;
-  /* cierra huecos chicos (franjas blancas dentro del diseño) */
   const r = 2, cerr = new Uint8Array(W * H);
   for (let y = 0; y < H; y++) for (let z = 0; z < W; z++){ let v = 0; for (let dy = -r; dy <= r && !v; dy++) for (let dx = -r; dx <= r; dx++){ const yy = y + dy, xx = z + dx; if (yy >= 0 && yy < H && xx >= 0 && xx < W && lleno[yy * W + xx]){ v = 1; break; } } cerr[y * W + z] = v; }
   const visto = new Uint8Array(W * H), cajas = [];
@@ -3270,73 +3286,65 @@ function sbSepararLamina(im){
     let x0 = W, y0 = H, x1 = 0, y1 = 0, n = 0; const pila = [i]; visto[i] = 1;
     while (pila.length){ const j = pila.pop(), xx = j % W, yy = (j / W) | 0; n++; if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy;
       for (const q of [j - 1, j + 1, j - W, j + W]) if (q >= 0 && q < W * H && !visto[q] && cerr[q] && Math.abs((q % W) - xx) <= 1){ visto[q] = 1; pila.push(q); } }
-    const area = (x1 - x0 + 1) * (y1 - y0 + 1);
-    if (area > W * H * .015 && n > area * .5) cajas.push({ x0, y0, x1, y1, area }); }
-  if (cajas.length < 4) return null;
-  cajas.sort((a, b) => b.area - a.area); const top = cajas.slice(0, 4);
-  /* recorta orillas casi blancas (por si se pegó el nombre de la pieza) */
-  for (const b of top){
+    const bw = x1 - x0 + 1, bh = y1 - y0 + 1, area = bw * bh;
+    if (area > W * H * .0015 && n > area * .5) cajas.push({ x0, y0, x1, y1, area, rel: Math.max(bw / bh, bh / bw) }); }
+  /* recorta orillas casi blancas */
+  for (const b of cajas){
     const filaBl = y => { let w = 0; for (let z = b.x0; z <= b.x1; z++) if (!lleno[y * W + z]) w++; return w / (b.x1 - b.x0 + 1) > .6; };
     const colBl = z => { let w = 0; for (let y = b.y0; y <= b.y1; y++) if (!lleno[y * W + z]) w++; return w / (b.y1 - b.y0 + 1) > .6; };
     while (b.y1 > b.y0 && filaBl(b.y1)) b.y1--; while (b.y0 < b.y1 && filaBl(b.y0)) b.y0++;
     while (b.x1 > b.x0 && colBl(b.x1)) b.x1--; while (b.x0 < b.x1 && colBl(b.x0)) b.x0++;
+    b.cx = (b.x0 + b.x1) / 2; b.cy = (b.y0 + b.y1) / 2;
   }
-  /* las dos más grandes son el cuerpo (frente a la izquierda) y las dos chicas las mangas (derecha a la izquierda) */
-  const cuerpo = top.slice(0, 2).sort((a, b) => a.x0 - b.x0 || a.y0 - b.y0), mangas = top.slice(2).sort((a, b) => a.x0 - b.x0 || a.y0 - b.y0);
+  const tiras = cajas.filter(b => b.rel >= 5).sort((a, b) => b.area - a.area), cuelloB = tiras[0] || null;
+  const piezas = cajas.filter(b => b !== cuelloB && b.area > W * H * .015).sort((a, b) => b.area - a.area);
+  if (piezas.length < 4) return null;
+  const cuerpo = piezas.slice(0, 2).sort((a, b) => a.cx - b.cx), mg = piezas.slice(2, 4);
+  const apiladas = Math.abs(mg[0].cy - mg[1].cy) > Math.abs(mg[0].cx - mg[1].cx);
+  const [mD, mI] = apiladas ? mg.sort((a, b) => a.cy - b.cy) : mg.sort((a, b) => b.cx - a.cx);
   const recorte = b => { const m = .012, bw = b.x1 - b.x0 + 1, bh = b.y1 - b.y0 + 1, sx = (b.x0 + bw * m) / k, sy = (b.y0 + bh * m) / k, sw = bw * (1 - 2 * m) / k, sh = bh * (1 - 2 * m) / k;
     const s = Math.min(1, 1600 / Math.max(sw, sh)), o = document.createElement("canvas"); o.width = Math.round(sw * s); o.height = Math.round(sh * s);
     o.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, o.width, o.height); return { src: o.toDataURL("image/jpeg", .9), w: Math.round(sw), h: Math.round(sh) }; };
-  return { frente: recorte(cuerpo[0]), espalda: recorte(cuerpo[1]), mangaD: recorte(mangas[0]), mangaI: recorte(mangas[1]) };
+  /* color del cuello: la mediana del centro de la tira (color sólido) */
+  let cuello = null;
+  if (cuelloB){ const R = [], G = [], B = [], mx = (cuelloB.x1 - cuelloB.x0) * .15, my = (cuelloB.y1 - cuelloB.y0) * .25;
+    for (let y = Math.round(cuelloB.y0 + my); y <= cuelloB.y1 - my; y++) for (let z = Math.round(cuelloB.x0 + mx); z <= cuelloB.x1 - mx; z++){ const i = (y * W + z) * 4; R.push(d[i]); G.push(d[i+1]); B.push(d[i+2]); }
+    const md = v => { v.sort((a, b) => a - b); return v[v.length >> 1] || 0; };
+    if (R.length) cuello = "#" + [md(R), md(G), md(B)].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase(); }
+  return { frente: recorte(cuerpo[0]), espalda: recorte(cuerpo[1]), mangaD: recorte(mD), mangaI: recorte(mI), cuello };
 }
 const sbCargarImg = f => new Promise((ok, no) => { const fr = new FileReader(); fr.onerror = no; fr.onload = () => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = fr.result; }; fr.readAsDataURL(f); });
 async function sbSubirLamina(files){
-  const res = $("#sbLamRes"); res.innerHTML = `<div class="mini" style="margin-top:10px">⏳ Acomodando las piezas…</div>`;
-  let piezas = null;
-  try {
-    if (files.length === 1) piezas = sbSepararLamina(await sbCargarImg(files[0]));   // ¿una sola imagen con las 4 piezas?
-    if (!piezas){   // imágenes separadas (una por pieza): van en el orden en que se pidieron; cuerpo y manga se distinguen por su forma
-      piezas = {}; const lista = [];
-      for (const f of files.slice(0, 4)){ const r0 = await sbLeer(f, 1600, "image/jpeg"), c = await sbCompletar(r0.src); lista.push({ ...(c || r0), completada: !!c }); }
-      /* manga larga: las mangas son angostas y altas; manga corta: son anchas (horizontales) */
-      const larga = sbLarga(), a = p => p.w / p.h, esManga = p => larga ? a(p) < .48 : a(p) > .95;
-      let cuerpos = lista.filter(p => !esManga(p)), mangas = lista.filter(esManga);
-      if (lista.length === 4 && cuerpos.length !== 2){   // si no se distinguen solas: por forma relativa, y si no, el orden en que se pidieron
-        const ord = lista.map((p, i) => ({ p, i })).sort((x, y) => larga ? a(y.p) - a(x.p) : a(x.p) - a(y.p));
-        if (Math.abs(Math.log(a(ord[1].p) / a(ord[2].p))) > Math.log(1.25)){
-          cuerpos = ord.slice(0, 2).sort((x, y) => x.i - y.i).map(x => x.p); mangas = ord.slice(2).sort((x, y) => x.i - y.i).map(x => x.p); }
-        else { cuerpos = lista.slice(0, 2); mangas = lista.slice(2); } }
-      const tiene = k => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src;
-      const pon = (grupo, ks) => { const lb = lista.length === 4 ? ks : ks.filter(k => !tiene(k)), orden = lb.length >= grupo.length ? lb : ks; grupo.forEach((p, i) => { if (orden[i]) piezas[orden[i]] = p; }); };
-      pon(cuerpos, ["frente","espalda"]); pon(mangas, ["mangaD","mangaI"]);
-      if (!Object.keys(piezas).length) piezas = null;
-    }
-  } catch(e){ piezas = null; }
-  if (!piezas){ res.innerHTML = `<div class="warn" style="margin-top:10px">No pudimos leer esa imagen. Toca <b>🔁 No salió bien</b>, pega el mensaje en la IA y sube las imágenes nuevas, o súbelas una por una (abajo).</div>`; return; }
-  const arregladas = [];
-  for (const [k, p0] of Object.entries(piezas)){ const r = "completada" in p0 ? null : await sbCompletar(p0.src), p = r || p0; if (r || p0.completada) arregladas.push(k);
-    SB.piezas[k].fondo = { tipo:"imagen", src: p.src, nombre: "ia_" + k, w: p.w, h: p.h, color: SB.piezas[k].fondo.color, silueta: r || p0.completada ? false : await sbSilueta(p.src), completada: !!(r || p0.completada) }; }
-  SB._lamArr = arregladas; SB.mockup = null; sbRender();
+  const res = $("#sbLamRes"), f = files[0]; if (!f) return;
+  res.innerHTML = `<div class="mini" style="margin-top:10px">⏳ Separando las piezas de tu lámina…</div>`;
+  let r = null, im = null;
+  try { im = await sbCargarImg(f); r = sbSepararLamina(im); } catch(e){ r = null; }
+  /* la lámina original se guarda para el área de diseño */
+  try { const x = await sbLeer(f, 2400, "image/jpeg"); SB.lamina = { src: x.src, nombre: f.name, w: x.w, h: x.h }; } catch(e){}
+  SB._lamFallo = !r;
+  if (r){
+    const arregladas = [];
+    for (const k of ["frente","espalda","mangaD","mangaI"]){ const p0 = r[k], c = await sbCompletar(p0.src), p = c || p0; if (c) arregladas.push(k);
+      SB.piezas[k].fondo = { tipo:"imagen", src: p.src, nombre: "lamina_" + k, w: p.w, h: p.h, color: SB.piezas[k].fondo.color, silueta: false, completada: !!c }; }
+    SB.cuelloLam = r.cuello || null; SB._lamArr = arregladas;
+  }
+  SB.mockup = null; sbRender();
 }
-/* los 4 cuadros de las piezas: siempre visibles; cada cuadro se toca para subir (o cambiar) esa pieza */
-function sbLamResultado(arregladas){
-  if (arregladas !== undefined) SB._lamArr = arregladas; arregladas = SB._lamArr || [];
+/* lo que se sacó de la lámina, con botones por si alguna pieza quedó cambiada */
+function sbLamResultado(){
   const box = $("#sbLamRes"); if (!box) return;
-  const tiene = k => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src;
-  const faltan = SB_PIEZAS.filter(([k]) => !tiene(k)), sig = faltan.length ? faltan[0][0] : null, nom = k => SB_PIEZAS.find(x => x[0] === k)[1].toLowerCase();
-  const msg = faltan.length === 4 ? `<div class="note" style="margin-top:12px">👇 <b>Aquí van tus 4 piezas.</b> Sube las 4 juntas con el botón de arriba, o <b>toca cada cuadro</b> para subir esa pieza.</div>`
-    : faltan.length ? `<div class="warn" style="margin-top:12px">📥 Te ${faltan.length === 1 ? "falta" : "faltan"}: <b>${faltan.map(([k]) => nom(k)).join(", ")}</b>. Pídela en la IA (escríbele "siguiente"), descárgala y <b>toca el cuadro naranja</b> de abajo para subirla.</div>`
-    : `<div class="okbox" style="margin-top:12px">✅ ¡Listo! Tus 4 piezas están en su lugar. Revisa que cada una corresponda; si no, usa los botones ⇄ o toca la pieza para cambiarla.</div>`;
-  box.innerHTML = msg + (arregladas.length ? `<div class="mini" style="margin-top:6px">✂️ La IA dibujó con forma de playera: ${arregladas.map(nom).join(", ")}. La${arregladas.length === 1 ? "" : "s"} hicimos rectángulo rellenando las orillas blancas con los colores de junto. Si no te gusta, toca <b>🔁 No salió bien</b>.</div>` : "")
-    + `<div class="lamres">${SB_PIEZAS.map(([k, t]) => `<label class="lamslot${tiene(k) ? " lleno" : ""}${k === sig ? " sigue" : ""}">
-        ${tiene(k) ? `<img src="${SB.piezas[k].fondo.src}" alt="${t}"><span class="lamcambia">Cambiar</span>` : `<div class="lamfalta"><b>⬆</b>Toca para subir<br>${t.toLowerCase()}</div>`}
-        <input type="file" accept="image/png,image/jpeg,image/webp" hidden data-lamk="${k}"><span class="lamcap">${tiene(k) ? "✓ " : ""}${t}</span></label>`).join("")}</div>
-    ${faltan.length < 3 ? `<div class="accrow" style="margin-top:8px"><button class="btn ghost" data-lsw="frente,espalda" style="padding:7px 12px;font-size:13px">⇄ Cambiar frente y espalda</button><button class="btn ghost" data-lsw="mangaD,mangaI" style="padding:7px 12px;font-size:13px">⇄ Cambiar las mangas</button></div>` : ""}`;
+  const tiene = k => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src, todas = ["frente","espalda","mangaD","mangaI"].every(tiene);
+  const nom = k => SB_PIEZAS.find(x => x[0] === k)[1];
+  if (!SB.lamina && !todas){ box.innerHTML = ""; return; }
+  const arr = SB._lamArr || [];
+  const fig = (k, t) => `<figure>${tiene(k) ? `<img src="${SB.piezas[k].fondo.src}" alt="${t}" data-zoom>` : `<div class="lamfalta">Falta</div>`}<figcaption>${t}</figcaption></figure>`;
+  box.innerHTML = (SB._lamFallo ? `<div class="warn" style="margin-top:12px">No pudimos separar las piezas de esa imagen. Toca <b>🔁 No salió bien</b>, pega el mensaje en la IA y sube la lámina nueva. <b>Ya la guardamos</b>: si no sale, nuestro diseñador la separa.</div>`
+      : `<div class="okbox" style="margin-top:12px">✅ Separamos tu lámina. Revisa que cada pieza esté en su lugar; si alguna quedó cambiada, usa los botones ⇄.${arr.length ? `<br>✂️ Rellenamos las orillas blancas de: ${arr.map(k => nom(k).toLowerCase()).join(", ")}.` : ""}</div>`)
+    + `<div class="lamres lamres5">${SB.lamina ? `<figure class="lamorig"><img src="${SB.lamina.src}" alt="Tu lámina" data-zoom><figcaption>Tu lámina</figcaption></figure>` : ""}
+      ${fig("mangaD", "Manga derecha")}${fig("mangaI", "Manga izquierda")}${fig("frente", "Frente")}${fig("espalda", "Espalda")}
+      <figure><div class="lamcu" style="background:${sbCuelloColor()}"></div><figcaption>Cuello ${SB.cuelloLam ? "" : "(del mockup)"}</figcaption></figure></div>
+    ${todas ? `<div class="accrow" style="margin-top:8px"><button class="btn ghost" data-lsw="frente,espalda" style="padding:7px 12px;font-size:13px">⇄ Cambiar frente y espalda</button><button class="btn ghost" data-lsw="mangaD,mangaI" style="padding:7px 12px;font-size:13px">⇄ Cambiar las mangas</button></div>` : ""}`;
   box.querySelectorAll("[data-lsw]").forEach(b => b.onclick = () => { const [a, c] = b.dataset.lsw.split(","), fa = SB.piezas[a].fondo; SB.piezas[a].fondo = SB.piezas[c].fondo; SB.piezas[c].fondo = fa; SB.mockup = null; sbRender(); });
-  box.querySelectorAll("[data-lamk]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const k = inp.dataset.lamk;
-    inp.closest(".lamslot").classList.add("cargando");
-    const x0 = await sbLeer(f, 1600, "image/jpeg"), r = await sbCompletar(x0.src), x = r || x0;
-    SB.piezas[k].fondo = { tipo:"imagen", src: x.src, nombre: f.name, w: x.w, h: x.h, color: SB.piezas[k].fondo.color, silueta: r ? false : await sbSilueta(x.src), completada: !!r };
-    SB._lamArr = (SB._lamArr || []).filter(q => q !== k).concat(r ? [k] : []); SB.mockup = null; sbRender(); });
 }
 function sbPasoPiezas(){
   const { m } = sbBase(), r = SB.referencia;
@@ -3344,22 +3352,9 @@ function sbPasoPiezas(){
   sbLamResultado();
   $("#sbPzRef").innerHTML = r ? `<div class="sbref2"><figure><img src="${r.src}" alt="Tu mockup" data-zoom class="sbref"><figcaption>Como lo dibujó la IA (pantalla)</figcaption></figure>
       <figure>${r.prueba ? `<img src="${r.prueba}" alt="Colores de impresión" data-zoom class="sbref">` : `<div class="sbref muted" style="display:flex;align-items:center;justify-content:center">Calculando…</div>`}<figcaption>🎨 Así se verían los colores impresos (aprox.)</figcaption></figure></div>
-      <div class="mini" style="margin:-4px 0 10px">La pantalla muestra colores más brillantes de los que se pueden imprimir (RGB). La imprenta usa tintas CMYK: los azules, naranjas y verdes muy intensos salen un poco más apagados.</div>` : `<div class="warn">Primero adjunta tu mockup en el paso 4. Si ya tienes tu diseño por piezas, súbelas directo aquí.</div>`;
-  $("#sbPzList").innerHTML = SB_PIEZAS.map(([k]) => { const [ic, nom] = SB_PZ_INFO[k], f = SB.piezas[k].fondo, hay = f.tipo === "imagen" && f.src;
-    return `<div class="sbpz${hay && !f.silueta ? " ok" : ""}" data-pzrow="${k}">
-      <div class="sbpzh"><b>${ic} ${nom.charAt(0) + nom.slice(1).toLowerCase()}</b><span class="muted">rectángulo ${sbFormato(k).txt}</span>${hay && !f.silueta ? `<span class="ok">✓ Lista</span>` : ""}</div>
-      <div class="sbacc"><span class="grp"><button class="btn ghost" data-pzc="${k}">📋 Copiar instrucciones</button><button class="btn ghost" data-pzr="${k}" title="Si la IA dibujó la playera, dejó textos o no llenó todo">🔁 No salió bien</button>
-        <label class="btn ghost" style="cursor:pointer">⬆ ${hay ? "Cambiar pieza" : "Subir la pieza"}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-pzu="${k}"></label>
-        ${hay ? `<img src="${f.src}" alt="">` : ""}</span></div>
-      ${hay && f.silueta ? `<div class="warn" style="margin-top:6px">⚠️ Parece que la IA dibujó la forma de la playera con fondo blanco alrededor. Toca <b>🔁 No salió bien</b>, pégalo en el mismo chat y sube la imagen nueva: debe ser un rectángulo lleno de diseño.</div>` : ""}
-      <details><summary>Ver las instrucciones</summary><textarea readonly>${VT.esc(sbPromptPieza(k))}</textarea></details></div>`; }).join("");
+      <div class="mini" style="margin:-4px 0 10px">La pantalla muestra colores más brillantes de los que se pueden imprimir (RGB). La imprenta usa tintas CMYK: los azules, naranjas y verdes muy intensos salen un poco más apagados.</div>` : `<div class="warn">Primero adjunta tu mockup en el paso 4. Si ya tienes tu lámina con las piezas, súbela directo aquí.</div>`;
+  if ($("#sbLamEj")) $("#sbLamEj").innerHTML = sbLamEsquema();
   if (r && !r.prueba) sbPruebaSrc(r.src).then(u => { r.prueba = u; if (SB.referencia === r) sbPasoPiezas(); }).catch(() => {});
-  document.querySelectorAll("[data-pzc]").forEach(b => b.onclick = () => sbCopiar(sbPromptPieza(b.dataset.pzc), b));
-  document.querySelectorAll("[data-pzr]").forEach(b => b.onclick = () => sbCopiar(sbPromptCorregir(b.dataset.pzr), b));
-  document.querySelectorAll("[data-pzu]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const k = inp.dataset.pzu;
-    const x0 = await sbLeer(f, 1600, "image/jpeg"), r = await sbCompletar(x0.src), x = r || x0;
-    SB.piezas[k].fondo = { tipo:"imagen", src: x.src, nombre: f.name, w: x.w, h: x.h, color: SB.piezas[k].fondo.color, silueta: r ? false : await sbSilueta(x.src), completada: !!r };
-    SB.pieza = k; SB.mockup = null; sbRender(); });
 }
 /* lista de nombres y números: un renglón por playera, según las tallas elegidas (se conserva lo ya escrito) */
 function sbPersLista(){
@@ -3395,21 +3390,21 @@ function sbPersSeccion(k){
       <span class="label" style="margin-top:10px">Color de la letra</span>
       <div class="ctcols" id="${pref}Co">${CT_COLORES.map(([nm, h]) => `<button class="sw${X.color===h?" on":""}" data-v="${h}" title="${nm}" style="background:${h}"></button>`).join("")}<input type="color" id="${pref}Cc" value="${X.color}" title="Otro color"></div>
       ${sbBordeHTML(bid, X.borde)}`;
-  if (k === "espalda") return `<div class="sbsec" id="sbPersSec" style="margin-top:14px"><b>2. Nombre y número</b> <span class="mini">· uno distinto en cada playera</span>
+  if (k === "espalda") return `<div class="sbbloque sbnum" id="sbPersSec"><div class="sbbh">🔢 Nombre y número en la espalda <span>opcional</span></div><div class="mini">Uno <b>distinto en cada playera</b> (por ejemplo GARCÍA 10).</div>
       <div class="ctrows" style="margin-top:8px">${chk("spEN", P.espNom, "Nombre")}${chk("spEU", P.espNum, "Número")}</div>
       ${P.espalda ? `<div class="sbrow">${P.espNom ? `<span class="label" style="margin:0">Alto del nombre</span>${sel("spENc", [3,4,5,6,7,8,10], P.espNomCm)}` : ""}
           ${P.espNum ? `<span class="label" style="margin:0">Alto del número</span>${sel("spEUc", [10,12,15,18,20,22,25,28,30], P.espNumCm)}` : ""}</div>
         <div class="mini">Van al centro${P.espNom && P.espNum ? ": el nombre arriba y el número abajo" : ""}. Los nombres largos se achican o se parten en 2 renglones solos.</div>
         ${estilo("sp", P, "pers")}<div class="mini" id="spMedidas" style="margin-top:6px"></div>
         <div class="note" style="margin-top:8px">✍️ Escribe los nombres y números de cada playera en la <b>lista de abajo</b>.</div>` : ""}</div>`;
-  if (k === "frente") return `<div class="sbsec" id="sbPersSec" style="margin-top:14px"><b>2. Nombre o número en el pecho</b> <span class="mini">· opcional</span>
+  if (k === "frente") return `<div class="sbbloque sbnum" id="sbPersSec"><div class="sbbh">🔢 Nombre o número en el pecho <span>opcional</span></div><div class="mini">Uno <b>distinto en cada playera</b>.</div>
       <div class="seg" id="spQue" style="margin-top:8px">${[["no","Nada"],["nombre","Nombre"],["numero","Número"],["ambos","Nombre y número"]].map(([v, t]) => `<button class="${P.pechoQue===v?"on":""}" data-v="${v}">${t}</button>`).join("")}</div>
       ${P.pecho ? `<div class="seg" id="spLado" style="margin:8px 0">${[["izquierda","Lado izquierdo"],["centro","Centro"],["derecha","Lado derecho"]].map(([v, t]) => `<button class="${P.pechoLado===v?"on":""}" data-v="${v}">${t}</button>`).join("")}</div>
         <div class="sbrow"><span class="label" style="margin:0">Alto</span>${sel("spPc", [3,4,5,6,8,10,12,15], P.pechoCm)}<span class="mini">Izquierdo o derecho de quien viste la playera.</span></div>
         ${estilo("sp", P, "pers")}<div class="mini" id="spMedidas" style="margin-top:6px"></div>
         <div class="note" style="margin-top:8px">✍️ Escribe los nombres y números de cada playera en la <b>lista de abajo</b>.</div>` : ""}</div>`;
   if (k.startsWith("manga") && sbLarga()){ const l = k === "mangaD" ? "D" : "I", t = M[l].trim();
-    return `<div class="sbsec" id="sbPersSec" style="margin-top:14px"><b>2. Texto a lo largo de la manga</b> <span class="mini">· opcional, igual en todas las playeras</span>
+    return `<div class="sbbloque sbnum" id="sbPersSec"><div class="sbbh">✍️ Texto a lo largo de la manga <span>opcional</span></div><div class="mini">Igual en todas las playeras (por ejemplo ESCUINAPA).</div>
       <input type="text" id="smX" maxlength="22" value="${VT.esc(M[l])}" placeholder="${l === "D" ? "Ej. ESCUINAPA" : "Ej. SINALOA"}" style="margin-top:8px">
       ${t ? `<div class="sbrow" style="margin-top:8px"><span class="label" style="margin:0">Alto de letra</span>${sel("smCm", [6,7,8,9,10], M.cm)}<span class="mini">Franja central de 6 a 10 cm (regla del ajustador).</span></div>
         <div id="smMed"></div>${estilo("sm", M, "mtx")}<div class="mini" style="margin-top:6px">La letra, el color y el contorno son los mismos en las dos mangas.</div>` : ""}</div>`; }
@@ -3459,7 +3454,7 @@ function sbItem(){
   const modoTxt = `🎨 Diseño por piezas (${nPz} logos/textos)`;
   const serv = SERVICIOS[SB.servicio] ? SB.servicio : "ninguno";
   return { id: Date.now(), prod: SB.prod, modelo: SB.modelo, color: "", qty, per: null, notas: [SB.servicio === "logo" && SB.logoDesc ? "Logo deseado: " + SB.logoDesc.trim() : "", $("#sbNotas").value.trim()].filter(Boolean).join(" · "),
-    diseno: { idea: SB.idea.trim() || null, referencia: SB.referencia ? SB.referencia.src : null, pers: sbPersDatos(), tecnica:"sublimado", costoPieza: 0, texto: modoTxt + (serv !== "ninguno" ? " · ✏️ " + SERVICIOS[serv].t + " (VITUMA)" : ""), adjunto: false, servicio: serv } };
+    diseno: { idea: SB.idea.trim() || null, referencia: SB.referencia ? SB.referencia.src : null, lamina: SB.lamina ? SB.lamina.src : null, pers: sbPersDatos(), tecnica:"sublimado", costoPieza: 0, texto: modoTxt + (serv !== "ninguno" ? " · ✏️ " + SERVICIOS[serv].t + " (VITUMA)" : ""), adjunto: false, servicio: serv } };
 }
 function sbPrecio(){
   const it = sbItem(), n = piezas(it.qty), p = byId(SB.prod);
@@ -3476,8 +3471,8 @@ function sbPrecio(){
   if (!n) av.push("Elige cuántas piezas quieres de cada talla.");
   const nEls = SB_PIEZAS.reduce((a, [k]) => a + SB.piezas[k].els.length, 0);
   const hayFondos = SB_PIEZAS.some(([k]) => SB.piezas[k].fondo.tipo === "imagen" && SB.piezas[k].fondo.src);
-  if (n && !SB.idea.trim() && !SB.referencia && !hayFondos && !nEls && !SB.logo) av.push("Describe cómo quieres tu camisa en el paso 4 (o arma tu diseño en el paso 7).");
-  if (n && SB.referencia && !hayFondos) av.push("Aún no subes las piezas de tu diseño (paso 5). Si no las subes, nuestro diseñador las saca de tu mockup.");
+  if (n && !SB.idea.trim() && !SB.referencia && !hayFondos && !nEls && !SB.logo) av.push("Describe cómo quieres tu camisa en el paso 4 (o arma tu diseño en el paso 6).");
+  if (n && SB.referencia && !hayFondos && !SB.lamina) av.push("Aún no subes la lámina de tu diseño (paso 5). Si no la subes, nuestro diseñador saca las piezas de tu mockup.");
   const pd = sbPersDatos(); if (n && pd){ const falta = pd.lista.filter(r => (pd.nombre && !r.nombre) || (pd.numero && !r.numero)).length;
     if (falta) av.push(`Faltan nombres o números en ${falta} ${falta === 1 ? "playera" : "playeras"} (paso 6). Puedes mandarlos después por WhatsApp.`); }
   if (SB.servicio === "logo" && !(SB.logoDesc || "").trim()) av.push("Describe cómo deseas tu logo (en el paso 3).");
@@ -3730,7 +3725,7 @@ async function generarNota(){
       impresion: f.it.diseno ? (f.it.diseno.impresion || []) : [],
       sub: f.it.diseno ? (f.it.diseno.sub || null) : null,
       descripcion: f.it.diseno ? (f.it.diseno.descripcion || null) : null,
-      idea: f.it.diseno ? (f.it.diseno.idea || null) : null, referencia: f.it.diseno ? (f.it.diseno.referencia || null) : null,
+      idea: f.it.diseno ? (f.it.diseno.idea || null) : null, referencia: f.it.diseno ? (f.it.diseno.referencia || null) : null, lamina: f.it.diseno ? (f.it.diseno.lamina || null) : null,
       pers: f.it.diseno ? (f.it.diseno.pers || null) : null,
       contacto: f.it.diseno ? (f.it.diseno.contacto || null) : null, servicio: f.it.diseno ? (f.it.diseno.servicio || null) : null,
       mockup: (f.it.diseno && f.it.diseno.mockup) || fotoColor(f.p, f.it.color, f.it.modelo) || imgDe(f.p, f.it.modelo) || null,
