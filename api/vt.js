@@ -39,6 +39,7 @@ async function guardarImagen(dataUrl, carpeta){
   if (!EXT[tipo]) throw new Error("tipo no permitido");
   if (buf.length > IMG_MAX) throw new Error("imagen muy grande");
   const nombre = `${(carpeta || "img").replace(/[^\w-]/g, "")}/${Date.now().toString(36)}-${crypto.randomBytes(9).toString("hex")}.${EXT[tipo]}`;
+  await contarSubida(nombre, buf.length);
   if (process.env.VT_BLOB_DIR){   // pruebas locales
     const fs = await import("node:fs"), path = await import("node:path"); const f = path.join(process.env.VT_BLOB_DIR, nombre);
     fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, buf); return "/api/vt?a=img&p=" + encodeURIComponent(nombre);
@@ -52,6 +53,21 @@ async function guardarImagen(dataUrl, carpeta){
   }
   return "/api/vt?a=img&p=" + encodeURIComponent(nombre);
 }
+/* ---------- cuánto espacio se usa (para avisar antes de llegar al límite del plan) ---------- */
+const LIM = { bytes: +(process.env.VT_LIMITE_MB || 1024) * 1024 * 1024, subidas: +(process.env.VT_LIMITE_SUBIDAS || 2000) };
+const mes = () => new Date().toISOString().slice(0, 7);
+async function contarSubida(nombre, n){
+  await rp([["HSET", "vt:img", nombre, n], ["INCRBY", "vt:uso:bytes", n], ["INCR", "vt:uso:sub:" + mes()], ["EXPIRE", "vt:uso:sub:" + mes(), 86400 * 70]]);
+}
+async function borrarImagenes(rutas){
+  if (!rutas.length) return 0;
+  const tam = await r1("HMGET", "vt:img", ...rutas), total = (tam || []).reduce((a, x) => a + (+x || 0), 0);
+  if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"); for (const r of rutas){ try { fs.unlinkSync(path.join(process.env.VT_BLOB_DIR, r)); } catch(e){} } }
+  else { const { del } = await blob(); for (let i = 0; i < rutas.length; i += 100) await del(rutas.slice(i, i + 100)); }
+  await rp([["HDEL", "vt:img", ...rutas], ["DECRBY", "vt:uso:bytes", total]]);
+  return total;
+}
+const rutasDe = o => { const out = new Set(), rec = x => { if (typeof x === "string"){ const m = x.match(/^\/api\/vt\?a=img&p=([^&"]+)/); if (m) out.add(decodeURIComponent(m[1])); } else if (x && typeof x === "object") Object.values(x).forEach(rec); }; rec(o); return out; };
 /* por si llega algún dato con imágenes adentro: se suben y se cambian por su liga */
 async function sacarImagenes(o, carpeta){
   if (!o || typeof o !== "object") return;
@@ -149,6 +165,41 @@ const A = {
     if (cmds.length) await rp(cmds);
     await marcar(marcas);
     return { ok: true, ahora: ahora() };
+  },
+
+  /* espacio usado y subidas del mes, contra el límite del plan */
+  async uso(req, u){
+    const [b, s, n] = await rp([["GET", "vt:uso:bytes"], ["GET", "vt:uso:sub:" + mes()], ["HLEN", "vt:img"]]);
+    return { bytes: Math.max(0, +b || 0), subidas: +s || 0, imagenes: +n || 0, limite: LIM, recalculado: await r1("GET", "vt:uso:recalc") };
+  },
+  /* vuelve a contar el espacio real leyendo la tienda de imágenes (por si hay imágenes de antes) */
+  async recalcular(req, u){
+    if (u.rol !== "Administrador") throw Object.assign(new Error("Solo un administrador"), { code: 403 });
+    if (process.env.VT_BLOB_DIR) return A.uso(req, u);
+    const { list } = await blob(); let cursor, total = 0; const mapa = [];
+    do { const r = await list({ cursor, limit: 1000 }); for (const x of r.blobs){ total += x.size; mapa.push(x.pathname, x.size); } cursor = r.hasMore ? r.cursor : null; } while (cursor);
+    const cmds = [["DEL", "vt:img"], ["SET", "vt:uso:bytes", total], ["SET", "vt:uso:recalc", new Date().toISOString()]];
+    for (let i = 0; i < mapa.length; i += 400) cmds.push(["HSET", "vt:img", ...mapa.slice(i, i + 400)]);
+    await rp(cmds); return A.uso(req, u);
+  },
+  /* libera espacio: borra las imágenes SOLO de pedidos ya entregados hace tiempo (nunca de los que siguen en proceso) (los datos del pedido se quedan) */
+  async depurar(req, u){
+    if (u.rol !== "Administrador") throw Object.assign(new Error("Solo un administrador puede liberar espacio"), { code: 403 });
+    const meses = Math.max(0, Math.min(60, +((req.body || {}).meses) || 0)), solo = !!(req.body || {}).simular;
+    const limite = Date.now() - meses * 30.4 * 864e5, ventas = await todasLasVentas();
+    const viejas = ventas.filter(v => v.estado === "entregado" && new Date(v.entregadoEl || ((v.historial || [])[0] || {}).fecha || v.fecha).getTime() < limite);
+    const usadas = new Set(); ventas.filter(v => !viejas.includes(v)).forEach(v => rutasDe(v).forEach(r => usadas.add(r)));
+    const quitar = new Set(); viejas.forEach(v => rutasDe(v.items).forEach(r => { if (!usadas.has(r)) quitar.add(r); }));
+    const tam = quitar.size ? await r1("HMGET", "vt:img", ...quitar) : [], bytes = (tam || []).reduce((a, x) => a + (+x || 0), 0);
+    if (solo) return { pedidos: viejas.filter(v => [...rutasDe(v.items)].some(r => quitar.has(r))).map(v => v.folio), imagenes: quitar.size, bytes };
+    const cmds = [], marcas = [];
+    for (const v of viejas){ let cambio = false;
+      const limpia = x => { if (Array.isArray(x)) return x.map(limpia); if (x && typeof x === "object"){ for (const k of Object.keys(x)){ const y = x[k];
+          if (typeof y === "string" && y.startsWith("/api/vt?a=img&p=")){ x[k] = ""; cambio = true; } else limpia(y); } } return x; };
+      limpia(v.items); if (cambio){ v.imagenesDepuradas = new Date().toISOString(); cmds.push(["SET", "vt:v:" + v.folio, JSON.stringify(v)]); marcas.push("v:" + v.folio); } }
+    if (cmds.length) await rp(cmds); await marcar(marcas);
+    const liberado = await borrarImagenes([...quitar]);
+    return { pedidos: marcas.length, imagenes: quitar.size, bytes: liberado };
   },
 
   /* respaldo completo (con contraseñas cifradas) */
