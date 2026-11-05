@@ -837,8 +837,9 @@ function abrirVenta(folio){
       <div class="acts">${p.estado==="por_validar" ? (can("validar_pagos") && !cancel ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar ${money(p.monto)}</button><button class="btn sec sm" data-valotro="${p.id}">Validar otro monto</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge("Por validar","amarillo")) : (p.estado==="validado" ? `${badge("Validado","verde")}${can("validar_pagos") && !cancel ? `<button class="btn no sm" data-anu="${p.id}">Anular</button>` : ""}` : badge(p.estado==="anulado"?"Anulado":"Rechazado","rojo"))}</div>
     </div>`).join("") || `<div class="muted">Sin pagos registrados.</div>`;
   const hist = (v.historial || []).map(h => `<div class="li"><span><b>${esc(h.accion)}</b>${h.detalle?` · ${esc(h.detalle)}`:""}<div class="muted">${esc(h.usuario)} · ${VT.fechaHora(h.fecha)}</div></span></div>`).join("");
-  const faltaPv = cancel ? [] : provFaltaDeVenta(v.folio);
+  const faltaPv = cancel ? [] : provFaltaDeVenta(v.folio), pedPv = cancel ? [] : provPedidosDeVenta(v.folio);
   $("#dBody").innerHTML = `
+    ${pedPv.map(x => `<div class="note" style="margin-bottom:10px">📦 <b>Pedido al proveedor: ${x.p.id}</b> (${x.marca} · ${x.p.estado}) · ${x.ls.map(l => `${esc(prodNom(l.prod))} ${l.modelo} ${esc(l.color)} ${l.talla} ×${l.n}`).join(", ")}</div>`).join("")}
     ${faltaPv.length ? `<div class="warn" style="margin-bottom:10px">📦 <b>El proveedor no ha surtido:</b> ${faltaPv.map(g => `${esc(prodNom(g.prod))} ${g.modelo} ${esc(g.color)} ${g.talla} ×${g.n}`).join(", ")}. Avísale al cliente; ya están en el siguiente pedido.</div>` : ""}
     ${cancel ? `<div class="card" style="background:#FDECEC"><b style="color:#B42318">Venta cancelada</b><div class="muted">Por ${esc(v.cancelacion.usuario)} el ${VT.fechaHora(v.cancelacion.fecha)} · Motivo: ${esc(v.cancelacion.motivo)}</div></div>` : ""}
     <div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${mon?badge(k.pago.t,k.pago.c):""} ${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</div>
@@ -1268,6 +1269,53 @@ async function provLlenarExcel(pv, lineas, titulo){
   return extra;
 }
 
+/* PDF del pedido (no editable): solo las tablas del formato que llevan piezas */
+async function provPdfPedido(pv, p){
+  if (!window.jspdf) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  const { bloques } = await provFormato(pv), usados = new Map(), extra = [];
+  for (const l of p.lineas){
+    const b = bloques.find(x => x.prod === l.prod && x.modelo === l.modelo), fila = b && provFilaColor(pv, b, l.color), col = b && b.tallas.find(t => t.app === l.talla);
+    if (!b || !fila || !col){ extra.push(l); continue; }
+    const u = usados.get(b) || { b, celdas: {} }; usados.set(b, u);
+    const k = fila.row + "|" + col.col; u.celdas[k] = (u.celdas[k] || 0) + l.n;
+  }
+  const doc = new jspdf.jsPDF({ unit: "pt", format: "letter" }), W = 612, M = 36, total = p.lineas.reduce((a, l) => a + l.n, 0);
+  let y = M;
+  const linea = () => { doc.setDrawColor(200); doc.setLineWidth(.6); };
+  const salto = alto => { if (y + alto > 792 - M){ doc.addPage(); y = M; } };
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text("VITUMA", M, y + 14);
+  doc.setFontSize(13); doc.text(`Pedido ${p.id}`, W - M, y + 14, { align: "right" });
+  y += 30; doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.text(`Proveedor: ${pv.marca} · ${pv.empresa}`, M, y); doc.text(`Fecha: ${VT.fecha(p.fecha)}`, W - M, y, { align: "right" });
+  y += 14; doc.text(`Total de piezas: ${total}`, M, y);
+  y += 10; doc.setDrawColor(0); doc.setLineWidth(1.2); doc.line(M, y, W - M, y); y += 20;
+  const tabla = (titulo, cab, filas, anchos) => {
+    const h = 18; salto(40 + h * (filas.length + 2));
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text(titulo, M, y); y += 8;
+    const fila = (vals, neg, fondo) => {
+      salto(h); let x = M;
+      if (fondo){ doc.setFillColor(...fondo); doc.rect(M, y, anchos.reduce((a, b) => a + b, 0), h, "F"); }
+      doc.setFont("helvetica", neg ? "bold" : "normal"); doc.setFontSize(9); linea();
+      vals.forEach((v, i) => { doc.rect(x, y, anchos[i], h); const t = String(v ?? "");
+        if (i === 0) doc.text(t, x + 4, y + 12, { maxWidth: anchos[i] - 6 }); else doc.text(t, x + anchos[i] / 2, y + 12, { align: "center" }); x += anchos[i]; });
+      y += h; };
+    fila(cab, true, [235, 238, 243]); filas.forEach((f, i) => fila(f, i === filas.length - 1 && f[0] === "TOTAL", f[0] === "TOTAL" ? [245, 245, 245] : null)); y += 22;
+  };
+  for (const { b, celdas } of usados.values()){
+    const titulo = (b.prod ? prodNom(b.prod) : b.titulo) + (b.modelo ? " · " + b.modelo : (b.prod && b.titulo ? " · " + b.titulo : ""));
+    const colores = b.colores.filter(c => b.tallas.some(t => celdas[c.row + "|" + t.col]));
+    const ancho = W - 2 * M, cw = Math.min(46, (ancho - 130) / (b.tallas.length + 1)), anchos = [ancho - cw * (b.tallas.length + 1), ...b.tallas.map(() => cw), cw];
+    const filas = colores.map(c => { const v = b.tallas.map(t => celdas[c.row + "|" + t.col] || ""); return [c.txt, ...v, v.reduce((a, n) => a + (+n || 0), 0)]; });
+    const tot = b.tallas.map(t => colores.reduce((a, c) => a + (celdas[c.row + "|" + t.col] || 0), 0));
+    filas.push(["TOTAL", ...tot.map(n => n || ""), tot.reduce((a, n) => a + n, 0)]);
+    tabla(titulo, ["COLOR", ...b.tallas.map(t => t.txt), "TOTAL"], filas, anchos);
+  }
+  if (extra.length) tabla("OTRAS PIEZAS", ["PRENDA", "MODELO", "COLOR", "TALLA", "PIEZAS"],
+    extra.map(l => [prodNom(l.prod), l.modelo || "", l.color, T_A_FMT[l.talla] || l.talla, l.n]), [200, 90, 120, 65, 65]);
+  doc.save(`Pedido ${pv.marca} ${p.id} ${VT.fecha(p.fecha).replace(/\//g, "-")}.pdf`.replace(/[\\/:*?"<>|]/g, "-"));
+  return extra;
+}
+
 /* ---------- lector de prefacturas (PDF con texto; sin IA) ---------- */
 async function provPdfJS(){
   if (!window.pdfjsLib){ await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
@@ -1372,7 +1420,7 @@ function provPedir(todas){
         <td class="muted" data-h="Clientes" style="font-size:12px">${g.asig.map(a => `${a.folio} · ${esc(a.cliente.split(" ")[0])}${a.n > 1 ? ` ×${a.n}` : ""}`).join("<br>")}</td></tr>`).join("")}
       <tr><td colspan="4" style="text-align:right"><b>Total</b></td><td class="n"><b>${tot}</b></td><td></td></tr></tbody></table>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn pri" id="pvGen">⬇ Generar pedido en el formato de ${pv.marca}</button></div>
-      <p class="mini" style="margin-top:6px">Se descarga el Excel de ${pv.marca} ya lleno y el pedido queda guardado en "Pedidos y recepción" para revisar la prefactura cuando llegue.</p>`
+      <p class="mini" style="margin-top:6px">Se descarga un PDF con el pedido para ${pv.marca} (solo las tablas que llevan piezas) y el pedido queda guardado en "Pedidos y recepción" para revisar la prefactura cuando llegue.</p>`
       : `<div class="empty">No hay camisas por pedir a ${pv.marca}.</div>`}</div>
     <div class="note" style="margin-top:4px">🔒 Este formato solo se llena con <b>notas de venta con anticipo confirmado</b>. Para agregar una prenda más, genera una nota.</div></div>`;
 
@@ -1381,10 +1429,11 @@ function provPedir(todas){
     try {
       const n = DB.provPed.filter(p => p.prov === pv.id).length + 1, id = `${pv.id.toUpperCase().slice(0, 3)}-${String(n).padStart(4, "0")}`;
       const lineas = gs.map(g => ({ prod: g.prod, modelo: g.modelo, color: g.color, talla: g.talla, n: g.n, asig: g.asig.map(a => ({ k: a.k, n: a.n, folio: a.folio, cliente: a.cliente, tel: a.tel })) }));
-      const sinLugar = await provLlenarExcel(pv, lineas, `Pedido ${pv.marca} ${id} ${VT.fecha(new Date().toISOString()).replace(/\//g, "-")}`);
-      DB.provPed.unshift({ id, prov: pv.id, fecha: new Date().toISOString(), estado: "Enviado", lineas, por: SES.nombre });
+      const ped = { id, prov: pv.id, fecha: new Date().toISOString(), estado: "Enviado", lineas, por: SES.nombre };
+      const sinLugar = await provPdfPedido(pv, ped);
+      DB.provPed.unshift(ped);
       save(); toast(`Pedido ${id} generado`);
-      if (sinLugar.length) alert(`${sinLugar.length} renglones no tienen casilla en el formato (color o talla que no aparece). Se agregaron en la hoja "OTRAS PIEZAS" del Excel. Puedes relacionar los colores en "Costos e inventario".`);
+      if (sinLugar.length) alert(`${sinLugar.length} renglones no tienen casilla en el formato (color o talla que no aparece). Se agregaron en la tabla "OTRAS PIEZAS" del PDF. Puedes relacionar los colores en "Costos e inventario".`);
       provTab = "pedidos"; pProveedores();
     } catch(e){ toast(e.message || "No se pudo generar", true); b.disabled = false; b.textContent = "⬇ Generar pedido"; }
   };
@@ -1396,9 +1445,9 @@ function provPedidos(){
       <div><h3 style="margin:0">${p.id} <span class="badge ${p.estado === "Surtido" ? "verde" : p.estado === "Surtido parcial" ? "amarillo" : "azul"}">${p.estado}</span></h3>
         <div class="muted" style="font-size:13px">${VT.fecha(p.fecha)} · ${pz} piezas${p.estado !== "Enviado" ? ` · llegaron ${ok}` : ""}${p.costo ? ` · costo ${money(p.costo)}` : ""}</div></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">${p.estado === "Enviado" ? `<label class="btn pri sm" style="cursor:pointer">📄 Subir prefactura (PDF)<input type="file" accept="application/pdf" hidden data-pf="${p.id}"></label><button class="btn sec sm" data-pm="${p.id}">✍️ Revisar a mano</button>` : `<button class="btn sec sm" data-pver="${p.id}">Ver detalle</button>`}
-        <button class="btn sec sm" data-px="${p.id}">⬇ Excel</button></div></div></div>`; }).join("")
+        <button class="btn sec sm" data-px="${p.id}">⬇ PDF</button></div></div></div>`; }).join("")
     : `<div class="empty">Todavía no hay pedidos a ${pv.marca}.</div>`;
-  document.querySelectorAll("[data-px]").forEach(b => b.onclick = () => { const p = DB.provPed.find(x => x.id === b.dataset.px); provLlenarExcel(pv, p.lineas, `Pedido ${pv.marca} ${p.id}`).catch(e => toast(e.message, true)); });
+  document.querySelectorAll("[data-px]").forEach(b => b.onclick = () => { const p = DB.provPed.find(x => x.id === b.dataset.px); provPdfPedido(pv, p).catch(e => toast(e.message || "No se pudo generar el PDF", true)); });
   document.querySelectorAll("[data-pm]").forEach(b => b.onclick = () => provRevisar(DB.provPed.find(x => x.id === b.dataset.pm), null));
   document.querySelectorAll("[data-pver]").forEach(b => b.onclick = () => provRevisar(DB.provPed.find(x => x.id === b.dataset.pver), null, true));
   document.querySelectorAll("[data-pf]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const p = DB.provPed.find(x => x.id === inp.dataset.pf);
@@ -1518,6 +1567,11 @@ function provInventario(){
     excel([["Marca", "Producto", "Modelo", "Color", "Talla", "Existencia"], ...Object.entries(S).filter(([k]) => k.startsWith(p + "|")).map(([k, n]) => { const [, m, c, t] = k.split("|"); return [provDe(p).marca, PROV_PROD[p].nombre, m, titulo(c), t, n]; })], "Inventario", `Inventario ${PROV_PROD[p].nombre} ${VT.fecha(new Date().toISOString()).replace(/\//g, "-")}`); });
 }
 /* para el detalle de una venta: piezas que el proveedor no ha surtido */
+/* pedidos al proveedor que llevan camisas de esta nota */
+function provPedidosDeVenta(folio){
+  return (DB.provPed || []).map(p => { const ls = p.lineas.flatMap(l => (l.asig || []).filter(a => a.folio === folio).map(a => ({ ...l, n: a.n })));
+    return ls.length ? { p, ls, marca: (PROVS.find(q => q.id === p.prov) || {}).marca || "" } : null; }).filter(Boolean);
+}
 function provFaltaDeVenta(folio){ return provFaltantes().flatMap(g => g.asig.filter(a => a.folio === folio).map(a => ({ ...g, n: a.n }))); }
 
 /* ---------- GASTOS ---------- */
