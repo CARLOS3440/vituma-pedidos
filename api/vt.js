@@ -209,6 +209,8 @@ const A = {
   },
 
   /* --- clientes (app) --- */
+  /* existencias de lo que se maneja en inventario (sin costos) */
+  async existencias(){ const d = J(await r1("GET", "vt:col:provInv")) || {}; return { prods: d.prods || [], stock: d.stock || {} }; },
   async imagen(req){
     if (!(await limite(req, "img", 150, 3600))) throw Object.assign(new Error("Demasiadas imágenes. Intenta más tarde."), { code: 429 });
     const { data, carpeta } = req.body || {};
@@ -292,7 +294,7 @@ const A = {
     res.end(buf); return null;
   }
 };
-const PUBLICAS = new Set(["estado", "login", "imagen", "pedido", "mis", "buscar", "pago", "img"]);
+const PUBLICAS = new Set(["estado", "existencias", "login", "imagen", "pedido", "mis", "buscar", "pago", "img"]);
 
 export default async function handler(req, res){
   const a = String((req.query && req.query.a) || "");
