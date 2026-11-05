@@ -391,6 +391,7 @@ const VT = (() => {
   async function respaldo(){ return api("respaldo", undefined); }
   const uso = () => api("uso", undefined), recalcular = () => api("recalcular", {}), depurar = (meses, simular) => api("depurar", { meses, simular });
   const pendientes = () => S.pend;
+  async function existenciasNube(){ try { return await api("existencias", undefined); } catch(e){ return null; } }
 
   /* ---------- app del cliente: guarda en este celular solo sus pedidos ---------- */
   const CKEY = "vituma_cache";
@@ -412,6 +413,8 @@ const VT = (() => {
   }
   async function buscar(q){ const r = await api("buscar", q); cliPoner(r.ventas); return r.ventas; }
 
+  /* inventario que puede ver el cliente: {prods:[…], stock:{}} */
+  async function existencias(){ if (await iniciar(S.modo || "cliente")) return await existenciasNube(); const d = cargarLocal(); return d.provInv || null; }
   function cargar(){
     if (!S.srv) return cargarLocal();
     if (S.modo === "cliente") return { ...vacia(), ventas: clon((S.db || { ventas: [] }).ventas) };
@@ -425,6 +428,14 @@ const VT = (() => {
   const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, uso, recalcular, depurar, pendientes, crearPedido, agregarPago, misPedidos, buscar, subirImagenes,
     set alSalir(f){ S.alSalir = f; }, set alCambio(f){ S.alCambio = f; } };
 
+  /* colores con otro nombre según la marca (para inventario y proveedores) */
+  const sinAc = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
+  const COLOR_SIN = [["AZUL REY","ROYAL","REY"],["AZUL MARINO","MARINO","NAVY"],["GRIS OXFORD","OXFORD"],["VERDE MILITAR","MILITAR"],["VERDE BANDERA","BANDERA"],
+    ["ROSA FUCSIA","FUCSIA","FIUSHA","FIUCHA"],["TINTO","VINO"],["VERDE LIMA","LIMA"],["NARANJA NEON","NARJ NEON"],["AMARILLO NEON","AMAR NEON"],
+    ["TURQUESA","TURQUEZA","AZUL TURQUESA"],["CIELO","AZUL CIELO"],["GRIS","GRIS JASPE"]];
+  const colorClave = c => { c = sinAc(c); const g = COLOR_SIN.find(x => x.some(y => sinAc(y) === c)); return g ? sinAc(g[0]) : c; };
+  /* existencias: clave prenda|modelo|color|talla */
+  const kStock = (prod, modelo, color, talla) => [prod, modelo, colorClave(color), talla].join("|");
   const money = n => "$" + (Number(n)||0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const esc = t => String(t ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   const fecha = iso => { const d = new Date(iso); return d.toLocaleDateString("es-MX", { day:"2-digit", month:"2-digit", year:"numeric" }); };
@@ -591,7 +602,7 @@ const VT = (() => {
 
   return { BANCO, WHATSAPP_AVISOS, SUCURSALES, PONCHADO, ENTREGA, POLITICAS, ESTADOS, FORMAS, CSS,
            cargar, guardar, money, esc, fecha, fechaHora, fechaLarga, sumarHabiles, letras, cuentas, siguienteFolio,
-           notaHTML, notaPDF, reducirImagen, nube };
+           notaHTML, notaPDF, reducirImagen, nube, sinAc, colorClave, kStock, existencias };
 })();
 
 document.head.insertAdjacentHTML("beforeend", `<style>${VT.CSS}</style>`);
@@ -723,19 +734,20 @@ $("#respaldo").onclick = async e => { e.preventDefault();
     a.download = `respaldo-vituma-${new Date().toISOString().slice(0, 10)}.json`; a.click(); toast("Respaldo descargado"); } catch(x){ toast(x.message || "No se pudo descargar", true); } };
 
 /* ---------- navegación ---------- */
-const SECC = [["ventas","Ventas","ver_ventas"],["produccion","Producción","produccion"],["clientes","Clientes","ver_clientes"],["bodega","Pedido a bodega","bodega"],["gastos","Gastos","gastos"],["reportes","Reportes","reportes"],["usuarios","Usuarios","usuarios"]];
+const SECC = [["ventas","Ventas","ver_ventas"],["produccion","Producción","produccion"],["clientes","Clientes","ver_clientes"],["bodega","Proveedores","bodega"],["gastos","Gastos","gastos"],["reportes","Reportes","reportes"],["usuarios","Usuarios","usuarios"]];
 let sec = "ventas";
 const secciones = () => SECC.filter(s => can(s[2]));
 function nav(){
   const pv = can("validar_pagos") ? DB.ventas.filter(v => v.estado !== "cancelada" && (!SES.sucursal || v.sucursal === SES.sucursal) && VT.cuentas(v).porValidar > 0).length : 0;
   const ajus = ["Administrador","Encargado","Diseño"].includes(SES.rol);
-  $("#nav").innerHTML = secciones().map(([k,t]) => `<button class="${k===sec?"on":""}" data-s="${k}">${t}${k==="ventas"&&pv?`<span class="n">${pv}</span>`:""}</button>`).join("")
+  let faltN = 0; try { const nv = provDatos(); if (provTomarInventario() || nv) save(); if (can("bodega")) faltN = provFaltantes().reduce((a, g) => a + g.n, 0); } catch(e){}
+  $("#nav").innerHTML = secciones().map(([k,t]) => `<button class="${k===sec?"on":""}" data-s="${k}">${t}${k==="ventas"&&pv?`<span class="n">${pv}</span>`:""}${k==="bodega"&&faltN?`<span class="n">${faltN}</span>`:""}</button>`).join("")
     + (ajus ? `<a href="${AJUSTADOR}" target="_blank" rel="noopener" style="color:#fff;opacity:.78;text-decoration:none;padding:10px 12px;font-weight:600">Ajustador de tallas ↗</a>` : "");
   document.querySelectorAll("#nav button").forEach(b => b.onclick = () => ir(b.dataset.s));
   $("#mnav").innerHTML = secciones().map(([k,t]) => `<option value="${k}"${k===sec?" selected":""}>${t}${k==="ventas"&&pv?` (${pv} por validar)`:""}</option>`).join("");
 }
 $("#mnav").onchange = e => ir(e.target.value);
-const PAGINAS = () => ({ produccion:pProduccion, ventas:pVentas, clientes:pClientes, bodega:pBodega, gastos:pGastos, reportes:pReportes, usuarios:pUsuarios });
+const PAGINAS = () => ({ produccion:pProduccion, ventas:pVentas, clientes:pClientes, bodega:pProveedores, gastos:pGastos, reportes:pReportes, usuarios:pUsuarios });
 function ir(s){ if (!secciones().some(x => x[0] === s)) s = (secciones()[0] || [""])[0]; sec = s; DB = VT.cargar(); DB.usuarios = DB.usuarios || []; nav(); if (s) PAGINAS()[s](); else $("#main").innerHTML = `<div class="empty">Tu usuario no tiene permisos asignados.</div>`; window.scrollTo(0,0); }
 async function iniciar(){
   const nube = await VT.nube.iniciar("admin");
@@ -825,7 +837,9 @@ function abrirVenta(folio){
       <div class="acts">${p.estado==="por_validar" ? (can("validar_pagos") && !cancel ? `<button class="btn ok sm" data-val="${p.id}">✔ Validar ${money(p.monto)}</button><button class="btn sec sm" data-valotro="${p.id}">Validar otro monto</button><button class="btn no sm" data-rec="${p.id}">Rechazar</button>` : badge("Por validar","amarillo")) : (p.estado==="validado" ? `${badge("Validado","verde")}${can("validar_pagos") && !cancel ? `<button class="btn no sm" data-anu="${p.id}">Anular</button>` : ""}` : badge(p.estado==="anulado"?"Anulado":"Rechazado","rojo"))}</div>
     </div>`).join("") || `<div class="muted">Sin pagos registrados.</div>`;
   const hist = (v.historial || []).map(h => `<div class="li"><span><b>${esc(h.accion)}</b>${h.detalle?` · ${esc(h.detalle)}`:""}<div class="muted">${esc(h.usuario)} · ${VT.fechaHora(h.fecha)}</div></span></div>`).join("");
+  const faltaPv = cancel ? [] : provFaltaDeVenta(v.folio);
   $("#dBody").innerHTML = `
+    ${faltaPv.length ? `<div class="warn" style="margin-bottom:10px">📦 <b>El proveedor no ha surtido:</b> ${faltaPv.map(g => `${esc(prodNom(g.prod))} ${g.modelo} ${esc(g.color)} ${g.talla} ×${g.n}`).join(", ")}. Avísale al cliente; ya están en el siguiente pedido.</div>` : ""}
     ${cancel ? `<div class="card" style="background:#FDECEC"><b style="color:#B42318">Venta cancelada</b><div class="muted">Por ${esc(v.cancelacion.usuario)} el ${VT.fechaHora(v.cancelacion.fecha)} · Motivo: ${esc(v.cancelacion.motivo)}</div></div>` : ""}
     <div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${mon?badge(k.pago.t,k.pago.c):""} ${badge(VT.ESTADOS[v.estado].t, VT.ESTADOS[v.estado].c)}</div>
       <div class="kv"><b>Cliente</b><span>${esc(v.cliente.nombre)} · ${esc(v.cliente.tel)}</span><b>Trabajo</b><span>${esc(v.trabajo||"—")}</span>
@@ -1089,6 +1103,422 @@ function pBodega(){
   document.querySelectorAll("[data-cp]").forEach(s => s.onchange = () => { DB.compras.find(c=>c.id===s.dataset.cp).pagado = s.checked; save(); toast("Actualizado"); });
   document.querySelectorAll("[data-cx]").forEach(b => b.onclick = () => { const cp = DB.compras.find(c=>c.id===b.dataset.cx); hoja(cp.filas.map(r=>({...r, folios:new Set(r.folios)})), `Pedido bodega ${cp.id}`); });
 }
+
+/* =====================================================================
+   PROVEEDORES · pedidos a cada marca con su propio formato de Excel,
+   lector de prefacturas (PDF), faltantes por cliente, costos, inventario y
+   reporte de mercancía del mes.
+   Datos (se guardan solos en la nube como las demás listas del panel):
+     DB.provPed   pedidos a proveedor  [{id, prov, fecha, estado, lineas:[…], recibido}]
+     DB.provCfg   {costos:{}, colores:{}, claves:{}, inv:{prod:true}}
+     DB.provInv   {stock:{"prod|modelo|color|talla": n}, prods:[…]}  (lo puede leer la app del cliente)
+     DB.provTom   {"folio|item|talla": n}  piezas que se tomaron del inventario
+     DB.provExtra [{id, prov, prod, modelo, color, talla, n}]  resurtido de inventario
+   ===================================================================== */
+const PROVS = [
+  { id:"level",     marca:"Level Prime", empresa:"Level Prime Mazatlán",           formato:"proveedores/level.xlsx",     prods:["polo_lv","polo_lvml"] },
+  { id:"sparviero", marca:"Sparviero",   empresa:"Desarrollo Textil Empresarial",  formato:"proveedores/sparviero.xlsx", prods:["polo_spa"] },
+  { id:"dkps",      marca:"DKPS",        empresa:"Infinity",                       formato:"proveedores/dkps.xlsx",      prods:["polo_dk"] },
+  { id:"yazbek",    marca:"Yazbek",      empresa:"Playeras y Más",                 formato:"proveedores/yazbek.xlsx",    prods:["tee_mc","tee_ml"] },
+  { id:"befresh",   marca:"Be Fresh",    empresa:"DKS Diseños",                    formato:"proveedores/befresh.xlsx",   prods:["polo_bf","polo_bfml"] },
+  { id:"bw",        marca:"Blue & White",empresa:"Grupo Mi Playera de México",     formato:"proveedores/bluewhite.xlsx", prods:[] }
+];
+/* qué bloque del Excel corresponde a cada producto del catálogo (título del bloque + hoja + sección) */
+const PROV_PROD = {
+  polo_lv:   { nombre:"Polo Level Prime",            prov:"level",     si:[/POLO/], no:[/MANGA LARGA/, /SAHARA|NAVY|CAMISA/] },
+  polo_lvml: { nombre:"Polo Level Prime manga larga",prov:"level",     si:[/POLO/, /MANGA LARGA/] },
+  polo_spa:  { nombre:"Polo Sparviero",              prov:"sparviero", si:[/POLO/] },
+  polo_dk:   { nombre:"Polo DKPS",                   prov:"dkps",      si:[/POLO/], no:[/VESTIR/] },
+  polo_bf:   { nombre:"Polo Be Fresh Fit",           prov:"befresh",   si:[/POLO/, /MANGA CORTA/], sinCatalogo:true },
+  polo_bfml: { nombre:"Polo Be Fresh Fit manga larga",prov:"befresh",  si:[/MANGA LARGA/], no:[/PESCADORA|SUDADERA/], sinCatalogo:true },
+  tee_mc:    { nombre:"Playera cuello redondo M/C",  prov:"yazbek",    si:[/ALGODON/], no:[/MANGA LARGA/, /MESH|SUDADERA/] },
+  tee_ml:    { nombre:"Playera cuello redondo M/L",  prov:"yazbek",    si:[/ALGODON/, /MANGA LARGA/], no:[/MESH|SUDADERA/] }
+};
+/* inventario inicial (listas de tienda del 04/11/2026): producto → modelo → color → talla → piezas */
+const INV_INICIAL = {"polo_bf": {"Caballero": {"Naranja": {"CH": 6, "M": 2, "XL": 3, "2XL": 1}, "Azul Turquesa": {"CH": 2, "M": 3, "G": 3}, "Rosa": {"CH": 2, "M": 3, "XL": 2, "2XL": 1}, "Amarillo": {"CH": 4, "G": 1, "XL": 1, "2XL": 3}, "Blanco": {"CH": 2, "XL": 1, "3XL": 8}, "Azul Rey": {"CH": 5, "M": 10}, "Rojo": {"M": 4, "2XL": 2, "3XL": 1}, "Verde": {"CH": 4, "M": 3, "G": 2, "XL": 1}, "Verde Manzana": {"CH": 1, "M": 3, "XL": 1}, "Fiuscha": {"CH": 4, "M": 1, "G": 2, "XL": 4}, "Morado": {"CH": 2, "2XL": 1, "5XL": 5}, "Gris": {"CH": 1, "XL": 1, "2XL": 2, "5XL": 1}, "Azul Marino": {"2XL": 1}, "Cielo": {"CH": 2, "G": 2, "2XL": 1}, "Verde Bandera": {"M": 2, "G": 5, "XL": 2}, "Menta": {"CH": 5, "M": 1, "2XL": 2}, "Caqui": {"2XL": 1}, "Verde Botella": {"M": 1, "G": 2, "XL": 1}, "Lila": {"M": 1, "G": 1}, "Amarillo Neon": {"2XL": 1}, "Bugambilia": {"CH": 4, "M": 2}}, "Dama": {"Naranja": {"CH": 2, "2XL": 4}, "Azul Turquesa": {"CH": 1}, "Amarillo": {"CH": 2, "G": 2, "XL": 1, "2XL": 3}, "Azul Rey": {"CH": 2, "G": 3, "2XL": 9}, "Cielo": {"XL": 1, "2XL": 1}, "Verde Bandera": {"2XL": 2}, "Menta": {"XL": 1, "2XL": 4}, "Gris Claro": {"XL": 1, "2XL": 1, "XCH": 1}, "Vino": {"5XL": 1}, "Verde": {"XL": 6, "2XL": 1}, "Verde Manzana": {"M": 1, "2XL": 2}, "Gris": {"CH": 1, "XL": 1, "2XL": 1}, "Marino": {"2XL": 5}, "Negro": {"5XL": 1}, "Verde Botella": {"XL": 1}}}, "polo_bfml": {"Caballero": {"Azul Rey": {"CH": 1}, "Negro": {"M": 1}, "Rojo": {"XL": 2}, "Marino": {"XL": 1}, "Gris": {"XL": 1}}, "Dama": {"Azul Rey": {"XL": 1}}}, "polo_spa": {"Dama": {"Gris Perla": {"CH": 1, "M": 1, "G": 2}, "Negro": {"CH": 4, "M": 5, "G": 5, "XL": 6, "2XL": 4}, "Fiuscha": {"CH": 2, "M": 3, "G": 0, "XL": 3, "2XL": 2}, "Verde Manzana": {"CH": 4, "M": 5, "G": 3, "XL": 3, "2XL": 3}, "Azul Rey": {"CH": 0, "M": 0, "G": 2, "XL": 1, "2XL": 3}, "Gris": {"CH": 2, "M": 4, "G": 1, "XL": 2, "2XL": 4}, "Azul Turquesa": {"CH": 8, "M": 2, "G": 2, "XL": 4, "2XL": 3}, "Rojo": {"CH": 3, "M": 2, "G": 4, "XL": 3, "2XL": 5}, "Azul Marino": {"CH": 2, "M": 4, "G": 3, "XL": 2, "2XL": 3}, "Blanco": {"CH": 4, "M": 4, "G": 3, "XL": 3, "2XL": 3}, "Vino": {"CH": 3, "M": 4, "G": 0, "XL": 2, "2XL": 5}, "Amarillo": {"CH": 4, "G": 0}}, "Caballero": {"Negro": {"CH": 5, "M": 4, "G": 3, "XL": 4, "2XL": 4}, "Fiuscha": {"CH": 5, "M": 2, "G": 4, "XL": 4, "2XL": 5}, "Verde Manzana": {"CH": 5, "M": 4, "G": 4, "XL": 0, "2XL": 3}, "Azul Rey": {"CH": 4, "M": 9, "G": 1, "XL": 1, "2XL": 10}, "Gris": {"CH": 3, "M": 4, "G": 2, "XL": 3, "2XL": 3}, "Azul Turquesa": {"CH": 5, "M": 1, "G": 4, "XL": 3, "2XL": 4}, "Rojo": {"CH": 5, "M": 11, "G": 1, "XL": 4, "2XL": 2}, "Azul Marino": {"CH": 5, "M": 4, "G": 1, "XL": 2, "2XL": 5}, "Blanco": {"CH": 5, "M": 2, "G": 4, "XL": 5, "2XL": 5}, "Vino": {"CH": 3, "M": 1, "G": 3, "XL": 3, "2XL": 5}, "Amarillo": {"M": 2}, "Gris Perla": {"CH": 2}}}};
+const provDe = prod => PROV_PROD[prod] ? PROVS.find(p => p.id === PROV_PROD[prod].prov) : null;
+const T_ORD = ["XCH","CH","M","G","XL","2XL","3XL","4XL","5XL","6XL"];
+const T_A_FMT = { XCH:"XS", CH:"S", M:"M", G:"L", XL:"XL", "2XL":"2XL", "3XL":"3XL", "4XL":"4XL", "5XL":"5XL" };
+const sinAc = VT.sinAc;
+/* talla de cualquier proveedor → talla de la app */
+function tallaApp(t){
+  t = sinAc(t).replace(/^T\s*\/?\s*/, "").replace(/[()]/g, "").replace(/\s/g, "");
+  return ({ XS:"XCH", XCH:"XCH", EXTRACHICA:"XCH", S:"CH", CH:"CH", CHICA:"CH", M:"M", MD:"M", MED:"M", MEDIANA:"M", L:"G", G:"G", GD:"G", GRANDE:"G",
+    XL:"XL", XG:"XL", EXTRAGRANDE:"XL", XXL:"2XL", "2XL":"2XL", XX:"2XL", "2X":"2XL", XXXL:"3XL", "3XL":"3XL", "3X":"3XL", "4XL":"4XL", "4X":"4XL", "5XL":"5XL", "5X":"5XL" })[t] || null;
+}
+const colorClave = VT.colorClave;
+const mismoColor = (a, b) => colorClave(a) === colorClave(b);
+
+/* ---------- datos ---------- */
+function provDatos(){
+  let nuevo = false;
+  DB.provPed = DB.provPed || []; DB.provCfg = DB.provCfg || {}; DB.provInv = DB.provInv || {};
+  const C = DB.provCfg; C.costos = C.costos || {}; C.colores = C.colores || {}; C.claves = C.claves || {}; C.inv = C.inv || {};
+  DB.provInv.stock = DB.provInv.stock || {};
+  if (!C.invInicial){   // carga una sola vez las existencias de las listas de tienda
+    for (const [p, mods] of Object.entries(INV_INICIAL)){ C.inv[p] = true;
+      for (const [m, cols] of Object.entries(mods)) for (const [c, ts] of Object.entries(cols)) for (const [t, n] of Object.entries(ts)){ const k = VT.kStock(p, m, c, t); DB.provInv.stock[k] = (DB.provInv.stock[k] || 0) + n; } }
+    C.invInicial = "2026-11-04"; nuevo = true; }
+  DB.provInv.prods = Object.keys(C.inv).filter(k => C.inv[k]);
+  DB.provTom = DB.provTom || {}; DB.provExtra = DB.provExtra || [];
+  return nuevo;
+}
+const kLinea = r => [r.prod, r.modelo, r.color, r.talla].join("|");
+const kSt = r => VT.kStock(r.prod, r.modelo, r.color, r.talla);
+/* lo que piden los clientes: ventas con anticipo validado que no están canceladas */
+function provNecesidad(){
+  provDatos(); const out = [];
+  for (const v of DB.ventas){
+    if (v.estado === "cancelada" || v.enBodega || !(VT.cuentas(v).pagado > 0)) continue;
+    v.items.forEach((i, ix) => { if (!PROV_PROD[i.prod]) return;
+      Object.entries(i.qty || {}).forEach(([t, n]) => { if (n > 0) out.push({ k: `${v.folio}|${ix}|${t}`, folio: v.folio, cliente: v.cliente.nombre, tel: v.cliente.tel, fecha: v.fecha,
+        prod: i.prod, modelo: i.modelo, color: i.color || "", talla: t, n }); }); });
+  }
+  return out.sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)));
+}
+/* cuánto de cada pieza ya está pedido (esperando), ya llegó o se tomó del inventario */
+function provCubierto(){
+  const pedido = {}, llego = {};
+  for (const p of DB.provPed) for (const l of p.lineas) for (const a of l.asig || []){
+    if (l.recibido == null) pedido[a.k] = (pedido[a.k] || 0) + a.n; else llego[a.k] = (llego[a.k] || 0) + (a.ok || 0); }
+  return { pedido, llego };
+}
+/* toma del inventario lo que haya para las piezas que nadie ha pedido todavía */
+function provTomarInventario(){
+  provDatos(); const C = DB.provCfg, S = DB.provInv.stock, { pedido, llego } = provCubierto(); let cambio = false;
+  for (const r of provNecesidad()){ if (!C.inv[r.prod]) continue;
+    const falta = r.n - (pedido[r.k] || 0) - (llego[r.k] || 0) - (DB.provTom[r.k] || 0), sk = kSt(r), hay = S[sk] || 0;
+    if (falta > 0 && hay > 0){ const t = Math.min(falta, hay); S[sk] = hay - t; DB.provTom[r.k] = (DB.provTom[r.k] || 0) + t; cambio = true; } }
+  return cambio;
+}
+/* piezas por pedir, agrupadas por proveedor y por prenda/color/talla */
+function provPorPedir(){
+  const { pedido, llego } = provCubierto(), fueFaltante = new Set();
+  for (const p of DB.provPed) for (const l of p.lineas) if (l.recibido != null) for (const a of l.asig || []) if ((a.ok || 0) < a.n) fueFaltante.add(a.k);
+  const grupos = {};
+  for (const r of provNecesidad()){
+    const falta = r.n - (pedido[r.k] || 0) - (llego[r.k] || 0) - (DB.provTom[r.k] || 0); if (falta <= 0) continue;
+    const pv = provDe(r.prod).id, gk = pv + "#" + kLinea(r);
+    const g = grupos[gk] || (grupos[gk] = { prov: pv, prod: r.prod, modelo: r.modelo, color: r.color, talla: r.talla, n: 0, asig: [], faltante: false });
+    g.n += falta; g.asig.push({ k: r.k, n: falta, folio: r.folio, cliente: r.cliente, tel: r.tel }); if (fueFaltante.has(r.k)) g.faltante = true;
+  }
+  /* 🔒 candado: solo entra lo que viene de notas con anticipo confirmado (no hay captura manual) */
+  return Object.values(grupos).sort((a, b) => (a.prod + a.modelo + a.color).localeCompare(b.prod + b.modelo + b.color) || T_ORD.indexOf(a.talla) - T_ORD.indexOf(b.talla));
+}
+/* piezas que el proveedor no surtió y siguen pendientes (para avisar a mostrador) */
+function provFaltantes(){ return provPorPedir().filter(g => g.faltante); }
+
+/* ---------- formatos de Excel de cada proveedor ---------- */
+const _fmt = {};
+async function provExcelJS(){ if (!window.ExcelJS) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"); return window.ExcelJS; }
+const celTxt = c => { const v = c && c.value; if (v == null) return ""; if (typeof v === "object"){ if (v.richText) return v.richText.map(x => x.text).join(""); if (v.formula || v.sharedFormula) return ""; if (v.text) return String(v.text); return ""; } return String(v); };
+/* lee el formato: busca cada tabla (fila "COLOR" + tallas) y su título */
+async function provFormato(pv){
+  if (_fmt[pv.id]) return _fmt[pv.id];
+  const E = await provExcelJS(), r = await fetch(pv.formato); if (!r.ok) throw new Error("No se encontró el formato " + pv.formato);
+  const buf = await r.arrayBuffer(), wb = new E.Workbook(); await wb.xlsx.load(buf);
+  const bloques = [];
+  wb.eachSheet(ws => {
+    const titulos = [];   // celdas de texto con su rango (para saber qué columnas cubren)
+    ws.eachRow((row, rn) => row.eachCell((c, cn) => { const t = sinAc(celTxt(c)); if (t.length > 3 && !/^(COLOR|TOTAL|PEDIDO)$/.test(t)) titulos.push({ r: rn, c: cn, t }); }));
+    const rango = (rn, cn) => { const m = Object.values(ws._merges || {}).find(m => m.model && m.model.top === rn && m.model.left === cn); return m ? [m.model.left, m.model.right] : [cn, cn]; };
+    ws.eachRow((row, rn) => row.eachCell((c, cn) => {
+      if (sinAc(celTxt(c)) !== "COLOR") return;
+      const tallas = []; for (let x = cn + 1; x < cn + 40; x++){ const t = celTxt(ws.getCell(rn, x)).trim(); const ta = tallaApp(t) || (/^T\d/.test(sinAc(t)) ? null : undefined);
+        if (ta === undefined){ if (!t) { if (tallas.length && !celTxt(ws.getCell(rn, x + 1)).trim()) break; continue; } break; }
+        tallas.push({ col: x, txt: t, app: ta }); }
+      const colores = []; for (let y = rn + 1; y < rn + 80; y++){ const t = celTxt(ws.getCell(y, cn)).trim(); if (!t) break; colores.push({ row: y, txt: t }); }
+      /* título de cada grupo de tallas: el texto más cercano arriba cuyo rango cubre la columna; la sección: el título grande de arriba */
+      const arriba = titulos.filter(x => x.r < rn && x.r >= rn - 6);
+      const grupos = new Map();
+      for (const t of tallas){
+        const cand = arriba.filter(x => { const [a, b] = rango(x.r, x.c); return t.col >= a && t.col <= b; }).sort((a, b) => b.r - a.r);
+        const tt = cand[0] ? cand[0].t : "", sec = cand.slice(1).map(x => x.t).join(" ");
+        const g = grupos.get(tt) || { titulo: tt, seccion: sec, hoja: ws.name, tallas: [], colores, colorCol: cn, headerRow: rn }; g.tallas.push(t); grupos.set(tt, g);
+      }
+      grupos.forEach(g => bloques.push(g));
+    }));
+  });
+  /* a qué producto y modelo corresponde cada bloque */
+  for (const b of bloques){
+    const txt = sinAc(b.hoja + " " + b.seccion + " " + b.titulo);
+    b.modelo = /DAMA|MUJER/.test(b.titulo) ? "Dama" : /CABALLER|HOMBRE/.test(b.titulo) ? "Caballero" : /NIN|JUVENIL|BEBE/.test(b.titulo) ? null : null;
+    b.prod = pv.prods.find(p => { const R = PROV_PROD[p]; return R.si.every(re => re.test(txt)) && !(R.no || []).some(re => re.test(txt)); }) || null;
+  }
+  return (_fmt[pv.id] = { wb, buf, bloques });
+}
+/* fila del formato para un color de la app (con lo que el encargado ya relacionó) */
+function provFilaColor(pv, b, color){
+  const C = DB.provCfg, man = C.colores[`${pv.id}|${b.prod}|${color}`];
+  return b.colores.find(c => man ? sinAc(c.txt) === sinAc(man) : mismoColor(c.txt, color)) || null;
+}
+/* llena el Excel del proveedor con las líneas del pedido; lo que no tenga lugar va a una hoja aparte */
+async function provLlenarExcel(pv, lineas, titulo){
+  const E = await provExcelJS(), r = await fetch(pv.formato), wb = new E.Workbook(); await wb.xlsx.load(await r.arrayBuffer());
+  const { bloques } = await provFormato(pv), extra = [];
+  for (const l of lineas){
+    const b = bloques.find(x => x.prod === l.prod && x.modelo === l.modelo), fila = b && provFilaColor(pv, b, l.color), col = b && b.tallas.find(t => t.app === l.talla);
+    if (!b || !fila || !col){ extra.push(l); continue; }
+    const cel = wb.getWorksheet(b.hoja).getCell(fila.row, col.col); cel.value = (+cel.value || 0) + l.n;
+  }
+  if (extra.length){ const ws = wb.addWorksheet("OTRAS PIEZAS"); ws.addRow(["PRODUCTO","MODELO","COLOR","TALLA","CANTIDAD"]).font = { bold: true };
+    extra.forEach(l => ws.addRow([PROV_PROD[l.prod] ? PROV_PROD[l.prod].nombre : l.prod, l.modelo, l.color, T_A_FMT[l.talla] || l.talla, l.n])); ws.columns.forEach(c => c.width = 22); }
+  const out = await wb.xlsx.writeBuffer(), a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })); a.download = titulo.replace(/[\\/:*?"<>|]/g, "-") + ".xlsx"; a.click();
+  return extra;
+}
+
+/* ---------- lector de prefacturas (PDF con texto; sin IA) ---------- */
+async function provPdfJS(){
+  if (!window.pdfjsLib){ await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }
+  return window.pdfjsLib;
+}
+async function provTextoPdf(file){
+  const L = await provPdfJS(), doc = await L.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise, out = [];
+  for (let p = 1; p <= doc.numPages; p++){ const pg = await doc.getPage(p), vp = pg.getViewport({ scale: 1 }), tc = await pg.getTextContent();
+    for (const it of tc.items) if (it.str.trim()) out.push({ p, x: it.transform[4], y: (p - 1) * 2000 + vp.height - it.transform[5], s: it.str.trim() }); }
+  return out;
+}
+/* convierte el texto en renglones de producto: cantidad, descripción, color, talla, precio, clave */
+function provLeerItems(items){
+  const filas = []; items.slice().sort((a, b) => a.y - b.y || a.x - b.x).forEach(it => { const f = filas.find(f => Math.abs(f.y - it.y) < 3.5); if (f) f.it.push(it); else filas.push({ y: it.y, it: [it] }); });
+  filas.forEach(f => f.it.sort((a, b) => a.x - b.x));
+  /* encabezado de la tabla */
+  const cab = filas.find(f => { const t = sinAc(f.it.map(i => i.s).join(" ")); return /CANT/.test(t) && /(DESCRIP|ARTICULO|PRODUCTO)/.test(t); });
+  const cols = {};
+  if (cab) for (const i of cab.it){ const t = sinAc(i.s);
+    if (/^CANT/.test(t) && cols.cant == null) cols.cant = i.x; else if (/^(CODIGO|CLAVE)/.test(t)) cols.cod = i.x; else if (/^(DESCRIP|ARTICULO|PRODUCTO)/.test(t)) cols.desc = i.x;
+    else if (/^TALLA/.test(t)) cols.talla = i.x; else if (/^COLOR/.test(t)) cols.color = i.x; else if (/^(P\.? ?UNIT|PRECIO|P\/U)/.test(t)) cols.precio = i.x; else if (/^(IMPORTE|SUBTOTAL)/.test(t)) cols.imp = i.x; else cols["h" + Math.round(i.x)] = i.x; }
+  const xs = Object.entries(cols).sort((a, b) => a[1] - b[1]);
+  const colDe = x => { let k = null, d = 1e9; for (const [n, v] of xs){ const dd = Math.abs(x - v); if (dd < d){ d = dd; k = n; } } return k; };
+  const cuerpo = filas.filter(f => !cab || f.y > cab.y);
+  const num = s => { const m = String(s).replace(/[$,\s]/g, "").match(/^\d+(\.\d+)?$/); return m ? +m[0] : null; };
+  /* renglones con cantidad = inicio de cada producto; los renglones de texto de alrededor se le pegan */
+  const anclas = cuerpo.filter(f => f.it.some(i => colDe(i.x) === "cant" && num(i.s) > 0) || (cols.cant == null && num(f.it[0].s) > 0));
+  if (!anclas.length) return [];
+  const recs = anclas.map(a => ({ y: a.y, filas: [a] }));
+  for (const f of cuerpo){ if (anclas.includes(f)) continue; const t = sinAc(f.it.map(i => i.s).join(" "));
+    if (/SUBTOTAL|^TOTAL|IVA|IMPORTE|DESCUENTO|NOTAS|NO\. DE|OBSERVAC|PASAN|IMPUESTO|VALIDEZ/.test(t)) continue;
+    const r = recs.reduce((m, x) => Math.abs(x.y - f.y) < Math.abs(m.y - f.y) ? x : m); if (Math.abs(r.y - f.y) < 22) r.filas.push(f); }
+  const out = [];
+  for (const r of recs){
+    const campo = { cant: [], cod: [], desc: [], talla: [], color: [], precio: [], imp: [], otro: [], ign: [] };
+    r.filas.sort((a, b) => a.y - b.y).forEach(f => f.it.forEach(i => { const k = colDe(i.x); (campo[k] || (k && k[0] === "h" ? campo.ign : campo.otro)).push(i.s); }));
+    const todo = sinAc([...campo.cod, ...campo.desc, ...campo.otro].join(" ")), cant = num(campo.cant[0]) || num(r.filas[0].it[0].s) || 0;
+    const imp = num((campo.imp.join(" ").match(/[\d,]+\.\d+/) || [])[0]);
+    let precio = num((campo.precio.join(" ").match(/[\d,]+\.\d+/) || [])[0]) || null;
+    /* tallas: columna, o "TALLA MD", "T/L", final de la descripción o de la clave, o desglose "CH: 1 MD: 2" */
+    const desglose = [...sinAc(r.filas.map(f => f.it.map(i => i.s).join(" ")).join(" ")).matchAll(/\b(XCH|CH|MD|GD|XG|XX|3X|4X|5X):\s*(\d+)(?![A-Z0-9])/g)];
+    let talla = campo.talla.length ? tallaApp(campo.talla.join("")) : null;
+    if (!talla){ const m = todo.match(/T\/\(?(?:T\/)?EXTRA\)?\s*T?\/?\s*(\dXL|XXL|XL)|T\/\s?(XS|S|M|L|XL|\dXL)\b|TALLA\s+(\w+)/); if (m) talla = tallaApp(m[1] || m[2] || m[3]); }
+    if (!talla){ const m = todo.match(/\b(XS|S|M|L|XL|XXL|XXXL|\dXL|CH|MD|GD|XG|3X)\b(?!.*\b(XS|S|M|L|XL|XXL|XXXL|\dXL|CH|MD|GD|XG|3X)\b)/); if (m) talla = tallaApp(m[1]); }
+    const color = campo.color.length ? sinAc(campo.color.join(" ")) : null;
+    const modelo = /\b(DAMA|DAM|MUJER|D)\b/.test(todo) ? "Dama" : /\b(CAB|CABALLERO|HOMBRE|H)\b/.test(todo) ? "Caballero" : null;
+    if (!precio && imp && cant) precio = Math.round(imp / cant * 100) / 100;
+    const base = { cant, texto: [...campo.cod, ...campo.desc].join(" ").replace(/\s+/g, " ").trim() || todo, codigo: (campo.cod[0] || "").replace(/-$/, ""), color, talla, modelo, precio };
+    if (!/(POLO|PLAYERA|CAMISA|BLUSA|SUDADERA|C\.?\s?RED|P\/C|CUELLO|PESCADORA|PLAY)/.test(todo) && !campo.color.length) continue;   // envío, servicios, etc.
+    if (desglose.length) desglose.forEach(m => out.push({ ...base, cant: +m[2], talla: tallaApp(m[1]) }));
+    else if (cant) out.push(base);
+  }
+  return out.filter(x => x.cant > 0);
+}
+/* relaciona cada renglón de la prefactura con una línea del pedido */
+function provEmparejar(pv, lineas, recs){
+  const C = DB.provCfg, usado = new Map(lineas.map((l, i) => [i, 0])), res = recs.map(r => ({ ...r, linea: null }));
+  const palabrasProd = p => p === "polo_lvml" || p === "tee_ml" ? /MANGA LARGA|M\/L|\bML\b/ : null;
+  for (const r of res){
+    const mem = r.codigo && C.claves[`${pv.id}|${sinAc(r.codigo)}`];
+    const cands = lineas.map((l, i) => ({ l, i })).filter(({ l }) => {
+      if (mem) return mem.prod === l.prod && mem.modelo === l.modelo && mismoColor(mem.color, l.color) && (r.talla || mem.talla) === l.talla;
+      const txt = sinAc(r.texto + " " + (r.color || "")), largo = palabrasProd(l.prod);
+      if (r.talla && r.talla !== l.talla) return false;
+      if (r.modelo && r.modelo !== l.modelo) return false;
+      const esPolo = /^polo/.test(l.prod); if (/(POLO|PLAYERA|C\.?\s?RED|P\/C|CAMISA|BLUSA)/.test(txt) && esPolo !== /POLO/.test(txt)) return false;
+      if (largo ? !largo.test(txt) : /MANGA LARGA|M\/L/.test(txt) && lineas.some(x => palabrasProd(x.prod))) return false;
+      const col = r.color || txt; return mismoColor(col, l.color) || colorClave(l.color).split(" ").every(w => new RegExp("\\b" + w + "\\b").test(sinAc(col).split(" ").map(colorClave).join(" ") + " " + sinAc(col)));
+    });
+    const libre = cands.find(({ l, i }) => usado.get(i) < l.n) || cands[0];
+    if (libre){ r.linea = libre.i; usado.set(libre.i, usado.get(libre.i) + r.cant); }
+  }
+  return res;
+}
+
+/* ---------- pantalla ---------- */
+let provSel = "level", provTab = "pedir", provMes = new Date().toISOString().slice(0, 7);
+function pProveedores(){
+  const nv = provDatos(); if (provTomarInventario() || nv) save(); nav();
+  const todas = provPorPedir(), falt = provFaltantes();
+  const cuenta = id => todas.filter(g => g.prov === id).reduce((a, g) => a + g.n, 0);
+  $("#main").innerHTML = `<div class="top"><h1 class="t">Proveedores</h1></div>
+    ${falt.length ? `<div class="warn" style="margin-bottom:12px">⚠️ <b>${falt.reduce((a, g) => a + g.n, 0)} camisas no se surtieron</b> en el último pedido y siguen pendientes (${[...new Set(falt.map(g => provDe(g.prod).marca))].join(", ")}). Ya están sumadas para el siguiente pedido.
+      <button class="btn sec sm" id="pvWa" style="margin-left:8px">📲 Avisar por WhatsApp</button></div>` : ""}
+    <div class="tabs" id="pvTabs">${[["pedir","Por pedir"],["pedidos","Pedidos y recepción"],["inventario","Inventario"],["reporte","Reporte del mes"],["config","Costos y colores"]].map(([k, t]) => `<button class="${provTab===k?"on":""}" data-pt="${k}">${t}</button>`).join("")}</div>
+    ${provTab === "pedir" || provTab === "pedidos" ? `<div class="tabs" id="pvProvs" style="border-top:1px solid var(--line,#E5E7EB);padding-top:10px">${PROVS.map(p => `<button class="${provSel===p.id?"on":""}" data-pv="${p.id}">${p.marca}${cuenta(p.id) ? ` · ${cuenta(p.id)}` : ""}</button>`).join("")}</div>` : ""}
+    <div id="pvBody"></div>`;
+  document.querySelectorAll("[data-pt]").forEach(b => b.onclick = () => { provTab = b.dataset.pt; pProveedores(); });
+  document.querySelectorAll("[data-pv]").forEach(b => b.onclick = () => { provSel = b.dataset.pv; pProveedores(); });
+  if ($("#pvWa")) $("#pvWa").onclick = () => { const m = "Camisas que faltan por surtir (VITUMA):\n" + falt.map(g => `• ${provDe(g.prod).marca} · ${PROV_PROD[g.prod].nombre} ${g.modelo} ${g.color} ${g.talla} ×${g.n} (${[...new Set(g.asig.map(a => a.folio))].join(", ")})`).join("\n");
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`, "_blank"); };
+  ({ pedir: provPedir, pedidos: provPedidos, inventario: provInventario, reporte: provReporte, config: provConfig })[provTab](todas);
+}
+const prodNom = p => PROV_PROD[p] ? PROV_PROD[p].nombre : p;
+function provPedir(todas){
+  const pv = PROVS.find(p => p.id === provSel), gs = todas.filter(g => g.prov === pv.id), tot = gs.reduce((a, g) => a + g.n, 0);
+  $("#pvBody").innerHTML = `<div class="card"><h3 style="margin-top:0">${pv.marca} <span class="muted" style="font-weight:500">· ${pv.empresa}</span></h3>
+    <p class="muted" style="margin-bottom:10px">Camisas de los pedidos con anticipo validado que todavía no se le piden a ${pv.marca}. Las marcadas en rojo no se surtieron la vez pasada.</p>
+    ${gs.length ? `<table class="t resp"><thead><tr><th>Prenda</th><th>Modelo</th><th>Color</th><th>Talla</th><th class="n">Piezas</th><th>Clientes</th></tr></thead><tbody>
+      ${gs.map(g => `<tr${g.faltante ? ` style="background:#FEF3F2"` : ""}><td>${g.faltante ? "❌ " : ""}${esc(prodNom(g.prod))}</td><td data-h="Modelo">${g.modelo}</td><td data-h="Color">${esc(g.color)}</td><td data-h="Talla"><b>${g.talla}</b></td><td class="n" data-h="Piezas"><b>${g.n}</b></td>
+        <td class="muted" data-h="Clientes" style="font-size:12px">${g.asig.map(a => `${a.folio} · ${esc(a.cliente.split(" ")[0])}${a.n > 1 ? ` ×${a.n}` : ""}`).join("<br>")}</td></tr>`).join("")}
+      <tr><td colspan="4" style="text-align:right"><b>Total</b></td><td class="n"><b>${tot}</b></td><td></td></tr></tbody></table>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn pri" id="pvGen">⬇ Generar pedido en el formato de ${pv.marca}</button></div>
+      <p class="mini" style="margin-top:6px">Se descarga el Excel de ${pv.marca} ya lleno y el pedido queda guardado en "Pedidos y recepción" para revisar la prefactura cuando llegue.</p>`
+      : `<div class="empty">No hay camisas por pedir a ${pv.marca}.</div>`}</div>
+    <div class="note" style="margin-top:4px">🔒 Este formato solo se llena con <b>notas de venta con anticipo confirmado</b>. Para agregar una prenda más, genera una nota.</div></div>`;
+
+  if ($("#pvGen")) $("#pvGen").onclick = async () => {
+    const b = $("#pvGen"); b.disabled = true; b.textContent = "Generando…";
+    try {
+      const n = DB.provPed.filter(p => p.prov === pv.id).length + 1, id = `${pv.id.toUpperCase().slice(0, 3)}-${String(n).padStart(4, "0")}`;
+      const lineas = gs.map(g => ({ prod: g.prod, modelo: g.modelo, color: g.color, talla: g.talla, n: g.n, asig: g.asig.map(a => ({ k: a.k, n: a.n, folio: a.folio, cliente: a.cliente, tel: a.tel })) }));
+      const sinLugar = await provLlenarExcel(pv, lineas, `Pedido ${pv.marca} ${id} ${VT.fecha(new Date().toISOString()).replace(/\//g, "-")}`);
+      DB.provPed.unshift({ id, prov: pv.id, fecha: new Date().toISOString(), estado: "Enviado", lineas, por: SES.nombre });
+      save(); toast(`Pedido ${id} generado`);
+      if (sinLugar.length) alert(`${sinLugar.length} renglones no tienen casilla en el formato (color o talla que no aparece). Se agregaron en la hoja "OTRAS PIEZAS" del Excel. Puedes relacionar los colores en "Costos e inventario".`);
+      provTab = "pedidos"; pProveedores();
+    } catch(e){ toast(e.message || "No se pudo generar", true); b.disabled = false; b.textContent = "⬇ Generar pedido"; }
+  };
+}
+function provPedidos(){
+  const pv = PROVS.find(p => p.id === provSel), ps = DB.provPed.filter(p => p.prov === pv.id);
+  $("#pvBody").innerHTML = ps.length ? ps.map(p => { const pz = p.lineas.reduce((a, l) => a + l.n, 0), ok = p.lineas.reduce((a, l) => a + Math.min(l.n, l.recibido || 0), 0);
+    return `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+      <div><h3 style="margin:0">${p.id} <span class="badge ${p.estado === "Surtido" ? "verde" : p.estado === "Surtido parcial" ? "amarillo" : "azul"}">${p.estado}</span></h3>
+        <div class="muted" style="font-size:13px">${VT.fecha(p.fecha)} · ${pz} piezas${p.estado !== "Enviado" ? ` · llegaron ${ok}` : ""}${p.costo ? ` · costo ${money(p.costo)}` : ""}</div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${p.estado === "Enviado" ? `<label class="btn pri sm" style="cursor:pointer">📄 Subir prefactura (PDF)<input type="file" accept="application/pdf" hidden data-pf="${p.id}"></label><button class="btn sec sm" data-pm="${p.id}">✍️ Revisar a mano</button>` : `<button class="btn sec sm" data-pver="${p.id}">Ver detalle</button>`}
+        <button class="btn sec sm" data-px="${p.id}">⬇ Excel</button></div></div></div>`; }).join("")
+    : `<div class="empty">Todavía no hay pedidos a ${pv.marca}.</div>`;
+  document.querySelectorAll("[data-px]").forEach(b => b.onclick = () => { const p = DB.provPed.find(x => x.id === b.dataset.px); provLlenarExcel(pv, p.lineas, `Pedido ${pv.marca} ${p.id}`).catch(e => toast(e.message, true)); });
+  document.querySelectorAll("[data-pm]").forEach(b => b.onclick = () => provRevisar(DB.provPed.find(x => x.id === b.dataset.pm), null));
+  document.querySelectorAll("[data-pver]").forEach(b => b.onclick = () => provRevisar(DB.provPed.find(x => x.id === b.dataset.pver), null, true));
+  document.querySelectorAll("[data-pf]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const p = DB.provPed.find(x => x.id === inp.dataset.pf);
+    toast("Leyendo la prefactura…");
+    try { const recs = provLeerItems(await provTextoPdf(f)); if (!recs.length) throw new Error("No encontramos productos en ese PDF. Revísalo a mano.");
+      provRevisar(p, { nombre: f.name, recs: provEmparejar(pv, p.lineas, recs) }); }
+    catch(e){ toast(e.message || "No se pudo leer el PDF", true); } });
+}
+/* tabla de revisión: ✅ lo que llegó, ❌ lo que no; se puede corregir antes de guardar */
+function provRevisar(p, leido, soloVer){
+  const pv = PROVS.find(x => x.id === p.prov), L = p.lineas;
+  const llega = L.map((l, i) => soloVer ? (l.recibido || 0) : Math.min(l.n, leido ? leido.recs.filter(r => r.linea === i).reduce((a, r) => a + r.cant, 0) : l.n));   // 🔒 nunca más de lo pedido
+  const precio = L.map((l, i) => { const r = leido && leido.recs.find(r => r.linea === i && r.precio); return r ? r.precio : (l.costo || DB.provCfg.costos[`${l.prod}|${l.modelo}`] || ""); });
+  const sinPar = leido ? leido.recs.filter(r => r.linea == null) : [];
+  const pinta = () => {
+    $("#dBody").innerHTML = `${leido ? `<div class="note" style="margin-bottom:10px">📄 ${esc(leido.nombre)} · leímos ${leido.recs.length} renglones. Revisa y corrige si algo no cuadra.</div>` : ""}
+      <table class="t"><thead><tr><th></th><th>Prenda</th><th>Color</th><th>Talla</th><th class="n">Pedidas</th><th class="n">Llegaron</th><th class="n">Costo c/u</th></tr></thead><tbody>
+      ${L.map((l, i) => { const ok = llega[i] >= l.n; return `<tr style="background:${ok ? "#ECFDF3" : "#FEF3F2"}"><td style="font-size:18px">${ok ? "✅" : "❌"}</td><td>${esc(prodNom(l.prod))} ${l.modelo}</td><td>${esc(l.color)}</td><td><b>${l.talla}</b></td><td class="n">${l.n}</td>
+        <td class="n">${soloVer ? llega[i] : `<input data-rl="${i}" value="${llega[i]}" inputmode="numeric" max="${l.n}" style="width:60px;text-align:right">`}</td>
+        <td class="n">${soloVer ? (precio[i] ? money(precio[i]) : "—") : `<input data-rp="${i}" value="${precio[i]}" inputmode="decimal" style="width:80px;text-align:right" placeholder="$">`}</td></tr>
+        ${!ok && l.asig && l.asig.length ? `<tr><td></td><td colspan="6" class="muted" style="font-size:12px;padding-top:0">Faltan ${l.n - llega[i]} · clientes: ${l.asig.map(a => `<b>${a.folio}</b> ${esc(a.cliente)}${a.tel ? ` (${a.tel})` : ""}`).join(", ")}</td></tr>` : ""}`; }).join("")}</tbody></table>
+      ${sinPar.length ? `<div class="warn" style="margin-top:12px"><b>Renglones de la prefactura que no supimos de qué son</b> (elige la línea y se recuerda para la próxima):
+        ${sinPar.map((r, j) => `<div class="sbrow" style="margin-top:6px;flex-wrap:wrap"><span>${r.cant} × ${esc(r.texto)} ${r.color ? esc(r.color) : ""} ${r.talla || ""}</span>
+          <select data-sp="${j}" style="width:auto;max-width:100%"><option value="">— no es de este pedido —</option>${L.map((l, i) => `<option value="${i}">${esc(prodNom(l.prod))} ${l.modelo} ${esc(l.color)} ${l.talla}</option>`).join("")}</select></div>`).join("")}</div>` : ""}
+      ${soloVer ? "" : `<button class="btn pri" id="rvOk" style="width:100%;margin-top:14px">Guardar recepción</button>
+      <p class="mini" style="margin-top:6px">Lo que no llegó se suma solo al siguiente pedido a ${pv.marca} y queda avisado en el panel con los clientes que esperan.</p>`}`;
+    $("#dBody").querySelectorAll("[data-rl]").forEach(x => x.oninput = () => { const i = +x.dataset.rl; llega[i] = Math.min(L[i].n, Math.max(0, parseInt(x.value) || 0)); });
+    $("#dBody").querySelectorAll("[data-rl]").forEach(x => x.onchange = pinta);
+    $("#dBody").querySelectorAll("[data-rp]").forEach(x => x.oninput = () => { precio[+x.dataset.rp] = parseFloat(x.value.replace(/[^\d.]/g, "")) || ""; });
+    $("#dBody").querySelectorAll("[data-sp]").forEach(s => s.onchange = () => { const r = sinPar[+s.dataset.sp]; if (s.value === "") return; const i = +s.value;
+      llega[i] = Math.min(L[i].n, llega[i] + r.cant); if (r.precio) precio[i] = r.precio;
+      if (r.codigo) DB.provCfg.claves[`${pv.id}|${sinAc(r.codigo)}`] = { prod: L[i].prod, modelo: L[i].modelo, color: L[i].color, talla: r.talla || L[i].talla };
+      sinPar.splice(+s.dataset.sp, 1); pinta(); });
+    if ($("#rvOk")) $("#rvOk").onclick = () => {
+      let costo = 0, falta = 0; const S = DB.provInv.stock;
+      L.forEach((l, i) => { l.recibido = llega[i]; l.costo = precio[i] || null; let q = llega[i];
+        for (const a of l.asig || []){ a.ok = Math.min(a.n, q); q -= a.ok; }
+        /* 🔒 lo recibido solo cubre a los clientes de la nota; no entra mercancía sin nota */
+        if (l.costo){ DB.provCfg.costos[`${l.prod}|${l.modelo}`] = l.costo; costo += l.costo * llega[i]; }
+        falta += Math.max(0, l.n - llega[i]); });
+      /* los renglones reconocidos por clave se guardan para la próxima */
+      if (leido) leido.recs.forEach(r => { if (r.linea != null && r.codigo){ const l = L[r.linea]; DB.provCfg.claves[`${pv.id}|${sinAc(r.codigo)}`] = { prod: l.prod, modelo: l.modelo, color: l.color, talla: r.talla || l.talla }; } });
+      p.estado = falta ? "Surtido parcial" : "Surtido"; p.recibido = new Date().toISOString(); p.costo = Math.round(costo * 100) / 100; p.prefactura = leido ? leido.nombre : null;
+      save(); cerrar(); toast(falta ? `Guardado: faltaron ${falta} piezas (se suman al siguiente pedido)` : "¡Pedido surtido completo!"); pProveedores(); };
+  };
+  $("#dTitle").textContent = `${soloVer ? "Detalle" : "Recepción"} · ${p.id} · ${pv.marca}`; pinta(); abrir();
+}
+/* ---------- reporte del mes ---------- */
+function provReporte(){
+  const mes = provMes, enMes = iso => String(iso || "").slice(0, 7) === mes;
+  const ventas = DB.ventas.filter(v => enMes(v.fecha) && v.estado !== "cancelada");
+  const vend = [];
+  ventas.forEach(v => v.items.forEach(i => { if (!i.qty) return; Object.entries(i.qty).forEach(([t, n]) => { if (n > 0) vend.push({ marca: i.marca || "", prod: i.prenda || i.prod, color: i.color || "—", talla: t, modelo: i.modelo || "", n, imp: (i.punit || 0) * n }); }); }));
+  const peds = DB.provPed.filter(p => enMes(p.fecha)), rec = DB.provPed.filter(p => enMes(p.recibido));
+  const pedidas = peds.reduce((a, p) => a + p.lineas.reduce((b, l) => b + l.n, 0), 0), llegaron = rec.reduce((a, p) => a + p.lineas.reduce((b, l) => b + (l.recibido || 0), 0), 0);
+  const egreso = rec.reduce((a, p) => a + (p.costo || 0), 0);
+  const top = (key, lim = 8) => { const m = {}; vend.forEach(r => { const k = key(r); m[k] = (m[k] || 0) + r.n; }); return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, lim); };
+  const egMarca = {}; rec.forEach(p => { const mk = PROVS.find(x => x.id === p.prov).marca; egMarca[mk] = (egMarca[mk] || 0) + (p.costo || 0); });
+  const egProd = {}; rec.forEach(p => p.lineas.forEach(l => { const k = prodNom(l.prod); egProd[k] = (egProd[k] || 0) + (l.costo || 0) * (l.recibido || 0); }));
+  const S = DB.provInv.stock, invPz = Object.values(S).reduce((a, n) => a + Math.max(0, n), 0), invVal = Object.entries(S).reduce((a, [k, n]) => { const [p, m] = k.split("|"); return a + Math.max(0, n) * (DB.provCfg.costos[`${p}|${m}`] || 0); }, 0);
+  const lista = (t, arr, fmt = x => x) => `<div class="card"><h3 style="margin-top:0">${t}</h3>${arr.length ? `<table class="t">${arr.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="n"><b>${fmt(v)}</b></td></tr>`).join("")}</table>` : `<div class="muted">Sin datos este mes.</div>`}</div>`;
+  const vendidas = vend.reduce((a, r) => a + r.n, 0);
+  $("#pvBody").innerHTML = `<div class="sbrow" style="margin-bottom:12px"><span class="label" style="margin:0">Mes</span><input type="month" id="rpMes" value="${mes}" style="width:auto">
+      <button class="btn sec sm" id="rpX">⬇ Descargar reporte</button></div>
+    <div class="kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px">
+      ${[["Piezas vendidas", vendidas], ["Piezas pedidas a proveedores", pedidas], ["Piezas que llegaron", llegaron], ["Egreso en mercancía", money(egreso)], ["Inventario en tienda", `${invPz} pzs · ${money(invVal)}`]].map(([t, v]) => `<div class="card" style="margin:0"><div class="muted" style="font-size:12px">${t}</div><div style="font-size:20px;font-weight:800">${v}</div></div>`).join("")}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      ${lista("Más vendido por marca", top(r => r.marca || "—"))}${lista("Más vendido por producto", top(r => r.prod))}
+      ${lista("Más vendido por color", top(r => r.color))}${lista("Más vendido por talla", top(r => r.talla, 10))}
+      ${lista("Egreso por marca", Object.entries(egMarca).sort((a, b) => b[1] - a[1]), money)}${lista("Egreso por producto", Object.entries(egProd).sort((a, b) => b[1] - a[1]), money)}</div>`;
+  $("#rpMes").onchange = e => { provMes = e.target.value; provReporte(); };
+  $("#rpX").onclick = () => excel([["REPORTE DE MERCANCÍA", mes], [], ["Piezas vendidas", vendidas], ["Piezas pedidas", pedidas], ["Piezas que llegaron", llegaron], ["Egreso en mercancía", egreso], ["Inventario (piezas)", invPz], ["Inventario (valor)", invVal], [],
+    ["VENDIDO", "Marca", "Producto", "Modelo", "Color", "Talla", "Piezas"], ...vend.map(r => ["", r.marca, r.prod, r.modelo, r.color, r.talla, r.n]), [],
+    ["COMPRAS", "Pedido", "Proveedor", "Prenda", "Modelo", "Color", "Talla", "Pedidas", "Llegaron", "Costo c/u", "Importe"],
+    ...rec.flatMap(p => p.lineas.map(l => ["", p.id, PROVS.find(x => x.id === p.prov).marca, prodNom(l.prod), l.modelo, l.color, l.talla, l.n, l.recibido || 0, l.costo || "", (l.costo || 0) * (l.recibido || 0)]))], "Mercancía", `Reporte mercancía ${mes}`);
+}
+/* ---------- costos e inventario ---------- */
+async function provConfig(){
+  const C = DB.provCfg, S = DB.provInv.stock, prods = Object.keys(PROV_PROD);
+  $("#pvBody").innerHTML = `<div class="card"><h3 style="margin-top:0">Costo de cada prenda</h3><p class="muted" style="font-size:13px">Se actualiza solo con el precio de cada prefactura. También lo puedes escribir aquí.</p>
+      <table class="t">${prods.flatMap(p => ["Caballero", "Dama"].map(m => `<tr><td>${prodNom(p)} · ${m}</td><td class="n"><input data-co="${p}|${m}" value="${C.costos[`${p}|${m}`] || ""}" placeholder="$" style="width:100px;text-align:right"></td></tr>`)).join("")}</table></div>
+    <div class="card"><h3 style="margin-top:0">Colores que no se encuentran en los formatos</h3><div id="pvCol" class="muted">Revisando…</div></div>`;
+  document.querySelectorAll("[data-co]").forEach(i => i.onchange = () => { const v = parseFloat(i.value.replace(/[^\d.]/g, "")); if (v) C.costos[i.dataset.co] = v; else delete C.costos[i.dataset.co]; save(); toast("Costo guardado"); });
+
+  /* existencias por color y talla, y colores sin pareja en el formato */
+  const usados = {}; DB.ventas.forEach(v => v.items.forEach(i => { if (PROV_PROD[i.prod] && i.color) (usados[i.prod] = usados[i.prod] || new Set()).add(i.modelo + "|" + i.color); }));
+  const malos = [];
+  for (const p of prods){ const pv = provDe(p); let f; try { f = await provFormato(pv); } catch(e){ continue; }
+    for (const m of ["Caballero", "Dama"]){ const b = f.bloques.find(x => x.prod === p && x.modelo === m); if (!b) continue;
+      [...(usados[p] || [])].filter(x => x.startsWith(m + "|")).forEach(x => { const c = x.split("|")[1]; if (!provFilaColor(pv, b, c)) malos.push({ pv, p, m, c, b }); }); }
+  }
+  $("#pvCol").innerHTML = malos.length ? malos.map((x, j) => `<div class="sbrow" style="margin:4px 0;flex-wrap:wrap"><span><b>${prodNom(x.p)} ${x.m}</b> · color de la app <b>${esc(x.c)}</b> →</span>
+      <select data-cm="${j}" style="width:auto"><option value="">elige el color del formato</option>${x.b.colores.map(c => `<option>${esc(c.txt)}</option>`).join("")}</select></div>`).join("") : "✅ Todos los colores vendidos tienen su casilla en el formato.";
+  $("#pvCol").querySelectorAll("[data-cm]").forEach(s => s.onchange = () => { const x = malos[+s.dataset.cm]; if (!s.value) return; C.colores[`${x.pv.id}|${x.p}|${x.c}`] = s.value; save(); toast("Color relacionado"); });
+}
+/* ---------- inventario en tienda ---------- */
+const titulo = t => String(t).toLowerCase().replace(/(^|\s)\S/g, x => x.toUpperCase());
+function provInventario(){
+  provDatos(); const C = DB.provCfg, S = DB.provInv.stock, prods = Object.keys(PROV_PROD), adm = SES.rol === "Administrador" || can("bodega");
+  const porProd = {}; Object.entries(S).forEach(([k, n]) => { const [p, m, c, t] = k.split("|"); ((porProd[p] = porProd[p] || {})[m] = porProd[p][m] || {}); (porProd[p][m][c] = porProd[p][m][c] || {})[t] = n; });
+  const enInv = prods.filter(p => C.inv[p]), tot = p => Object.values(porProd[p] || {}).reduce((a, m) => a + Object.values(m).reduce((b, c) => b + Object.values(c).reduce((x, y) => x + Math.max(0, y), 0), 0), 0);
+  $("#pvBody").innerHTML = `<div class="card"><h3 style="margin-top:0">Productos en inventario</h3>
+      <p class="muted" style="font-size:13px">Se descuentan solos cuando una nota tiene anticipo confirmado. En <b>Cotizar</b> el cliente ve "Disponible", "¡Quedan 3!" o "Agotado" por color y talla.</p>
+      ${prods.map(p => `<label style="display:inline-flex;align-items:center;gap:6px;margin:5px 16px 5px 0;font-size:14px;cursor:pointer"><input type="checkbox" style="width:16px;height:16px;margin:0" data-iv="${p}"${C.inv[p] ? " checked" : ""}><span>${provDe(p).marca} · ${PROV_PROD[p].nombre.replace(/^Polo |^Playera /, m => m)}${PROV_PROD[p].sinCatalogo ? " <i class='muted'>(aún no está en Cotizar)</i>" : ""}</span></label>`).join("")}</div>
+    ${enInv.map(p => { const mods = porProd[p] || {};
+      return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3 style="margin:0">${provDe(p).marca} · ${PROV_PROD[p].nombre}</h3><span class="badge ${tot(p) ? "verde" : "gris"}">${tot(p)} piezas</span></div>
+        ${PROV_PROD[p].sinCatalogo ? `<div class="mini" style="margin:4px 0">Todavía no está en Cotizar: se agrega cuando subamos sus fotos al catálogo.</div>` : ""}
+        ${["Caballero", "Dama"].filter(m => mods[m]).map(m => { const cols = Object.keys(mods[m]).sort(), ts = T_ORD.filter(t => cols.some(c => mods[m][c][t] != null));
+          return `<div style="margin-top:12px"><b>${m}</b><div style="overflow:auto"><table class="t" style="font-size:13px"><tr><th>Color</th>${ts.map(t => `<th class="n">${t}</th>`).join("")}<th class="n">Total</th></tr>
+            ${cols.map(c => `<tr><td>${esc(titulo(c))}</td>${ts.map(t => { const n = mods[m][c][t]; const k = [p, m, c, t].join("|");
+              return `<td class="n">${adm ? `<input data-st="${esc(k)}" value="${n != null ? n : ""}" inputmode="numeric" style="width:44px;text-align:right;padding:3px;${n === 0 ? "color:#B42318" : ""}">` : (n || 0)}</td>`; }).join("")}
+              <td class="n"><b>${Object.values(mods[m][c]).reduce((a, b) => a + Math.max(0, b), 0)}</b></td></tr>`).join("")}</table></div></div>`; }).join("") || `<div class="muted" style="margin-top:8px">Sin existencias capturadas.</div>`}
+        <button class="btn sec sm" data-ix="${p}" style="margin-top:10px">⬇ Descargar inventario</button></div>`; }).join("")}`;
+  document.querySelectorAll("[data-iv]").forEach(i => i.onchange = () => { C.inv[i.dataset.iv] = i.checked; provDatos(); save(); provInventario(); });
+  document.querySelectorAll("[data-st]").forEach(i => i.onchange = () => { const n = parseInt(i.value); if (isNaN(n)) delete S[i.dataset.st]; else S[i.dataset.st] = Math.max(0, n); save(); toast("Existencia guardada"); });
+  document.querySelectorAll("[data-ix]").forEach(b => b.onclick = () => { const p = b.dataset.ix;
+    excel([["Marca", "Producto", "Modelo", "Color", "Talla", "Existencia"], ...Object.entries(S).filter(([k]) => k.startsWith(p + "|")).map(([k, n]) => { const [, m, c, t] = k.split("|"); return [provDe(p).marca, PROV_PROD[p].nombre, m, titulo(c), t, n]; })], "Inventario", `Inventario ${PROV_PROD[p].nombre} ${VT.fecha(new Date().toISOString()).replace(/\//g, "-")}`); });
+}
+/* para el detalle de una venta: piezas que el proveedor no ha surtido */
+function provFaltaDeVenta(folio){ return provFaltantes().flatMap(g => g.asig.filter(a => a.folio === folio).map(a => ({ ...g, n: a.n }))); }
 
 /* ---------- GASTOS ---------- */
 function pGastos(){
