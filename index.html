@@ -276,6 +276,7 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
 .autimgs figcaption{font-size:12.5px;color:var(--muted);margin-top:4px;text-align:center}
 .autbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}@media(max-width:480px){.autbtns{grid-template-columns:1fr}}
 #sbRest .smup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:6px}
+#sbRest .smup.uno{grid-template-columns:minmax(0,420px)}#sbRest .smup.uno label{min-height:190px}#sbRest .smup.uno img{max-height:340px}
 #sbRest .smup label{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:150px;border:2px dashed #C9CED8;border-radius:16px;background:#FAFBFC;cursor:pointer;text-align:center;padding:12px;font-size:13px;color:#6E6E73;position:relative}
 #sbRest .smup label b{color:#1D1D1F;font-size:14.5px}
 #sbRest .smup label.has{border-style:solid;border-color:#34C759;background:#fff;padding:8px}
@@ -286,7 +287,7 @@ img[src^="data:image/gif"]{background:linear-gradient(90deg,#EEF0F4,#F7F8FA,#EEF
 #sbRest .smlogos div{position:relative;width:96px;height:96px;border-radius:12px;border:1px solid #E5E5EA;background:repeating-conic-gradient(#F2F2F7 0 25%,#fff 0 50%) 0 0/16px 16px;display:grid;place-items:center}
 #sbRest .smlogos img{max-width:86px;max-height:86px}
 #sbRest .smlogos .x{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;border:0;background:#1D1D1F;color:#fff;font-weight:700;cursor:pointer;padding:0}
-@media(max-width:700px){#sbRest .smup{grid-template-columns:1fr 1fr}#sbRest .smup label{min-height:120px}}
+@media(max-width:700px){#sbRest .smup,#sbRest .smup.uno{grid-template-columns:1fr}#sbRest .smup label{min-height:120px}}
 #sbRest .sbtallasres button{background:none;border:0;color:#0066CC;font:inherit;font-weight:700;cursor:pointer;padding:6px 0}
 .stk{display:block;font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px}.stk.ok{color:#1E8E4A}.stk.no{color:#B42318}.stk.poco{color:#B54708}
 .verej{margin:-6px 0 14px;background:#F7F8FB;border-radius:12px;padding:8px 12px}.verej summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--navy)}
@@ -3614,15 +3615,15 @@ function sbSimpleRender(){
   document.querySelectorAll("#sbRest .sbViejo").forEach(e => e.style.display = "none");
   const box = $("#sbSimple"); box.style.display = "";
   const slot = (k, t, sub, req) => { const v = S[k];
-    return `<label class="${v ? "has" : ""}${req ? " req" : ""}">${v ? `<img src="${v}" alt="${t}"><b>${t}</b><button class="x" data-smx="${k}" aria-label="Quitar">×</button>`
+    return `<label class="${v ? "has" : ""}${req ? " req" : ""}">${v ? `<img src="${v}" alt="${t}"><b>${S.frente === v ? "Tu mockup" : t}</b><button class="x" data-smx="${k}" aria-label="Quitar">×</button>`
       : `<span style="font-size:26px">⬆️</span><b>${t}</b><span>${sub}</span>`}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-smf="${k}"></label>`; };
   sbSimLista();
   const otros = Object.keys(p.modelos).filter(g => g !== SB.modelo && piezas(SB.qtyM[g] || {}));
   box.innerHTML = `
     <div class="card">
       <div class="pasoh"><span class="num">2</span><div><h3>Sube el mockup de tu diseño</h3><p>Una imagen de cómo quieres tu camisa: la que hiciste con la IA, una foto o un diseño que te guste. <b>Nuestro diseñador la prepara para cada talla.</b></p></div></div>
-      <div class="smup">${slot("frente", "Frente", "Obligatorio", true)}${slot("espalda", "Espalda", "Si lleva diseño atrás")}${slot("mangas", "Mangas", "Opcional")}</div>
-      <div class="mini" style="margin-top:8px">¿Tu imagen trae el frente y la espalda juntos? Súbela en <b>Frente</b> y listo.${otros.length ? ` Este mismo diseño se usa también para ${otros.map(g => g.toLowerCase()).join(" y ")}.` : ""}</div>
+      <div class="smup uno">${slot("frente", "Sube tu mockup", "Toca aquí para elegir la imagen", true)}</div>
+      ${otros.length ? `<div class="mini" style="margin-top:8px">Este mismo diseño se usa también para ${otros.map(g => g.toLowerCase()).join(" y ")}.</div>` : ""}
     </div>
     <div class="card">
       <div class="pasoh"><span class="num">3</span><div><h3>Tus logotipos <span class="mini" style="font-weight:600">· opcional</span></h3><p>Si tienes tus logos originales, súbelos aquí, de preferencia en <b>PNG con fondo transparente</b>. Así salen más nítidos en tu camisa.</p></div></div>

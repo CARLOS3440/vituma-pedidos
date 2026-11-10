@@ -1649,17 +1649,19 @@ function dspImg(src){
   if (!_dspIm.has(src)) _dspIm.set(src, new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; }));
   return _dspIm.get(src);
 }
+/* tamaño de la textura (lo que mide una "loseta" de la imagen, en cm): igual en todas las piezas para que el patrón no cambie de escala */
+const dspTile = (e, im) => e.tileCm || Math.max(10, Math.min(35, Math.round((im ? im.width : 1024) / 40)));
 const dspNueva = () => ({ piezas: Object.fromEntries(DSP_PZ.map(([k]) => [k, { fondo: "#FFFFFF", els: [] }])), cuello: "#111111" });
 const dspTiene = (txt, ...pal) => pal.some(p => new RegExp(p, "i").test(txt || ""));
 
 /* ---------- primer acomodo automático, con el tipo de cada elemento y "dónde va" (lo que dijo ChatGPT) ---------- */
 function dspAuto(T){
   const D = dspNueva(), E = T.elementos.filter(e => e.src), pon = (k, o) => D.piezas[k].els.push(o);
-  const dondeTex = e => { const t = e.nombre + " " + (e.nota || "");
-    if (dspTiene(t, "manga")) return dspTiene(t, "cuerpo|frente|espalda|todo") ? ["frente","espalda","mangaD","mangaI"] : ["mangaD","mangaI"];
-    if (dspTiene(t, "frente") && !dspTiene(t, "espalda")) return ["frente"];
-    if (dspTiene(t, "espalda") && !dspTiene(t, "frente")) return ["espalda"];
-    return ["frente","espalda","mangaD","mangaI"]; };
+  const dondeTex = e => { const t = e.nombre + " " + (e.nota || ""), L = [];
+    if (dspTiene(t, "frente|pecho|delantera")) L.push("frente");
+    if (dspTiene(t, "espalda|trasera")) L.push("espalda");
+    if (dspTiene(t, "manga")) L.push("mangaD", "mangaI");
+    return L.length && !dspTiene(t, "toda la|todo|completa") ? L : ["frente","espalda","mangaD","mangaI"]; };
   /* texturas: llenan cada pieza; si hay varias en la misma pieza se reparten de arriba hacia abajo (el diseñador ajusta la altura) */
   const tex = E.filter(e => e.tipo === "textura"), porPieza = {};
   tex.forEach(e => dondeTex(e).forEach(k => (porPieza[k] = porPieza[k] || []).push(e)));
@@ -1671,11 +1673,14 @@ function dspAuto(T){
   /* líneas o franjas */
   E.filter(e => e.tipo === "linea").forEach(e => { const t = e.nombre + " " + (e.nota || "");
     const y = dspTiene(t, "cintura|abajo|inferior") ? .82 : dspTiene(t, "hombro|arriba") ? .2 : .38;
-    if (dspTiene(t, "manga")) ["mangaD","mangaI"].forEach(k => pon(k, { eid: e.id, x: 0, y: .55, w: 1 }));
+    if (dspTiene(t, "manga")) ["mangaD","mangaI"].forEach(k => pon(k, { eid: e.id, x: 0, y: dspTiene(t, "borde|inferior|abajo|puño|ribete") ? .86 : .55, w: 1 }));
     else { pon("frente", { eid: e.id, x: 0, y, w: 1 }); if (dspTiene(t, "espalda|ambos|todo|alrededor|horizontal")) pon("espalda", { eid: e.id, x: 0, y, w: 1 }); } });
   /* piezas o fragmentos */
   E.filter(e => e.tipo === "pieza" || e.tipo === "otro").forEach(e => { const t = e.nombre + " " + (e.nota || "");
-    if (dspTiene(t, "hombro")){ pon("mangaD", { eid: e.id, x: .25, y: .03, w: .5 }); pon("mangaI", { eid: e.id, x: .25, y: .03, w: .5, fx: true }); }
+    const izq = dspTiene(t, "izquierd"), der = dspTiene(t, "derech");   // de quien viste la camisa: su derecha se ve a la izquierda
+    if (dspTiene(t, "hombro") && dspTiene(t, "frente|pecho")) pon("frente", { eid: e.id, x: izq ? .6 : .02, y: .02, w: .38, fx: izq && !der });
+    else if (dspTiene(t, "hombro") && dspTiene(t, "espalda")) pon("espalda", { eid: e.id, x: izq ? .02 : .6, y: .02, w: .38 });
+    else if (dspTiene(t, "hombro")){ pon("mangaD", { eid: e.id, x: .25, y: .03, w: .5 }); pon("mangaI", { eid: e.id, x: .25, y: .03, w: .5, fx: true }); }
     else if (dspTiene(t, "manga")){ pon("mangaD", { eid: e.id, x: .3, y: .25, w: .4 }); pon("mangaI", { eid: e.id, x: .3, y: .25, w: .4, fx: true }); }
     else if (dspTiene(t, "espalda")) pon("espalda", { eid: e.id, x: .3, y: .2, w: .4 });
     else pon("frente", { eid: e.id, x: .35, y: .3, w: .3 }); });
@@ -1684,9 +1689,9 @@ function dspAuto(T){
   E.filter(e => e.tipo === "logo").forEach(e => { const t = e.nombre + " " + (e.nota || "");
     if (dspTiene(t, "centro|grande")) pon("frente", { eid: e.id, x: .3, y: .2, w: .4 });
     else if (dspTiene(t, "espalda")) pon("espalda", { eid: e.id, x: .3, y: .1, w: .4 });
-    else if (dspTiene(t, "manga")) pon("mangaD", { eid: e.id, x: .3, y: .25, w: .4 });
+    else if (dspTiene(t, "manga")) pon(dspTiene(t, "izquierd") ? "mangaI" : "mangaD", { eid: e.id, x: .42, y: .32, w: .16 });
     else if (!n++) pon("frente", { eid: e.id, x: .58, y: .19, w: .22 });
-    else { const k = sigLugar[(n - 2) % 3]; pon(k, k === "espalda" ? { eid: e.id, x: .3, y: .1, w: .4 } : { eid: e.id, x: .3, y: .25, w: .4 }); } });
+    else { const k = sigLugar[(n - 2) % 3]; pon(k, k === "espalda" ? { eid: e.id, x: .3, y: .1, w: .4 } : { eid: e.id, x: .42, y: .32, w: .16 }); } });
   return D;
 }
 
@@ -1701,12 +1706,13 @@ async function dspSub(i, T){
       const tex = e.tipo === "textura", W = o.w * P.w, H = tex ? (o.h || 1) * P.h : W * im.height / im.width, X = o.x * P.w, Y = o.y * P.h;
       const x0 = Math.max(0, X), y0 = Math.max(0, Y), x1 = Math.min(P.w, X + W), y1 = Math.min(P.h, Y + H); if (x1 <= x0 || y1 <= y0) continue;
       /* resolución: la de la imagen, entre 20 y 60 px por cm (textura) o hasta 120 (logos y piezas) */
-      const ppc = Math.max(20, Math.min(tex ? 60 : 120, Math.max(im.width / (W / DSP_CM), im.height / (H / DSP_CM)))), k2 = ppc / DSP_CM;
+      const ppc = tex ? Math.max(20, Math.min(60, im.width / dspTile(e, im))) : Math.max(20, Math.min(120, Math.max(im.width / (W / DSP_CM), im.height / (H / DSP_CM)))), k2 = ppc / DSP_CM;
       const c = document.createElement("canvas"); c.width = Math.max(1, Math.round((x1 - x0) * k2)); c.height = Math.max(1, Math.round((y1 - y0) * k2));
-      const g = c.getContext("2d"); g.translate(-(x0 - X) * k2, -(y0 - Y) * k2);
-      if (o.fx){ g.translate(W * k2, 0); g.scale(-1, 1); }
-      if (tex){ const r = Math.max(W / im.width, H / im.height); g.drawImage(im, (W - im.width * r) / 2 * k2, (H - im.height * r) / 2 * k2, im.width * r * k2, im.height * r * k2); }
-      else g.drawImage(im, 0, 0, W * k2, H * k2);
+      const g = c.getContext("2d");
+      if (tex){   // la textura se repite desde la esquina de la pieza, a su tamaño real
+        const pat = g.createPattern(im, "repeat"), sc = dspTile(e, im) * DSP_CM * k2 / im.width; pat.setTransform(new DOMMatrix([sc, 0, 0, sc, -x0 * k2, -y0 * k2]));
+        g.fillStyle = pat; g.fillRect(0, 0, c.width, c.height);
+      } else { g.translate(-(x0 - X) * k2, -(y0 - Y) * k2); if (o.fx){ g.translate(W * k2, 0); g.scale(-1, 1); } g.drawImage(im, 0, 0, W * k2, H * k2); }
       els.push({ tipo: tex ? "fondo" : "logo", nombre: e.nombre, x: x0, y: y0, w: x1 - x0, h: y1 - y0, src: c.toDataURL(tex ? "image/jpeg" : "image/png", .92) });
     }
     piezas[k] = { w: P.w, h: P.h, fondo: { color: cfg.fondo || "#FFFFFF" }, els };
@@ -1750,6 +1756,7 @@ async function dspAbrir(id, v, G){
         <div class="dspSide">
           ${o ? `<div class="dspBox sel"><b>${esc(e.nombre)}</b> <span class="muted">${tex ? "Textura" : "Elemento"}</span>
               <div class="dspRow"><label>Ancho <input type="number" step="0.5" id="dspW" value="${cmTxt(o.w * P().w)}"> cm</label>${tex ? `<label>Alto <input type="number" step="0.5" id="dspH" value="${cmTxt((o.h || 1) * P().h)}"> cm</label>` : ""}</div>
+              ${tex ? `<div class="dspRow"><label>Tamaño del patrón <input type="number" step="1" min="2" id="dspT" value="${dspTile(e, ims.get(e.id))}"> cm</label><span class="muted" style="font-size:12px">Igual en todas las piezas.</span></div>` : ""}
               <div class="dspRow"><label>Desde arriba <input type="number" step="0.5" id="dspY" value="${cmTxt(o.y * P().h)}"> cm</label><label>Desde la izq. <input type="number" step="0.5" id="dspXc" value="${cmTxt(o.x * P().w)}"> cm</label></div>
               <div class="dspBtns"><button class="btn sec sm" data-a="full">↔ Todo el ancho</button><button class="btn sec sm" data-a="centro">⇹ Centrar</button>${tex ? `<button class="btn sec sm" data-a="alto">⇕ Todo el alto</button>` : ""}
                 <button class="btn sec sm" data-a="fx">⇋ Voltear</button><button class="btn sec sm" data-a="up">⬆ Al frente</button><button class="btn sec sm" data-a="down">⬇ Atrás</button>
@@ -1775,7 +1782,7 @@ async function dspAbrir(id, v, G){
     if (o){
       const num = (idn, f) => { const el = $("#" + idn); if (el) el.onchange = () => { const n = parseFloat(el.value); if (!(n >= 0)) return; f(n * DSP_CM); guardar(); pinta(); }; };
       num("dspW", n => { o.w = Math.max(.01, n / P().w); }); num("dspH", n => { o.h = Math.max(.01, n / P().h); });
-      num("dspY", n => { o.y = n / P().h; }); num("dspXc", n => { o.x = n / P().w; });
+      num("dspY", n => { o.y = n / P().h; }); const tt = $("#dspT"); if (tt) tt.onchange = () => { const n = parseFloat(tt.value); if (n >= 2){ e.tileCm = n; guardar(); dibujar(); } }; num("dspXc", n => { o.x = n / P().w; });
       ov.querySelectorAll("[data-a]").forEach(x => x.onclick = () => { const a = x.dataset.a, L = cfg().els;
         if (a === "full"){ o.x = 0; o.w = 1; }
         if (a === "alto"){ o.y = 0; o.h = 1; }
@@ -1805,8 +1812,9 @@ async function dspAbrir(id, v, G){
     g.save(); g.beginPath(); g.rect(ox, oy, p.w * esc_, p.h * esc_); g.clip();
     g.fillStyle = cfg().fondo || "#FFFFFF"; g.fillRect(ox, oy, p.w * esc_, p.h * esc_);
     for (const o of cfg().els){ const e = E.get(o.eid), im = ims.get(o.eid); if (!e || !im) continue; const r = rectDe(o, im);
-      g.save(); if (o.fx){ g.translate(r.x + r.w, 0); g.scale(-1, 1); g.translate(-r.x, 0); }
-      if (e.tipo === "textura"){ g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip(); const k = Math.max(r.w / im.width, r.h / im.height); g.drawImage(im, r.x + (r.w - im.width * k) / 2, r.y + (r.h - im.height * k) / 2, im.width * k, im.height * k); }
+      g.save(); if (o.fx && e.tipo !== "textura"){ g.translate(r.x + r.w, 0); g.scale(-1, 1); g.translate(-r.x, 0); }
+      if (e.tipo === "textura"){ g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip(); const pat = g.createPattern(im, "repeat"), sc = dspTile(e, im) * DSP_CM * esc_ / im.width;
+        pat.setTransform(new DOMMatrix([sc, 0, 0, sc, ox, oy])); g.fillStyle = pat; g.fillRect(r.x, r.y, r.w, r.h); }
       else g.drawImage(im, r.x, r.y, r.w, r.h);
       g.restore(); }
     /* fuera del molde */
@@ -2094,7 +2102,7 @@ ELEMENTOS
 3. [Línea] Nombre del elemento — dónde va
 4. [Logo] Nombre del elemento — dónde va
 
-Ordénalos así: primero las texturas, después las piezas o fragmentos (placas, remaches, detalles), después las líneas o franjas y al final los logotipos, cada logo por separado. Usa solo estos tipos: Textura, Pieza, Línea, Logo u Otro.${hayLogos ? "\nEl cliente ya nos dio sus logotipos originales: NO los incluyas en la lista." : ""}${pers ? "\nNo incluyas nombres ni números de jugadores: esos los ponemos nosotros." : ""}
+Ordénalos así: primero las texturas, después las piezas o fragmentos (placas, remaches, detalles), después las líneas o franjas y al final los logotipos, cada logo por separado. Usa solo estos tipos: Textura, Pieza, Línea, Logo u Otro. En "dónde va" di la pieza (frente, espalda o mangas) y, si es de un lado, derecho o izquierdo de quien viste la camisa.${hayLogos ? "\nEl cliente ya nos dio sus logotipos originales: NO los incluyas en la lista." : ""}${pers ? "\nNo incluyas nombres ni números de jugadores: esos los ponemos nosotros." : ""}
 
 PASO 2. Después de la lista, genera la imagen del elemento 1. Cada vez que te escriba "siguiente", genera el siguiente elemento de la lista, uno por uno, hasta terminar.
 
