@@ -102,6 +102,22 @@ const paraCliente = v => { if (!v) return v; const { historial, ...r } = v; retu
 
 async function todasLasVentas(){ const ids = await r1("SMEMBERS", "vt:iv") || []; return (await mget(ids.map(f => "vt:v:" + f))).filter(Boolean); }
 
+/* misma regla que en comun.js (VT.autorizarVenta): autoriza → la orden pasa a producción; cambios → regresa a diseño */
+function autorizarVenta(v, ok, comentario){
+  const ahora = new Date().toISOString(), A = v.autorizacion;
+  A.estado = ok ? "autorizado" : "cambios"; A.respuesta = ahora; A.comentario = ok ? "" : comentario;
+  (A.rondas = A.rondas || []).push({ enviado: A.enviado, respuesta: ahora, ok, comentario: ok ? "" : comentario });
+  const orden = ["diseno","autorizacion","produccion","listo","entregado"], AV = { "En diseño":"diseno", "Esperando autorización":"autorizacion", "En producción":"produccion", "En tienda para entregar":"listo", "Entregado":"entregado" };
+  for (const ot of ((v.produccion || {}).ots || [])){
+    if (ot.estado !== "Esperando autorización") continue;
+    ot.estado = ok ? "En producción" : "En diseño";
+    (ot.updates = ot.updates || []).push({ fecha: ahora, usuario: "Cliente (app)", texto: ok ? "✅ El cliente autorizó su diseño desde la app." : "✏️ El cliente pidió cambios desde la app:\n" + comentario });
+  }
+  if (v.produccion && v.estado !== "cancelada"){ const ests = v.produccion.ots.map(o => AV[o.estado] || "diseno"); v.estado = ests.reduce((a, b) => orden.indexOf(b) < orden.indexOf(a) ? b : a, "entregado"); }
+  (v.historial = v.historial || []).unshift({ fecha: ahora, usuario: "Cliente (app)", accion: ok ? "Diseño autorizado por el cliente" : "El cliente pidió cambios al diseño", detalle: ok ? "" : comentario });
+  return v;
+}
+
 /* ---------- acciones ---------- */
 const A = {
   async estado(){ return { db: HAY_DB, imagenes: HAY_BLOB, version: 1 }; },
@@ -256,6 +272,18 @@ const A = {
   },
 
   /* el cliente sube su comprobante: entra como "por validar" */
+  /* el cliente autoriza su diseño o pide cambios desde la app */
+  async autorizar(req){
+    if (!(await limite(req, "autorizar", 30, 3600))) throw Object.assign(new Error("Demasiados intentos. Intenta más tarde."), { code: 429 });
+    const { folio, tel, ok, comentario } = req.body || {};
+    const v = J(await r1("GET", "vt:v:" + String(folio || "")));
+    if (!v || !v.cliente || v.cliente.tel !== tel) throw Object.assign(new Error("No encontramos ese pedido"), { code: 404 });
+    if (!v.autorizacion || v.autorizacion.estado !== "pendiente") throw Object.assign(new Error("Este diseño ya no está esperando tu autorización. Actualiza la página."), { code: 409 });
+    autorizarVenta(v, !!ok, String(comentario || "").slice(0, 1000));
+    await r1("SET", "vt:v:" + v.folio, JSON.stringify(v)); await marcar(["v:" + v.folio]);
+    return { venta: paraCliente(v) };
+  },
+
   async pago(req){
     if (!(await limite(req, "pago", 30, 3600))) throw Object.assign(new Error("Demasiados intentos. Intenta más tarde."), { code: 429 });
     const { folio, tel, pago } = req.body || {};
@@ -294,7 +322,7 @@ const A = {
     res.end(buf); return null;
   }
 };
-const PUBLICAS = new Set(["estado", "existencias", "login", "imagen", "pedido", "mis", "buscar", "pago", "img"]);
+const PUBLICAS = new Set(["estado", "existencias", "login", "imagen", "pedido", "mis", "buscar", "pago", "autorizar", "img"]);
 
 export default async function handler(req, res){
   const a = String((req.query && req.query.a) || "");
