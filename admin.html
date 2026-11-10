@@ -137,6 +137,37 @@ table.prod td.pc{padding:5px;min-width:0}
 .bubble{color:#9AA0B4}.bubble.has{color:#579BFC}.bubble:hover{color:#1C2340}
 table.prod td.bub,table.prod th.bubth{padding:0}table.prod .bubble{padding:4px}
 table.prod .badge{font-size:10.5px;white-space:nowrap}table.prod td.cen .sub{text-align:center}
+.linkbtn{background:none;border:0;color:#1F4FBF;font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:2px 4px}.linkbtn:disabled{opacity:.3;cursor:default}
+.aut{border-radius:10px;padding:9px 12px;margin-top:10px;font-size:13.5px}.aut.pend{background:#FFF7E6;border:1px solid #F5C26B}.aut.ok{background:#EAF7EF;border:1px solid #9AD9B4}.aut.cam{background:#FDECEC;border:2px solid #E2445C}
+.tl{border:2px solid #1C2340}
+#dspOv{position:fixed;inset:0;z-index:9000;background:#F4F5F8;display:none;flex-direction:column}
+.dspTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}.dspTop .tabs{margin:0}
+.dspBody{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;padding:12px 16px;overflow:auto}
+.dspLeft{min-width:0}.dspLeft .tabs{margin-bottom:8px}.dspWrap{background:#fff;border-radius:12px;border:1px solid var(--line);display:flex;justify-content:center;overflow:auto}
+#dspCv{touch-action:none;cursor:move}
+.dspSide{display:flex;flex-direction:column;gap:10px;min-width:0}.dspBox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}.dspBox.sel{border:2px solid #F26B21}
+.dspRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:13px}.dspRow label{display:flex;align-items:center;gap:6px}.dspRow input[type=number]{width:70px;border:1.5px solid var(--line);border-radius:8px;padding:4px 6px;font:inherit}
+.dspRow input[type=color]{width:44px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
+.dspBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dspEl{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 0;font-size:13px}.dspEl img{width:40px;height:40px;object-fit:contain;border-radius:6px;background:repeating-conic-gradient(#EEE 0 25%,#fff 0 50%) 0 0/10px 10px}.dspEl em{color:#B4400F;font-size:11.5px}
+@media(max-width:860px){.dspBody{grid-template-columns:1fr}}
+.tlfast{margin:10px 0 0 34px;background:#F3F6FD;border:1px solid #C9D6F5;border-radius:12px;padding:10px 14px}.tlfast ol{margin:8px 0 0 18px;display:grid;gap:8px;font-size:13.5px}.tlfast .btn{margin-right:4px}
+.tlbulk{margin:8px 0 0 34px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.tlbulk details{width:100%}.tlbulk summary,.tlman summary{cursor:pointer;font-weight:700;font-size:13.5px;color:#1F4FBF}
+.tlbulk textarea{width:100%;min-height:110px;border:1.5px solid var(--line);border-radius:9px;padding:8px;font:inherit;font-size:13px;margin:6px 0}
+.tlman{margin:10px 0 0 34px}.tlman .tladd{margin-left:0}.tl h3{margin-bottom:8px}
+.tlbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tlbar span{background:#F4F5F8;border-radius:999px;padding:4px 12px;font-size:12.5px}
+.tlp{display:flex;align-items:center;gap:10px;margin:16px 0 8px}.tlp b{font-size:14.5px}
+.tln{width:24px;height:24px;border-radius:50%;background:#1C2340;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}.tln.ok{background:#1F9D55}
+.tlrefs{display:flex;gap:10px;flex-wrap:wrap;margin-left:34px}.tlref{display:flex;flex-direction:column;gap:3px;width:120px;font-size:12px}
+.tlref img{width:120px;height:120px;object-fit:contain;background:#F4F5F8;border-radius:10px;cursor:zoom-in;border:1px solid var(--line)}.tlref.logo img{background:repeating-conic-gradient(#EEE 0 25%,#fff 0 50%) 0 0/14px 14px}
+.tltallas,.tl .accrow{margin-left:34px}.tltallas{margin-top:8px;font-size:13px}.tl .accrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tlels{display:grid;gap:6px;margin-left:34px}.tlel{display:grid;grid-template-columns:22px 54px minmax(0,1fr);gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:#fff}
+.tlel.ok{border-color:#9AD9B4;background:#F3FBF6}.tlnum{font-weight:800;color:var(--muted);text-align:center}
+.tlimg{width:54px;height:54px;object-fit:contain;border-radius:8px;background:repeating-conic-gradient(#EEE 0 25%,#fff 0 50%) 0 0/12px 12px;cursor:zoom-in}.tlimg.vacio{display:grid;place-items:center;font-size:22px;background:#F4F5F8;cursor:default}
+.tlinfo{display:flex;flex-direction:column;min-width:0}.tlinfo .muted{font-size:12px}.tlacc{grid-column:3/-1;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tladd{display:grid;grid-template-columns:170px minmax(0,1fr);gap:6px;margin:8px 0 0 34px}.tladd select,.tladd input{border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;font:inherit;font-size:13px;min-width:0}
+.tlrev{display:grid;gap:6px;margin-left:34px;font-size:13.5px}.tlrev label{display:flex;gap:8px;align-items:center;cursor:pointer}.tlrev input{width:16px;height:16px;margin:0}
+@media(max-width:860px){.tlfast,.tlbulk,.tlman{margin-left:0}.tladd{grid-template-columns:1fr}.tlel{grid-template-columns:22px 48px minmax(0,1fr)}.tlacc{grid-column:1/-1;justify-content:flex-start}.tlrefs,.tlels,.tladd,.tlrev,.tltallas,.tl .accrow{margin-left:0}}
 .pidio{background:#FFF7F2;border-left:4px solid #F26B21;border-radius:8px;padding:8px 10px;margin-top:8px;display:grid;gap:3px}
 .okbox{background:#E7F7EE;color:#067647;border-radius:10px;padding:10px 12px;font-weight:600}
 .bubble{position:relative;border:0;background:none;font-size:22px;cursor:pointer;padding:4px 6px;border-radius:8px}.bubble:hover{background:#EEF1F7}
@@ -411,6 +442,7 @@ const VT = (() => {
     if (!pares.length) return [];
     const r = await api("mis", { pares }); cliPoner(r.ventas); return r.ventas;
   }
+  async function autorizar(folio, tel, ok, comentario){ const r = await api("autorizar", { folio, tel, ok, comentario }); cliPoner([r.venta]); return r.venta; }
   async function buscar(q){ const r = await api("buscar", q); cliPoner(r.ventas); return r.ventas; }
 
   /* inventario que puede ver el cliente: {prods:[…], stock:{}} */
@@ -425,7 +457,7 @@ const VT = (() => {
     if (S.modo === "cliente"){ S.db = { ventas: clon(d.ventas || []) }; cliGuardarCache(); return true; }
     return guardarNube(d);
   }
-  const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, uso, recalcular, depurar, pendientes, crearPedido, agregarPago, misPedidos, buscar, subirImagenes,
+  const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, uso, recalcular, depurar, pendientes, crearPedido, agregarPago, misPedidos, buscar, autorizar, subirImagenes,
     set alSalir(f){ S.alSalir = f; }, set alCambio(f){ S.alCambio = f; } };
 
   /* colores con otro nombre según la marca (para inventario y proveedores) */
@@ -584,6 +616,21 @@ const VT = (() => {
   }
 
   /* reduce una imagen antes de guardarla (comprobantes) */
+  /* el cliente autoriza su diseño o pide cambios (sin base de datos; con base de datos lo hace el servidor con la misma regla) */
+  function autorizarVenta(v, ok, comentario){
+    const ahora = new Date().toISOString(), A = v.autorizacion;
+    A.estado = ok ? "autorizado" : "cambios"; A.respuesta = ahora; A.comentario = ok ? "" : comentario;
+    (A.rondas = A.rondas || []).push({ enviado: A.enviado, respuesta: ahora, ok, comentario: ok ? "" : comentario });
+    const orden = ["diseno","autorizacion","produccion","listo","entregado"], AV = { "En diseño":"diseno", "Esperando autorización":"autorizacion", "En producción":"produccion", "En tienda para entregar":"listo", "Entregado":"entregado" };
+    for (const ot of ((v.produccion || {}).ots || [])){
+      if (ot.estado !== "Esperando autorización") continue;
+      ot.estado = ok ? "En producción" : "En diseño";
+      (ot.updates = ot.updates || []).push({ fecha: ahora, usuario: "Cliente (app)", texto: ok ? "✅ El cliente autorizó su diseño desde la app." : "✏️ El cliente pidió cambios desde la app:\n" + comentario });
+    }
+    if (v.produccion && v.estado !== "cancelada"){ const ests = v.produccion.ots.map(o => AV[o.estado] || "diseno"); v.estado = ests.reduce((a, b) => orden.indexOf(b) < orden.indexOf(a) ? b : a, "entregado"); }
+    (v.historial = v.historial || []).unshift({ fecha: ahora, usuario: "Cliente (app)", accion: ok ? "Diseño autorizado por el cliente" : "El cliente pidió cambios al diseño", detalle: ok ? "" : comentario });
+    return v;
+  }
   function reducirImagen(file, max = 1100){
     return new Promise((ok, fail) => {
       if (file.type === "application/pdf"){
@@ -602,7 +649,7 @@ const VT = (() => {
 
   return { BANCO, WHATSAPP_AVISOS, SUCURSALES, PONCHADO, ENTREGA, POLITICAS, ESTADOS, FORMAS, CSS,
            cargar, guardar, money, esc, fecha, fechaHora, fechaLarga, sumarHabiles, letras, cuentas, siguienteFolio,
-           notaHTML, notaPDF, reducirImagen, nube, sinAc, colorClave, kStock, existencias };
+           notaHTML, notaPDF, reducirImagen, autorizarVenta, nube, sinAc, colorClave, kStock, existencias };
 })();
 
 document.head.insertAdjacentHTML("beforeend", `<style>${VT.CSS}</style>`);
@@ -1574,6 +1621,223 @@ function provPedidosDeVenta(folio){
 }
 function provFaltaDeVenta(folio){ return provFaltantes().flatMap(g => g.asig.filter(a => a.folio === folio).map(a => ({ ...g, n: a.n }))); }
 
+/* =====================================================================
+   🧩 ARMAR DESPIECE (Taller de diseño)
+   Con los elementos que el diseñador sacó de ChatGPT, la app arma frente, espalda y mangas en la talla
+   más grande del pedido; el diseñador solo ajusta arrastrando y se manda al ajustador de tallas
+   (mismo PDF "sin molde" que ya usa el ajustador).
+   Las posiciones se guardan en fracciones de cada pieza: el mismo acomodo sirve para caballero y dama.
+   ===================================================================== */
+let DSP_M = null;
+function dspDatos(){
+  if (DSP_M) return Promise.resolve(DSP_M);
+  return fetch("sublima.json?v=0a0a9e97").then(r => { if (!r.ok) throw new Error("moldes"); return r.json(); }).then(d => (DSP_M = d.moldes));
+}
+const DSP_PZ = [["frente","Frente"],["espalda","Espalda"],["mangaD","Manga derecha"],["mangaI","Manga izquierda"]];
+const DSP_ORD = ["XCH","CH","M","G","XL","2XL","3XL","4XL"], DSP_CM = 72 / 2.54;
+const dspLarga = i => i.prod === "sub_ml" || /manga larga/i.test(i.prenda || "");
+const dspKey = i => `manga-${dspLarga(i) ? "larga" : "corta"}-${i.modelo === "Dama" ? "dama" : "caballero"}`;
+function dspBase(i){
+  const M = DSP_M.modelos[dspKey(i)], tallas = DSP_ORD.filter(t => (i.qty || {})[t]), app = tallas[tallas.length - 1] || "M";
+  let molde = ({ XL: i.modelo === "Dama" ? "XL" : "XG", "2XL":"XXL", "3XL":"XXXL", "4XL":"XXXXL" })[app] || app;
+  if (!M.tallas[molde]) molde = ["XXXXL","XXXL","XXL","XG","XL","G","M","CH","XCH"].find(t => M.tallas[t]);
+  return { app, molde, m: M.tallas[molde], nombre: M.nombre };
+}
+/* imágenes de los elementos (misma liga = misma imagen) */
+const _dspIm = new Map();
+function dspImg(src){
+  if (!_dspIm.has(src)) _dspIm.set(src, new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; }));
+  return _dspIm.get(src);
+}
+const dspNueva = () => ({ piezas: Object.fromEntries(DSP_PZ.map(([k]) => [k, { fondo: "#FFFFFF", els: [] }])), cuello: "#111111" });
+const dspTiene = (txt, ...pal) => pal.some(p => new RegExp(p, "i").test(txt || ""));
+
+/* ---------- primer acomodo automático, con el tipo de cada elemento y "dónde va" (lo que dijo ChatGPT) ---------- */
+function dspAuto(T){
+  const D = dspNueva(), E = T.elementos.filter(e => e.src), pon = (k, o) => D.piezas[k].els.push(o);
+  const dondeTex = e => { const t = e.nombre + " " + (e.nota || "");
+    if (dspTiene(t, "manga")) return dspTiene(t, "cuerpo|frente|espalda|todo") ? ["frente","espalda","mangaD","mangaI"] : ["mangaD","mangaI"];
+    if (dspTiene(t, "frente") && !dspTiene(t, "espalda")) return ["frente"];
+    if (dspTiene(t, "espalda") && !dspTiene(t, "frente")) return ["espalda"];
+    return ["frente","espalda","mangaD","mangaI"]; };
+  /* texturas: llenan cada pieza; si hay varias en la misma pieza se reparten de arriba hacia abajo (el diseñador ajusta la altura) */
+  const tex = E.filter(e => e.tipo === "textura"), porPieza = {};
+  tex.forEach(e => dondeTex(e).forEach(k => (porPieza[k] = porPieza[k] || []).push(e)));
+  for (const [k, L] of Object.entries(porPieza)){
+    const arriba = L.filter(e => dspTiene(e.nombre + " " + e.nota, "superior|arriba|pecho|hombro|alta")), abajo = L.filter(e => dspTiene(e.nombre + " " + e.nota, "inferior|abajo|cintura|baja"));
+    const resto = L.filter(e => !arriba.includes(e) && !abajo.includes(e)), orden = [...arriba, ...resto, ...abajo], n = orden.length;
+    orden.forEach((e, j) => pon(k, { eid: e.id, x: 0, y: j / n, w: 1, h: n === 1 ? 1 : 1 / n }));
+  }
+  /* líneas o franjas */
+  E.filter(e => e.tipo === "linea").forEach(e => { const t = e.nombre + " " + (e.nota || "");
+    const y = dspTiene(t, "cintura|abajo|inferior") ? .82 : dspTiene(t, "hombro|arriba") ? .2 : .38;
+    if (dspTiene(t, "manga")) ["mangaD","mangaI"].forEach(k => pon(k, { eid: e.id, x: 0, y: .55, w: 1 }));
+    else { pon("frente", { eid: e.id, x: 0, y, w: 1 }); if (dspTiene(t, "espalda|ambos|todo|alrededor|horizontal")) pon("espalda", { eid: e.id, x: 0, y, w: 1 }); } });
+  /* piezas o fragmentos */
+  E.filter(e => e.tipo === "pieza" || e.tipo === "otro").forEach(e => { const t = e.nombre + " " + (e.nota || "");
+    if (dspTiene(t, "hombro")){ pon("mangaD", { eid: e.id, x: .25, y: .03, w: .5 }); pon("mangaI", { eid: e.id, x: .25, y: .03, w: .5, fx: true }); }
+    else if (dspTiene(t, "manga")){ pon("mangaD", { eid: e.id, x: .3, y: .25, w: .4 }); pon("mangaI", { eid: e.id, x: .3, y: .25, w: .4, fx: true }); }
+    else if (dspTiene(t, "espalda")) pon("espalda", { eid: e.id, x: .3, y: .2, w: .4 });
+    else pon("frente", { eid: e.id, x: .35, y: .3, w: .3 }); });
+  /* logotipos: el primero en el pecho izquierdo (de quien la viste), los demás en mangas y espalda */
+  const sigLugar = ["mangaD","mangaI","espalda"]; let n = 0;
+  E.filter(e => e.tipo === "logo").forEach(e => { const t = e.nombre + " " + (e.nota || "");
+    if (dspTiene(t, "centro|grande")) pon("frente", { eid: e.id, x: .3, y: .2, w: .4 });
+    else if (dspTiene(t, "espalda")) pon("espalda", { eid: e.id, x: .3, y: .1, w: .4 });
+    else if (dspTiene(t, "manga")) pon("mangaD", { eid: e.id, x: .3, y: .25, w: .4 });
+    else if (!n++) pon("frente", { eid: e.id, x: .58, y: .19, w: .22 });
+    else { const k = sigLugar[(n - 2) % 3]; pon(k, k === "espalda" ? { eid: e.id, x: .3, y: .1, w: .4 } : { eid: e.id, x: .3, y: .25, w: .4 }); } });
+  return D;
+}
+
+/* ---------- PDF sin molde a partir del acomodo (misma estructura que ya entiende el ajustador) ---------- */
+async function dspSub(i, T){
+  await dspDatos();
+  const { app, molde, m, nombre } = dspBase(i), D = T.despiece, E = new Map(T.elementos.map(e => [e.id, e])), piezas = {};
+  for (const [k] of DSP_PZ){
+    const P = m[k], cfg = D.piezas[k], els = [];
+    for (const o of cfg.els){
+      const e = E.get(o.eid); if (!e || !e.src) continue; const im = await dspImg(e.src); if (!im) continue;
+      const tex = e.tipo === "textura", W = o.w * P.w, H = tex ? (o.h || 1) * P.h : W * im.height / im.width, X = o.x * P.w, Y = o.y * P.h;
+      const x0 = Math.max(0, X), y0 = Math.max(0, Y), x1 = Math.min(P.w, X + W), y1 = Math.min(P.h, Y + H); if (x1 <= x0 || y1 <= y0) continue;
+      /* resolución: la de la imagen, entre 20 y 60 px por cm (textura) o hasta 120 (logos y piezas) */
+      const ppc = Math.max(20, Math.min(tex ? 60 : 120, Math.max(im.width / (W / DSP_CM), im.height / (H / DSP_CM)))), k2 = ppc / DSP_CM;
+      const c = document.createElement("canvas"); c.width = Math.max(1, Math.round((x1 - x0) * k2)); c.height = Math.max(1, Math.round((y1 - y0) * k2));
+      const g = c.getContext("2d"); g.translate(-(x0 - X) * k2, -(y0 - Y) * k2);
+      if (o.fx){ g.translate(W * k2, 0); g.scale(-1, 1); }
+      if (tex){ const r = Math.max(W / im.width, H / im.height); g.drawImage(im, (W - im.width * r) / 2 * k2, (H - im.height * r) / 2 * k2, im.width * r * k2, im.height * r * k2); }
+      else g.drawImage(im, 0, 0, W * k2, H * k2);
+      els.push({ tipo: tex ? "fondo" : "logo", nombre: e.nombre, x: x0, y: y0, w: x1 - x0, h: y1 - y0, src: c.toDataURL(tex ? "image/jpeg" : "image/png", .92) });
+    }
+    piezas[k] = { w: P.w, h: P.h, fondo: { color: cfg.fondo || "#FFFFFF" }, els };
+  }
+  if (m.cuello) piezas.cuello = { w: m.cuello.w, h: m.cuello.h, fondo: { color: D.cuello || "#111111" }, els: [] };
+  return { modelo: dspKey(i), modeloTxt: nombre, tallaApp: app, tallaBase: molde, piezas, larga: dspLarga(i) };
+}
+const dspNombrePDF = (i, sub, v) => `SIN_MOLDE_SUBLIMADA_MANGA_${sub.larga ? "LARGA" : "CORTA"}_${sub.tallaBase}_${(i.modelo || "").toUpperCase()}_${(v.cliente.nombre || "").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}_${v.folio}.pdf`;
+async function dspPDF(i, T, v){ const sub = await dspSub(i, T); await pdfSinMolde(sub, dspNombrePDF(i, sub, v)); }
+function dspAjustador(i, T, v, alTerminar){
+  const dama = i.modelo === "Dama", extra = { tallas: [...new Set(Object.keys(i.qty || {}).filter(t => i.qty[t]).map(t => moldeDeTalla(t, dama)))], personas: [] };
+  let sub = null;
+  enviarAlAjustador(async () => { sub = await dspSub(i, T); return { pdf: await pdfSinMolde(sub, "", {}, true), extra, transfer: [] }; },
+    { nombre: "", modelo: dspKey(i), talla: dspBase(i).molde, cliente: v.cliente.nombre + " · " + v.folio }, ok => alTerminar && alTerminar(ok));
+}
+
+/* ---------- editor ---------- */
+const DSP = { k: "frente", sel: -1, item: 0 };
+async function dspAbrir(id, v, G){
+  try { await dspDatos(); } catch(e){ return toast("No se pudieron cargar los moldes. Revisa tu internet.", true); }
+  const T = G.t, E = new Map(T.elementos.map(e => [e.id, e]));
+  if (!T.despiece){ T.despiece = dspAuto(T); T.despiece.auto = new Date().toISOString(); log(v, "Taller de diseño: despiece armado automáticamente", ""); save(); }
+  DSP.k = "frente"; DSP.sel = -1; DSP.item = 0;
+  let ov = $("#dspOv"); if (!ov){ ov = document.createElement("div"); ov.id = "dspOv"; document.body.appendChild(ov); }
+  ov.style.display = "flex"; document.body.style.overflow = "hidden";
+  const D = () => T.despiece, item = () => G.items[DSP.item], base = () => dspBase(item()), P = () => base().m[DSP.k], cfg = () => D().piezas[DSP.k];
+  let guardarT = null; const guardar = () => { clearTimeout(guardarT); guardarT = setTimeout(save, 700); };
+  const cmTxt = pt => (Math.round(pt / DSP_CM * 10) / 10).toFixed(1).replace(/\.0$/, "");
+  const cerrar = () => { clearTimeout(guardarT); save(); ov.style.display = "none"; document.body.style.overflow = ""; window.removeEventListener("resize", dibujar); abrirOT(id); };
+  const pinta = () => {
+    const b = base(), S = cfg(), o = S.els[DSP.sel], e = o && E.get(o.eid), tex = e && e.tipo === "textura";
+    const usadas = new Set(Object.values(D().piezas).flatMap(p => p.els.map(x => x.eid)));
+    ov.innerHTML = `<div class="dspTop"><b>🧩 Armar despiece · ${esc(v.folio)}</b>
+        ${G.items.length > 1 ? `<div class="tabs" id="dspIt">${G.items.map((x, n) => `<button class="${n === DSP.item ? "on" : ""}" data-n="${n}">${esc(x.modelo)}</button>`).join("")}</div>` : `<span class="muted">${esc(item().modelo)}</span>`}
+        <span class="muted">Molde ${esc(b.nombre)} · talla <b>${b.molde}</b> (la más grande del pedido)</span>
+        <span style="flex:1"></span><button class="btn sec sm" id="dspAuto">✨ Volver a armar automático</button><button class="btn pri sm" id="dspX">Listo</button></div>
+      <div class="dspBody">
+        <div class="dspLeft"><div class="tabs" id="dspPz">${DSP_PZ.map(([k, t]) => `<button class="${k === DSP.k ? "on" : ""}" data-k="${k}">${t}</button>`).join("")}</div>
+          <div class="dspWrap"><canvas id="dspCv"></canvas></div>
+          <div class="muted" style="font-size:12px;margin-top:6px">Arrastra para mover · esquina para cambiar el tamaño · lo gris queda fuera del molde. Pieza de ${cmTxt(P().w)} × ${cmTxt(P().h)} cm.</div></div>
+        <div class="dspSide">
+          ${o ? `<div class="dspBox sel"><b>${esc(e.nombre)}</b> <span class="muted">${tex ? "Textura" : "Elemento"}</span>
+              <div class="dspRow"><label>Ancho <input type="number" step="0.5" id="dspW" value="${cmTxt(o.w * P().w)}"> cm</label>${tex ? `<label>Alto <input type="number" step="0.5" id="dspH" value="${cmTxt((o.h || 1) * P().h)}"> cm</label>` : ""}</div>
+              <div class="dspRow"><label>Desde arriba <input type="number" step="0.5" id="dspY" value="${cmTxt(o.y * P().h)}"> cm</label><label>Desde la izq. <input type="number" step="0.5" id="dspXc" value="${cmTxt(o.x * P().w)}"> cm</label></div>
+              <div class="dspBtns"><button class="btn sec sm" data-a="full">↔ Todo el ancho</button><button class="btn sec sm" data-a="centro">⇹ Centrar</button>${tex ? `<button class="btn sec sm" data-a="alto">⇕ Todo el alto</button>` : ""}
+                <button class="btn sec sm" data-a="fx">⇋ Voltear</button><button class="btn sec sm" data-a="up">⬆ Al frente</button><button class="btn sec sm" data-a="down">⬇ Atrás</button>
+                ${DSP.k.startsWith("manga") ? `<button class="btn sec sm" data-a="espejo">Copiar a la otra manga (espejo)</button>` : `<button class="btn sec sm" data-a="otra">Copiar a ${DSP.k === "frente" ? "la espalda" : "el frente"}</button>`}
+                <button class="linkdel" data-a="quitar">Quitar de esta pieza</button></div></div>`
+            : `<div class="dspBox muted" style="font-size:13px">Toca un elemento en la pieza para moverlo o cambiar su tamaño.</div>`}
+          <div class="dspBox"><b>Elementos</b><div class="muted" style="font-size:12px;margin-bottom:6px">Toca ＋ para ponerlo en ${DSP_PZ.find(x => x[0] === DSP.k)[1].toLowerCase()}.</div>
+            ${T.elementos.filter(x => x.src).map(x => `<div class="dspEl"><img src="${x.src}" alt=""><span>${esc(x.nombre)}${usadas.has(x.id) ? "" : ` <em>sin usar</em>`}</span><button class="btn sec sm" data-add="${x.id}">＋</button></div>`).join("") || `<div class="muted">Sube primero los PNG de los elementos en el Taller.</div>`}</div>
+          <div class="dspBox"><b>Colores</b><div class="dspRow"><label>Fondo de ${DSP_PZ.find(x => x[0] === DSP.k)[1].toLowerCase()} <input type="color" id="dspF" value="${S.fondo || "#FFFFFF"}"></label>
+            <label>Cuello <input type="color" id="dspC" value="${D().cuello || "#111111"}"></label></div>
+            <button class="linkbtn" id="dspFT">Usar este fondo en todas las piezas</button></div>
+        </div></div>`;
+    ov.querySelectorAll("#dspIt button").forEach(x => x.onclick = () => { DSP.item = +x.dataset.n; DSP.sel = -1; pinta(); });
+    ov.querySelectorAll("#dspPz button").forEach(x => x.onclick = () => { DSP.k = x.dataset.k; DSP.sel = -1; pinta(); });
+    $("#dspX").onclick = cerrar;
+    $("#dspAuto").onclick = () => { if (!confirm("¿Volver a armar todo automáticamente? Se pierde el acomodo que hiciste.")) return; T.despiece = dspAuto(T); T.despiece.auto = new Date().toISOString(); DSP.sel = -1; save(); pinta(); };
+    ov.querySelectorAll("[data-add]").forEach(x => x.onclick = () => { const e2 = E.get(x.dataset.add), t2 = e2.tipo === "textura";
+      cfg().els.push(t2 ? { eid: e2.id, x: 0, y: 0, w: 1, h: 1 } : { eid: e2.id, x: .35, y: .25, w: .3 }); if (t2) cfg().els.unshift(cfg().els.pop());
+      DSP.sel = t2 ? 0 : cfg().els.length - 1; guardar(); pinta(); });
+    $("#dspF").oninput = x => { cfg().fondo = x.target.value; guardar(); dibujar(); };
+    $("#dspC").oninput = x => { D().cuello = x.target.value; guardar(); };
+    $("#dspFT").onclick = () => { DSP_PZ.forEach(([k]) => D().piezas[k].fondo = cfg().fondo); guardar(); toast("Fondo aplicado a todas las piezas"); };
+    if (o){
+      const num = (idn, f) => { const el = $("#" + idn); if (el) el.onchange = () => { const n = parseFloat(el.value); if (!(n >= 0)) return; f(n * DSP_CM); guardar(); pinta(); }; };
+      num("dspW", n => { o.w = Math.max(.01, n / P().w); }); num("dspH", n => { o.h = Math.max(.01, n / P().h); });
+      num("dspY", n => { o.y = n / P().h; }); num("dspXc", n => { o.x = n / P().w; });
+      ov.querySelectorAll("[data-a]").forEach(x => x.onclick = () => { const a = x.dataset.a, L = cfg().els;
+        if (a === "full"){ o.x = 0; o.w = 1; }
+        if (a === "alto"){ o.y = 0; o.h = 1; }
+        if (a === "centro") o.x = (1 - o.w) / 2;
+        if (a === "fx") o.fx = !o.fx;
+        if (a === "up" && DSP.sel < L.length - 1){ [L[DSP.sel], L[DSP.sel + 1]] = [L[DSP.sel + 1], L[DSP.sel]]; DSP.sel++; }
+        if (a === "down" && DSP.sel > 0){ [L[DSP.sel], L[DSP.sel - 1]] = [L[DSP.sel - 1], L[DSP.sel]]; DSP.sel--; }
+        if (a === "espejo"){ const k2 = DSP.k === "mangaD" ? "mangaI" : "mangaD"; D().piezas[k2].els.push({ ...o, x: 1 - o.x - o.w, fx: !o.fx }); toast("Copiado en espejo a la otra manga"); }
+        if (a === "otra"){ const k2 = DSP.k === "frente" ? "espalda" : "frente"; D().piezas[k2].els.push({ ...o }); toast("Copiado"); }
+        if (a === "quitar"){ L.splice(DSP.sel, 1); DSP.sel = -1; }
+        guardar(); pinta(); });
+    }
+    dibujar();
+  };
+  /* lienzo: fondo, elementos, lo que queda fuera del molde en gris y el elemento elegido con su esquina */
+  let esc_ = 1, ox = 0, oy = 0;
+  const rectDe = (o, im) => { const p = P(), e = E.get(o.eid), W = o.w * p.w, H = e && e.tipo === "textura" ? (o.h || 1) * p.h : (im ? W * im.height / im.width : W);
+    return { x: ox + o.x * p.w * esc_, y: oy + o.y * p.h * esc_, w: W * esc_, h: H * esc_ }; };
+  const ims = new Map();
+  async function cargar(){ for (const x of T.elementos) if (x.src && !ims.has(x.id)) ims.set(x.id, await dspImg(x.src)); }
+  function dibujar(){
+    const cv = $("#dspCv"); if (!cv) return; const wrap = cv.parentElement, p = P(), dpr = window.devicePixelRatio || 1;
+    const aw = wrap.clientWidth - 8, ah = Math.max(300, window.innerHeight - 190); esc_ = Math.min(aw / p.w, ah / p.h);
+    const W = Math.round(p.w * esc_ + 40), H = Math.round(p.h * esc_ + 40); ox = 20; oy = 20;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
+    const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.save(); g.beginPath(); g.rect(ox, oy, p.w * esc_, p.h * esc_); g.clip();
+    g.fillStyle = cfg().fondo || "#FFFFFF"; g.fillRect(ox, oy, p.w * esc_, p.h * esc_);
+    for (const o of cfg().els){ const e = E.get(o.eid), im = ims.get(o.eid); if (!e || !im) continue; const r = rectDe(o, im);
+      g.save(); if (o.fx){ g.translate(r.x + r.w, 0); g.scale(-1, 1); g.translate(-r.x, 0); }
+      if (e.tipo === "textura"){ g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip(); const k = Math.max(r.w / im.width, r.h / im.height); g.drawImage(im, r.x + (r.w - im.width * k) / 2, r.y + (r.h - im.height * k) / 2, im.width * k, im.height * k); }
+      else g.drawImage(im, r.x, r.y, r.w, r.h);
+      g.restore(); }
+    /* fuera del molde */
+    if (p.d){ const fc = document.createElement("canvas"); fc.width = cv.width; fc.height = cv.height; const f = fc.getContext("2d");
+      f.setTransform(dpr, 0, 0, dpr, 0, 0); f.fillStyle = "rgba(110,114,125,.75)"; f.fillRect(ox, oy, p.w * esc_, p.h * esc_);
+      f.setTransform(dpr * esc_, 0, 0, dpr * esc_, dpr * ox, dpr * oy); f.globalCompositeOperation = "destination-out"; f.fillStyle = "#000"; f.fill(new Path2D(p.d));
+      g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(fc, 0, 0); g.restore();
+      g.save(); g.setTransform(dpr * esc_, 0, 0, dpr * esc_, dpr * ox, dpr * oy); g.strokeStyle = "#F26B21"; g.lineWidth = 2 / esc_; g.stroke(new Path2D(p.d)); g.restore(); }
+    g.restore();
+    g.strokeStyle = "#C9CED8"; g.lineWidth = 1; g.strokeRect(ox, oy, p.w * esc_, p.h * esc_);
+    const o = cfg().els[DSP.sel]; if (o){ const r = rectDe(o, ims.get(o.eid)); g.strokeStyle = "#F26B21"; g.lineWidth = 2; g.setLineDash([6, 4]); g.strokeRect(r.x, r.y, r.w, r.h); g.setLineDash([]);
+      g.fillStyle = "#F26B21"; g.fillRect(r.x + r.w - 7, r.y + r.h - 7, 14, 14); }
+    cv.onpointerdown = ev => {
+      const b = cv.getBoundingClientRect(), x = ev.clientX - b.left, y = ev.clientY - b.top, L = cfg().els, sel = L[DSP.sel];
+      let modo = null, j = -1;
+      if (sel){ const r = rectDe(sel, ims.get(sel.eid)); if (Math.abs(x - (r.x + r.w)) < 14 && Math.abs(y - (r.y + r.h)) < 14){ modo = "tam"; j = DSP.sel; } }
+      if (!modo) for (let n = L.length - 1; n >= 0; n--){ const r = rectDe(L[n], ims.get(L[n].eid)); if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h){ j = n; modo = "mover"; break; } }
+      if (j !== DSP.sel){ DSP.sel = j; if (j < 0) return pinta(); dibujar(); }
+      if (!modo) return;
+      const o2 = cfg().els[j], ini = { ...o2 }, p2 = P(), tex = E.get(o2.eid).tipo === "textura", x0 = x, y0 = y; cv.setPointerCapture(ev.pointerId);
+      cv.onpointermove = m => { const dx = (m.clientX - b.left - x0) / esc_, dy = (m.clientY - b.top - y0) / esc_;
+        if (modo === "mover"){ o2.x = ini.x + dx / p2.w; o2.y = ini.y + dy / p2.h; }
+        else { o2.w = Math.max(.02, ini.w + dx / p2.w); if (tex) o2.h = Math.max(.02, (ini.h || 1) + dy / p2.h); }
+        dibujar(); };
+      cv.onpointerup = () => { cv.onpointermove = null; cv.onpointerup = null; guardar(); pinta(); };
+    };
+  }
+  window.addEventListener("resize", dibujar);
+  pinta(); await cargar(); dibujar();
+}
+
 /* ---------- GASTOS ---------- */
 function pGastos(){
   const tot = DB.gastos.reduce((a,g)=>a+g.monto,0);
@@ -1765,7 +2029,7 @@ function pProduccion(){
     const dv = disenoVence(v, ot), hd = habilesHasta(dv), yaPaso = ["En producción","En tienda para entregar","Entregado"].includes(ot.estado);
     return `<tr data-ot="${ot.id}">
       <td class="mkc">${mks.length ? `<div class="mkbox"><img src="${mks[0]}" alt="Mockup" data-zoom>${mks.length > 1 ? `<span>+${mks.length-1}</span>` : ""}</div>` : `<div class="mkbox vacio">${ICO.camisa}</div>`}</td>
-      <td class="tk"><b>${esc(v.cliente.nombre)}</b><div class="sub">${v.folio} · ${TECNICAS[ot.tecnica]} · ${pz} pzs${v.trabajo ? " · " + esc(v.trabajo) : ""}</div>${serviciosDe(v).length || v.origen === "mostrador" ? `<div class="tags">${serviciosDe(v).map(k => `<span class="tag nar">${SERV_TXT[k]}</span>`).join("")}${v.origen === "mostrador" ? `<span class="tag">🏪 Mostrador</span>` : ""}</div>` : ""}</td>
+      <td class="tk"><b>${esc(v.cliente.nombre)}</b><div class="sub">${v.folio} · ${TECNICAS[ot.tecnica]} · ${pz} pzs${v.trabajo ? " · " + esc(v.trabajo) : ""}</div>${v.autorizacion && v.autorizacion.estado === "cambios" && ot.estado === "En diseño" ? `<div class="sub" style="color:#C8102E;font-weight:700">✏️ El cliente pidió cambios</div>` : v.autorizacion && v.autorizacion.estado === "autorizado" ? `<div class="sub" style="color:#1F9D55;font-weight:700">✅ Autorizado por el cliente</div>` : ""}${serviciosDe(v).length || v.origen === "mostrador" ? `<div class="tags">${serviciosDe(v).map(k => `<span class="tag nar">${SERV_TXT[k]}</span>`).join("")}${v.origen === "mostrador" ? `<span class="tag">🏪 Mostrador</span>` : ""}</div>` : ""}</td>
       <td class="bub cen"><button class="bubble${ot.updates.length ? " has" : ""}" data-det="${ot.id}" title="Datos del cliente, lo que pidió y el mockup">${ICO.chat}${ot.updates.length ? `<i>${ot.updates.length}</i>` : ""}</button></td>
       <td class="respc"><div class="respbox">${avatar(ot.responsable, 30)}<span>${esc(ot.responsable ? ot.responsable.split(" ")[0] : "Asignar")}</span></div><select class="cell respsel" data-resp="${ot.id}" title="Asignar responsable"><option value="">— Sin asignar —</option>${["Diseño","otros"].map(gr => { const l = usuarios.filter(u => gr === "Diseño" ? u.rol === "Diseño" : u.rol !== "Diseño"); return l.length ? `<optgroup label="${gr === "Diseño" ? "Diseñadores" : "Otros"}">${l.map(u => `<option${u.nombre === ot.responsable ? " selected" : ""}>${esc(u.nombre)}</option>`).join("")}</optgroup>` : ""; }).join("")}</select></td>
       <td class="pc"><select class="cell pillsel" data-est="${ot.id}" style="background:${(OT_ESTADOS.find(s=>s[0]===ot.estado)||OT_ESTADOS[1])[1]};color:${(OT_ESTADOS.find(s=>s[0]===ot.estado)||OT_ESTADOS[1])[2]}">${OT_ESTADOS.map(s => `<option${s[0] === ot.estado ? " selected" : ""}>${s[0]}</option>`).join("")}</select></td>
@@ -1811,6 +2075,204 @@ function cambiarOT(id, campo, valor, abrirDespues){
   if (abrirDespues) abrirOT(id); else pProduccion();
 }
 
+/* ---------- 🎨 Taller de diseño (sublimado con mockup del cliente): el diseñador separa los elementos con ChatGPT y arma cada talla en su programa ---------- */
+const TL_TIPOS = [["textura","Textura","🧶"],["pieza","Pieza o fragmento","🔩"],["linea","Línea o franja","➖"],["logo","Logotipo","⭐"],["otro","Otro elemento","✳️"]];
+const TL_REV = [["completo","No falta ningún elemento"],["textos","Textos y logotipos correctos (ortografía, nombres, números)"],["calidad","Calidad y definición de las imágenes revisada"],["medidas","Preparado a las medidas y áreas de impresión de cada talla"]];
+const TL_ORD = ["XCH","CH","M","G","XL","2XL","3XL","4XL","5XL","6XL"];
+function tlGrupos(its, v){
+  const g = new Map(); its.filter(i => i.mockupCli && i.mockupCli.frente).forEach(i => { const k = i.mockupCli.frente; (g.get(k) || g.set(k, []).get(k)).push(i); });
+  return [...g.values()].map(items => { const t = items[0]; t.taller = t.taller || { elementos: [], revision: {}, previo: null }; return { items, t: t.taller, ref: t.mockupCli, venta: v }; });
+}
+function tlPromptInicial(G){
+  const r = G.ref, partes = ["el frente", r.espalda ? "la espalda" : "", r.mangas ? "las mangas" : ""].filter(Boolean), hayLogos = (r.logos || []).length, pers = G.items.some(i => i.pers);
+  return `Te adjunto el diseño de referencia de una camisa sublimada (${partes.join(", ").replace(/, ([^,]*)$/, " y $1")}). Necesito descomponerlo en elementos individuales para reconstruirlo y adaptarlo a diferentes tallas. No quiero el frente completo en una sola imagen: necesito cada elemento por separado.
+
+PASO 1. Analiza el diseño y escribe la lista de TODOS sus elementos, exactamente con este formato, uno por renglón:
+ELEMENTOS
+1. [Textura] Nombre del elemento — dónde va
+2. [Pieza] Nombre del elemento — dónde va
+3. [Línea] Nombre del elemento — dónde va
+4. [Logo] Nombre del elemento — dónde va
+
+Ordénalos así: primero las texturas, después las piezas o fragmentos (placas, remaches, detalles), después las líneas o franjas y al final los logotipos, cada logo por separado. Usa solo estos tipos: Textura, Pieza, Línea, Logo u Otro.${hayLogos ? "\nEl cliente ya nos dio sus logotipos originales: NO los incluyas en la lista." : ""}${pers ? "\nNo incluyas nombres ni números de jugadores: esos los ponemos nosotros." : ""}
+
+PASO 2. Después de la lista, genera la imagen del elemento 1. Cada vez que te escriba "siguiente", genera el siguiente elemento de la lista, uno por uno, hasta terminar.
+
+Reglas para cada elemento:
+- Solo ese elemento, separado del resto del diseño.
+- Conserva exactamente los colores originales.
+- No modifiques formas, proporciones ni detalles.
+- No agregues nada que no exista en la referencia.
+- Texturas: planas y de frente, sin pliegues, arrugas, sombras ni la forma de la camisa, llenando todo el lienzo para que puedan continuarse sin cortes notorios.
+- Piezas, líneas y logotipos: PNG con fondo transparente, conservando todos sus detalles (remaches, bordes y textos tal cual).
+- La mayor resolución y definición posible.`;
+}
+/* lee la lista que contesta ChatGPT ("1. [Textura] Nombre — dónde va") */
+function tlLeerLista(txt){
+  const TIP = { textura:"textura", pieza:"pieza", fragmento:"pieza", linea:"linea", línea:"linea", franja:"linea", logo:"logo", logotipo:"logo", otro:"otro" }, out = [];
+  for (const l of String(txt || "").split(/\r?\n/)){
+    const m = l.replace(/\*\*/g, "").match(/^\s*(?:\d+\s*[.)\-:]|[-•*])\s*\[?\s*(textura|pieza|fragmento|l[ií]nea|franja|logotipo|logo|otro)s?\s*\]?\s*[:\-–—]?\s*(.+)$/i);
+    if (!m) continue;
+    const [nom, ...resto] = m[2].split(/\s+[—–-]\s+/), nombre = nom.replace(/[.:;]+$/, "").trim();
+    if (nombre) out.push({ tipo: TIP[m[1].toLowerCase()] || "otro", nombre: nombre.slice(0, 80), nota: resto.join(" - ").replace(/[.]+$/, "").trim().slice(0, 120) });
+  }
+  return out;
+}
+/* una sola imagen con frente, espalda y mangas para pegarla en ChatGPT */
+async function tlMockupJunto(ref){
+  const ims = await Promise.all([["frente","FRENTE"],["espalda","ESPALDA"],["mangas","MANGAS"]].filter(([k]) => ref[k]).map(([k, t]) => new Promise(ok => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => ok({ im, t }); im.onerror = () => ok(null); im.src = ref[k]; })));
+  const L = ims.filter(Boolean); if (!L.length) throw new Error("sin imagen");
+  const H = 1100, pad = 30, ws = L.map(x => Math.round(x.im.width * H / x.im.height)), c = document.createElement("canvas");
+  c.width = ws.reduce((a, w) => a + w, 0) + pad * (L.length + 1); c.height = H + 2 * pad + 50; const x = c.getContext("2d");
+  x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#1C2340"; x.font = "700 34px Arial"; x.textAlign = "center";
+  let px = pad; L.forEach((o, k) => { x.drawImage(o.im, px, pad, ws[k], H); if (L.length > 1) x.fillText(o.t, px + ws[k] / 2, H + pad + 42); px += ws[k] + pad; });
+  if (L.length === 1) c.height = H + 2 * pad;
+  if (L.length === 1){ const c2 = document.createElement("canvas"); c2.width = c.width; c2.height = H + 2 * pad; c2.getContext("2d").drawImage(c, 0, 0); return c2; }
+  return c;
+}
+function tlPrompt(e){
+  const tx = e.tipo === "textura";
+  return `Del diseño de referencia que te compartí, extrae ÚNICAMENTE este elemento: ${e.nombre}.${e.nota ? `\nDetalle: ${e.nota}.` : ""}
+
+- Entrégalo solo, separado del resto del diseño.
+- Conserva exactamente los colores originales.
+- No modifiques formas, proporciones ni detalles.
+- No agregues nada que no exista en la referencia.
+${tx ? "- Entrégalo como una textura plana y de frente: sin pliegues, arrugas, sombras ni la forma de la camisa, llenando todo el lienzo para que pueda continuarse sin cortes notorios."
+     : `- Entrégalo en PNG con fondo transparente${e.tipo === "logo" ? ", conservando todos sus detalles y textos tal cual" : e.tipo === "pieza" ? ", incluyendo sus remaches, bordes y detalles" : ""}.`}
+- Con la mayor resolución y definición posible.`;
+}
+function tlTallas(items){
+  return items.map(i => `<div style="margin-top:4px"><b>${esc(i.modelo)}</b> · ${Object.entries(i.qty || {}).filter(([, n]) => n).sort((a, b) => TL_ORD.indexOf(a[0]) - TL_ORD.indexOf(b[0])).map(([t, n]) => `${t} × ${n}`).join(" · ")} <span class="muted">(${i.cant} pzs)</span></div>`).join("");
+}
+function tallerHTML(G, n){
+  const T = G.t, r = G.ref, E = T.elementos, listos = E.filter(e => e.src || e.estado === "listo").length, rev = TL_REV.filter(([k]) => T.revision[k]).length;
+  const tipo = k => TL_TIPOS.find(t => t[0] === k) || TL_TIPOS[4];
+  const ref = (k, t) => r[k] ? `<div class="tlref"><img src="${r[k]}" alt="${t}" data-zoom><span>${t}</span><a href="${r[k]}" download="${esc(t)}.jpg">Descargar</a></div>` : "";
+  const paso = (num, t, ok) => `<div class="tlp"><span class="tln${ok ? " ok" : ""}">${ok ? "✓" : num}</span><b>${t}</b></div>`;
+  return `<div class="card tl" data-tl="${n}">
+    <h3>🎨 Taller de diseño · ${esc(G.items[0].prenda)}${G.items.length > 1 ? ` <span class="muted" style="font-weight:600">(mismo diseño para ${G.items.map(i => esc(i.modelo.toLowerCase())).join(" y ")})</span>` : ""}</h3>
+    <div class="tlbar"><span>Elementos <b>${listos}/${E.length}</b></span><span>Revisión <b>${rev}/${TL_REV.length}</b></span><span>Previo <b>${T.previo ? "✅" : "pendiente"}</b></span></div>
+    ${paso(1, "Diseño de referencia del cliente", true)}
+    <div class="tlrefs">${ref("frente", "Frente")}${ref("espalda", "Espalda")}${ref("mangas", "Mangas")}
+      ${(r.logos || []).map((l, k) => `<div class="tlref logo"><img src="${l.src}" alt="" data-zoom><span>Logo: ${esc(l.nombre)}</span><a href="${l.src}" download="${esc(l.nombre)}">Descargar</a></div>`).join("")}</div>
+    <div class="tltallas">${tlTallas(G.items)}${G.items.some(i => i.pers) ? `<div class="muted" style="margin-top:4px">🔢 Lleva nombre o número por playera: la lista está en <b>Especificaciones</b> (botón ⬇ Lista en Excel).</div>` : ""}</div>
+    <div class="tlfast"><b>⚡ Pide todos los elementos de una vez</b>
+      <ol><li><button class="btn sec sm" data-tlimg="${n}">🖼 Copiar el mockup</button> y pégalo en un <a href="https://chatgpt.com/" target="_blank" rel="noopener">chat nuevo de ChatGPT ↗</a> (Ctrl + V).</li>
+        <li><button class="btn pri sm" data-tlini="${n}">📋 Copiar la instrucción</button> y pégala en el mismo mensaje. Envíalo.</li>
+        <li>ChatGPT te contesta con la <b>lista de elementos</b> y el primero. Copia la lista y pégala en el paso 2 (📥 Pegar la lista).</li>
+        <li>Escríbele <b>siguiente</b> hasta que te dé todos. Descárgalos y súbelos juntos con <b>⬆ Subir varios PNG</b>.</li></ol></div>
+
+    ${paso(2, "Separación de elementos", E.length && listos === E.length)}
+    <div class="muted" style="font-size:12.5px;margin:-2px 0 8px 34px">Pega la lista que te dio ChatGPT y se crean solos los elementos, en orden: <b>texturas</b>, <b>piezas y líneas</b> y al final <b>logotipos</b>. Si alguno no salió bien, usa su <b>📋 Instrucción</b> para pedirlo de nuevo.</div>
+    <div class="tlels">${E.map((e, k) => { const tp = tipo(e.tipo);
+      return `<div class="tlel${e.src ? " ok" : ""}"><span class="tlnum">${k + 1}</span>
+        ${e.src ? `<img src="${e.src}" alt="" data-zoom class="tlimg">` : `<span class="tlimg vacio">${tp[2]}</span>`}
+        <div class="tlinfo"><b>${esc(e.nombre)}</b><span class="muted">${tp[1]}${e.nota ? " · " + esc(e.nota) : ""}${e.src ? ` · ✅ subido por ${esc(e.por || "")}` : ""}</span></div>
+        <div class="tlacc">${e.deCliente ? "" : `<button class="btn sec sm" data-tlcp="${n}|${k}">📋 Instrucción</button>`}
+          <label class="btn ${e.src ? "sec" : "pri"} sm" style="cursor:pointer">${e.src ? "Cambiar" : "⬆ Subir PNG"}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-tlup="${n}|${k}"></label>
+          ${e.src ? `<a class="btn sec sm" href="${e.src}" download="${String(k + 1).padStart(2, "0")}_${esc(e.nombre).replace(/[^\wáéíóúñ]+/gi, "_")}.png" style="text-decoration:none">⬇</a>` : ""}
+          <button class="linkbtn" data-tlmv="${n}|${k}|-1" title="Subir"${k ? "" : " disabled"}>▲</button><button class="linkbtn" data-tlmv="${n}|${k}|1" title="Bajar"${k < E.length - 1 ? "" : " disabled"}>▼</button>
+          <button class="linkdel" data-tldel="${n}|${k}">Quitar</button></div></div>`; }).join("") || `<div class="muted" style="padding:6px 0">Aún no hay elementos. Agrega el primero abajo (por ejemplo: <i>Textura de cota de malla</i>).</div>`}</div>
+    <div class="tlbulk"><details${E.length ? "" : " open"}><summary>📥 Pegar la lista de ChatGPT</summary>
+        <textarea data-tllist="${n}" placeholder="Pega aquí la lista que te dio ChatGPT:&#10;1. [Textura] Cota de malla — parte superior&#10;2. [Pieza] Placa del hombro — hombros&#10;…"></textarea>
+        <button class="btn pri sm" data-tllistok="${n}">Crear los elementos</button></details>
+      ${E.some(e => !e.src) ? `<label class="btn pri sm" style="cursor:pointer">⬆ Subir varios PNG (en orden)<input type="file" accept="image/png,image/jpeg,image/webp" multiple hidden data-tlmulti="${n}"></label><span class="muted" style="font-size:12px">Se acomodan solos en los elementos que faltan, en el orden en que los descargaste.</span>` : ""}</div>
+    <details class="tlman"><summary>＋ Agregar un elemento a mano</summary>
+    <div class="tladd"><select data-tlti="${n}">${TL_TIPOS.map(([v, t, ic]) => `<option value="${v}">${ic} ${t}</option>`).join("")}</select>
+      <input type="text" data-tlno="${n}" placeholder="Nombre del elemento (ej. Textura de cota de malla)" maxlength="80">
+      <input type="text" data-tlnt="${n}" placeholder="Detalle (opcional): ej. parte superior del jersey" maxlength="120">
+      <button class="btn pri sm" data-tladd="${n}">＋ Agregar</button></div></details>
+    ${(r.logos || []).length && !E.some(e => e.deCliente) ? `<button class="linkbtn" data-tllogos="${n}" style="margin:6px 0 0 34px">＋ Usar los ${r.logos.length} logo${r.logos.length > 1 ? "s" : ""} que subió el cliente como elementos (ya listos)</button>` : ""}
+    ${E.some(e => e.src) ? `<div style="margin:8px 0 0 34px"><button class="btn sec sm" data-tlall="${n}">⬇ Descargar todos los elementos</button></div>` : ""}
+
+    ${paso(3, "Armar el despiece y mandarlo al ajustador", !!T.ajustador)}
+    <div style="margin-left:34px">
+      <div class="muted" style="font-size:12.5px;margin:-2px 0 8px">La app acomoda sola los elementos en frente, espalda y mangas (talla más grande del pedido). Tú solo revisas y ajustas arrastrando; luego el ajustador saca todas las tallas.</div>
+      <div class="accrow" style="margin-left:0"><button class="btn pri sm" data-dsp="${n}"${E.some(e => e.src) ? "" : " disabled"}>🧩 ${T.despiece ? "Revisar el despiece" : "Armar despiece"}</button>
+        ${T.despiece ? G.items.map((i, k) => `<button class="btn pri sm" data-dspaj="${n}|${k}">🧵 Enviar al ajustador${G.items.length > 1 ? " · " + esc(i.modelo) : ""}</button><button class="btn sec sm" data-dsppdf="${n}|${k}">⬇ PDF sin molde${G.items.length > 1 ? " · " + esc(i.modelo) : ""}</button>`).join("") : ""}</div>
+      ${E.some(e => e.src) ? "" : `<div class="muted" style="font-size:12px;margin-top:4px">Sube primero los PNG de los elementos (paso 2).</div>`}
+      ${T.ajustador ? `<div class="muted" style="font-size:12px;margin-top:4px">✅ Enviado al ajustador el ${VT.fechaHora(T.ajustador)}.</div>` : ""}
+      <div class="muted" style="font-size:12px;margin-top:6px">¿Un diseño muy especial? También puedes armarlo en Illustrator, Photoshop o Corel como siempre.</div></div>
+
+    ${paso(4, "Revisión antes de sublimar", rev === TL_REV.length)}
+    <div class="tlrev">${TL_REV.map(([k, t]) => `<label><input type="checkbox" data-tlrv="${n}|${k}"${T.revision[k] ? " checked" : ""}> ${t}</label>`).join("")}</div>
+
+    ${paso(5, "Previo para el cliente y su autorización", !!(G.venta.autorizacion && G.venta.autorizacion.estado === "autorizado"))}
+    <div style="margin-left:34px">${autHTML(G.venta)}${T.previo ? `<div class="muted" style="font-size:12.5px;margin-top:6px">Previo subido el ${VT.fechaHora(T.previo)}: es la vista previa del pedido.</div>` : ""}
+      <div class="accrow" style="margin-left:0"><label class="btn ${T.previo ? "sec" : "pri"} sm" style="cursor:pointer">${T.previo ? "Cambiar previo" : "⬆ Subir el previo (imagen)"}<input type="file" accept="image/*" hidden data-tlprev="${n}"></label>
+        ${T.previo && !(G.venta.autorizacion && G.venta.autorizacion.estado === "autorizado") ? `<button class="btn wa sm" data-tlwa="${n}">📲 Mandar previo al cliente para autorizar</button>` : ""}</div>
+      <div class="muted" style="font-size:12px;margin-top:4px">Los archivos exportados para imprimir se guardan en la carpeta del cliente en tu computadora; aquí solo va el previo.</div></div>
+  </div>`;
+}
+/* imagen de un elemento: PNG transparente, hasta ~2.7 MB para que se pueda subir a la base de datos */
+async function tlLeer(file){
+  let max = 2400, r;
+  for (let i = 0; i < 6; i++){ r = await pngParaGuardar(file, max); if (r.src.length < 3.6e6) break; max = Math.round(max * .8); }
+  return r;
+}
+function tallerEventos(id, v, ot, grupos){
+  const G = n => grupos[+n], ok = (m, vista) => { save(); toast(m); abrirOT(id, vista); };
+  const cp = async (t, b) => { try { await navigator.clipboard.writeText(t); } catch(e){ const x = document.createElement("textarea"); x.value = t; document.body.appendChild(x); x.select(); document.execCommand("copy"); x.remove(); }
+    const o = b.textContent; b.textContent = "✔ Copiado"; setTimeout(() => b.textContent = o, 1500); };
+  document.querySelectorAll("[data-tlini]").forEach(b => b.onclick = () => cp(tlPromptInicial(G(b.dataset.tlini)), b));
+  document.querySelectorAll("[data-tlimg]").forEach(b => b.onclick = async () => { const g = G(b.dataset.tlimg), t = b.textContent;
+    try { b.textContent = "Preparando…"; const c = await tlMockupJunto(g.ref), blob = await new Promise(ok => c.toBlob(ok, "image/png"));
+      try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); b.textContent = "✔ Mockup copiado"; }
+      catch(e){ const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${v.folio}_mockup.png`; document.body.appendChild(a); a.click(); a.remove(); b.textContent = "⬇ Descargado (adjúntalo)"; }
+    } catch(e){ toast("No se pudo preparar el mockup; descárgalo de arriba", true); b.textContent = t; return; }
+    setTimeout(() => b.textContent = t, 2500); });
+  document.querySelectorAll("[data-tllistok]").forEach(b => b.onclick = () => { const n = b.dataset.tllistok, L = tlLeerLista($(`[data-tllist="${n}"]`).value);
+    if (!L.length) return toast("No encontré elementos. Pega la lista tal como la dio ChatGPT (1. [Textura] Nombre — dónde va)", true);
+    const E = G(n).t.elementos, ya = new Set(E.map(e => e.nombre.toLowerCase())); let k = 0;
+    L.forEach(x => { if (ya.has(x.nombre.toLowerCase())) return; E.push({ id: "E" + Date.now() + (k++), ...x, estado: "pendiente", src: null }); });
+    log(v, "Taller de diseño: lista de ChatGPT", `${k} elementos`); ok(`${k} elementos creados`); });
+  document.querySelectorAll("[data-tlmulti]").forEach(inp => inp.onchange = async () => { const g = G(inp.dataset.tlmulti), fs = [...inp.files].sort((a, b) => a.lastModified - b.lastModified || a.name.localeCompare(b.name));
+    const libres = g.t.elementos.filter(e => !e.src); let n = 0; toast("Subiendo…");
+    for (const f of fs){ const e = libres[n]; if (!e) break; try { const r = await tlLeer(f); e.src = r.src; e.estado = "listo"; e.por = SES.nombre; e.fecha = new Date().toISOString(); n++; } catch(x){} }
+    if (fs.length > libres.length) toast(`Sobraron ${fs.length - libres.length} imagen(es): agrega más elementos`, true);
+    log(v, "Taller de diseño: elementos subidos", `${n} PNG`);
+    if (!VT.guardar(DB)) return toast("No hay espacio para guardar las imágenes", true); toast(`${n} elemento(s) listo(s)`); abrirOT(id); });
+  document.querySelectorAll("[data-tlcp]").forEach(b => b.onclick = () => { const [n, k] = b.dataset.tlcp.split("|"); cp(tlPrompt(G(n).t.elementos[+k]), b); });
+  document.querySelectorAll("[data-tladd]").forEach(b => b.onclick = () => { const n = b.dataset.tladd, nom = $(`[data-tlno="${n}"]`).value.trim(); if (!nom) return toast("Escribe el nombre del elemento", true);
+    G(n).t.elementos.push({ id: "E" + Date.now(), tipo: $(`[data-tlti="${n}"]`).value, nombre: nom, nota: $(`[data-tlnt="${n}"]`).value.trim(), estado: "pendiente", src: null });
+    log(v, "Taller de diseño: elemento agregado", nom); ok("Elemento agregado"); });
+  document.querySelectorAll("[data-tlno],[data-tlnt]").forEach(i => i.onkeydown = e => { if (e.key === "Enter") $(`[data-tladd="${i.dataset.tlno || i.dataset.tlnt}"]`).click(); });
+  document.querySelectorAll("[data-tllogos]").forEach(b => b.onclick = () => { const g = G(b.dataset.tllogos);
+    (g.ref.logos || []).forEach(l => g.t.elementos.push({ id: "E" + Date.now() + Math.random().toString(36).slice(2, 5), tipo: "logo", nombre: "Logo del cliente: " + l.nombre.replace(/\.[^.]+$/, ""), nota: "", estado: "listo", src: l.src, deCliente: true, por: "cliente" }));
+    ok("Logos del cliente agregados"); });
+  document.querySelectorAll("[data-tlup]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const [n, k] = inp.dataset.tlup.split("|"), e = G(n).t.elementos[+k];
+    try { const r = await tlLeer(f); const antes = e.src; e.src = r.src; e.estado = "listo"; e.por = SES.nombre; e.fecha = new Date().toISOString(); e.px = r.ancho + " × " + r.alto;
+      log(v, "Taller de diseño: elemento listo", e.nombre);
+      if (!VT.guardar(DB)){ e.src = antes; return toast("No hay espacio para guardar la imagen", true); } toast("Elemento listo"); abrirOT(id); }
+    catch(x){ toast("No se pudo leer la imagen", true); } });
+  document.querySelectorAll("[data-tlmv]").forEach(b => b.onclick = () => { const [n, k, d] = b.dataset.tlmv.split("|").map(Number), E = G(n).t.elementos, j = k + d; if (j < 0 || j >= E.length) return; [E[k], E[j]] = [E[j], E[k]]; ok("Orden cambiado"); });
+  document.querySelectorAll("[data-tldel]").forEach(b => b.onclick = () => { const [n, k] = b.dataset.tldel.split("|"), E = G(n).t.elementos, e = E[+k];
+    if (e.src && !confirm(`¿Quitar "${e.nombre}"? Se borra la imagen que subiste.`)) return; E.splice(+k, 1); log(v, "Taller de diseño: elemento quitado", e.nombre); ok("Elemento quitado"); });
+  document.querySelectorAll("[data-tlall]").forEach(b => b.onclick = async () => { const E = G(b.dataset.tlall).t.elementos.filter(e => e.src);
+    for (const [k, e] of E.entries()){ const a = document.createElement("a"); a.href = e.src; a.download = `${v.folio}_${String(k + 1).padStart(2, "0")}_${e.nombre.replace(/[^\wáéíóúñ]+/gi, "_")}.png`; document.body.appendChild(a); a.click(); a.remove(); await new Promise(r => setTimeout(r, 400)); } });
+  document.querySelectorAll("[data-dsp]").forEach(b => b.onclick = () => dspAbrir(id, v, G(b.dataset.dsp)));
+  document.querySelectorAll("[data-dsppdf]").forEach(b => b.onclick = async () => { const [n, k] = b.dataset.dsppdf.split("|").map(Number), g = G(n), t = b.textContent; b.disabled = true; b.textContent = "Generando…";
+    try { await dspPDF(g.items[k], g.t, v); toast("PDF para el ajustador descargado"); } catch(e){ toast("No se pudo generar el PDF", true); } b.disabled = false; b.textContent = t; });
+  document.querySelectorAll("[data-dspaj]").forEach(b => b.onclick = () => { const [n, k] = b.dataset.dspaj.split("|").map(Number), g = G(n), t = b.textContent; b.disabled = true; b.textContent = "Enviando…";
+    dspAjustador(g.items[k], g.t, v, ok => { b.disabled = false; b.textContent = t; if (ok){ g.t.ajustador = new Date().toISOString(); log(v, "Taller de diseño: enviado al ajustador", g.items[k].modelo); save(); abrirOT(id); } }); });
+  document.querySelectorAll("[data-tlrv]").forEach(c => c.onchange = () => { const [n, k] = c.dataset.tlrv.split("|"); G(n).t.revision[k] = c.checked; save(); abrirOT(id); });
+  document.querySelectorAll("[data-tlprev]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const g = G(inp.dataset.tlprev);
+    try { const r = await VT.reducirImagen(f, 1500), antes = g.items.map(i => [i.mockup, i.mockupTipo]);
+      g.items.forEach(i => { i.mockup = r.src; i.mockupTipo = "diseno"; }); g.t.previo = new Date().toISOString();
+      log(v, "Taller de diseño: previo subido", g.items.map(i => i.prenda + " " + i.modelo).join(", "));
+      if (!VT.guardar(DB)){ g.items.forEach((i, k) => { [i.mockup, i.mockupTipo] = antes[k]; }); g.t.previo = null; return toast("No hay espacio para guardar la imagen", true); }
+      toast("Previo guardado"); abrirOT(id); } catch(x){ toast("No se pudo leer la imagen", true); } });
+  document.querySelectorAll("[data-tlwa]").forEach(b => b.onclick = () => { const a = $("#oAut"); if (a){ a.scrollIntoView({ behavior:"smooth", block:"center" }); a.click(); } });
+}
+
+function autHTML(v){
+  const A = v.autorizacion; if (!A) return "";
+  const rondas = (A.rondas || []).filter(r => !r.ok).map(r => `<div class="muted" style="margin-top:4px">✏️ ${VT.fechaHora(r.respuesta)}: "${esc(r.comentario)}"</div>`).join("");
+  if (A.estado === "pendiente") return `<div class="aut pend">⏳ <b>Esperando que el cliente autorice</b> (enviada el ${VT.fechaHora(A.enviado)}${A.ronda > 1 ? ` · ${A.ronda}.ª revisión` : ""})${rondas ? `<div style="margin-top:4px"><b>Cambios que pidió antes:</b></div>${rondas}` : ""}</div>`;
+  if (A.estado === "autorizado") return `<div class="aut ok">✅ <b>El cliente autorizó su diseño</b> desde la app el ${VT.fechaHora(A.respuesta)}${rondas ? `<div style="margin-top:4px"><b>Antes pidió cambios:</b></div>${rondas}` : ""}</div>`;
+  return `<div class="aut cam">✏️ <b>El cliente pidió cambios</b> el ${VT.fechaHora(A.respuesta)}:<div style="white-space:pre-wrap;margin-top:4px;font-size:14px">"${esc(A.comentario)}"</div><div class="muted" style="margin-top:4px">Haz los cambios, sube el nuevo previo y vuelve a mandarlo.</div></div>`;
+}
 /* ---------- detalle de una orden ---------- */
 let otVista = "detalle";
 function abrirOT(id, vista){
@@ -1818,7 +2280,7 @@ function abrirOT(id, vista){
   DB = VT.cargar(); pProduccion();
   const { v, ot } = window._buscarOT(id); if (!ot) return;
   const its = prendas(v).filter(i => tecnicaItem(i) === ot.tecnica), mon = can("ver_montos"), k = VT.cuentas(v);
-  const ord = ["XCH","CH","M","G","XL","2XL","3XL","4XL","5XL","6XL"];
+  const ord = ["XCH","CH","M","G","XL","2XL","3XL","4XL","5XL","6XL"], grupos = tlGrupos(its, v);
   $("#dTitle").textContent = det ? `${v.cliente.nombre} · ${TECNICAS[ot.tecnica]}` : `📁 Archivos · ${v.folio} · ${TECNICAS[ot.tecnica]}`;
   const archivos = [
     ...its.flatMap(i => (i.logos || []).map(l => ({ nombre: "Logo del cliente · " + l.nombre, src: l.src, tipo:"img" }))),
@@ -1827,6 +2289,9 @@ function abrirOT(id, vista){
     ...its.filter(i => i.lamina).map(i => ({ nombre: "Lámina de piezas del cliente (IA) · " + i.prenda, src: i.lamina, tipo:"img" })),
     ...its.filter(i => i.sub).flatMap(i => Object.entries(i.sub.piezas).flatMap(([k, p]) => [...(p.fondo.src ? [{ nombre: `Fondo ${k}`, src: p.fondo.src, tipo:"img" }] : []),
       ...p.els.filter(e => e.src && e.tipo !== "firma" && !e.pers).map(e => ({ nombre: `${k} · ${e.nombre}`, src: e.src, tipo:"img" }))])),
+    ...grupos.flatMap(G => [["frente","Frente"],["espalda","Espalda"],["mangas","Mangas"]].filter(([k]) => G.ref[k]).map(([k, t]) => ({ nombre: `Mockup del cliente · ${t}`, src: G.ref[k], tipo:"img" }))),
+    ...grupos.flatMap(G => (G.ref.logos || []).map(l => ({ nombre: "Logo del cliente · " + l.nombre, src: l.src, tipo:"img" }))),
+    ...grupos.flatMap(G => G.t.elementos.filter(e => e.src && !e.deCliente).map((e, k) => ({ nombre: `Elemento · ${e.nombre}`, src: e.src, tipo:"img" }))),
     ...ot.archivos.map(a => ({ ...a, propio: true }))
   ];
   $("#dBody").innerHTML = det ? `
@@ -1845,6 +2310,7 @@ function abrirOT(id, vista){
         ${["Administrador","Encargado","Diseño"].includes(SES.rol) && ot.tecnica === "sublimado" ? `<a class="btn sec sm" href="${AJUSTADOR}" target="_blank" rel="noopener" style="text-decoration:none">Ajustador de tallas ↗</a>` : ""}</div></div>
     ${v.imagenesDepuradas ? `<div class="note" style="margin-bottom:10px">💾 Las imágenes de este pedido se borraron el ${VT.fecha(v.imagenesDepuradas)} para liberar espacio (búscalas en tu respaldo si las necesitas).</div>` : ""}
     ${v.imagenesPendientes ? `<div class="warn" style="margin-bottom:10px">⚠️ La memoria del navegador del cliente estaba llena (modo muestra): las imágenes del diseño no se guardaron completas. Pídele por WhatsApp sus piezas y su logo.</div>` : ""}
+    ${grupos.map((G, n) => tallerHTML(G, n)).join("")}
     ${serviciosDe(v).length ? `<div class="card" style="border:2px solid #F26B21"><h3>✏️ Diseño a cargo de VITUMA</h3>
       <p>${serviciosDe(v).map(k => k === "digitalizar" ? "<b>Digitalizar logo</b>: el cliente mandó una foto o muestra; hay que redibujarlo." : "<b>Diseñar logo</b>: crear el logotipo con lo que pidió el cliente (ver notas).").join("<br>")}</p>
       <p class="muted" style="margin-top:6px">Sube el diseño final en cada ubicación (abajo), cambia la vista previa si hace falta y mándala al cliente para que la autorice.</p></div>` : ""}
@@ -1863,8 +2329,10 @@ function abrirOT(id, vista){
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
           ${i.mockup ? `<a class="btn sec sm" href="${i.mockup}" download="${v.folio}_vista_previa_${(i.color||"").replace(/\s+/g,"")}.jpg" style="text-decoration:none">⬇ Vista previa</a>` : ""}
           <label class="btn sec sm" style="cursor:pointer">⬆ Cambiar vista previa<input type="file" accept="image/*" hidden data-mk="${its.indexOf(i)}"></label></div></div></div>`).join("")}
-      <button class="btn wa sm" id="oAut" style="margin-top:10px">📲 Mandar vista previa al cliente para autorizar</button>
-      <div class="muted" style="font-size:12px;margin-top:4px">Se abre WhatsApp con el mensaje; adjunta ahí la imagen de la vista previa. La orden pasa a "Esperando autorización".</div>
+      ${autHTML(v)}
+      <input type="text" id="oAutNota" maxlength="300" placeholder="Mensaje para el cliente (opcional): ej. ajustamos la franja para que se vea bien en todas las tallas" style="width:100%;margin-top:10px;border:1.5px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px">
+      <button class="btn wa sm" id="oAut" style="margin-top:8px">📲 ${v.autorizacion && v.autorizacion.estado !== "autorizado" ? "Mandar de nuevo la vista previa para autorizar" : "Mandar vista previa al cliente para autorizar"}</button>
+      <div class="muted" style="font-size:12px;margin-top:4px">El cliente recibe por WhatsApp una liga para ver la vista previa en la app y tocar <b>Autorizo</b> o <b>Quiero cambios</b>. Al autorizar, la orden pasa sola a "En producción".</div>
       ${ot.tecnica === "bordado" && v.descBordado ? `<p class="muted" style="margin-top:6px">Bordado: ${esc(v.descBordado)}</p>` : ""}</div>
     <div class="card"><h3>Actualizaciones</h3>
       <textarea id="oMsg" placeholder="Escribe una actualización para el equipo (cambios del cliente, avances, dudas…)" style="width:100%;min-height:70px;border:1.5px solid var(--line);border-radius:9px;padding:9px;font:inherit"></textarea>
@@ -1913,6 +2381,7 @@ function abrirOT(id, vista){
       <label class="btn sec sm" style="display:inline-block;margin-top:10px;cursor:pointer">＋ Subir archivo (imagen o PDF)<input type="file" id="oFile" accept="image/*,application/pdf" hidden multiple></label></div>
 `;
   abrir();
+  if (det) tallerEventos(id, v, ot, grupos);
   if ($("#lzOT")) { const pz = piezasDTF(v, its); if (pz.length) panelLienzo($("#lzOT"), pz, v.folio); else $("#lzOT").innerHTML = `<div class="muted">Sin ubicaciones DTF registradas.</div>`; }
   if ($("#oEtq")) $("#oEtq").onclick = () => imprimirEtiquetas(v, its);
   if ($("#oWa")) $("#oWa").onclick = () => waCliente(v, ot);
@@ -1969,9 +2438,16 @@ function abrirOT(id, vista){
       toast("Vista previa actualizada"); abrirOT(id); } catch(e){ toast("No se pudo leer la imagen", true); }
   });
   if ($("#oAut")) $("#oAut").onclick = () => {
-    const m = `Hola ${v.cliente.nombre.split(" ")[0]}, te escribimos de VITUMA. Te compartimos la vista previa de tu pedido ${v.folio} para que la revises.\n\nSi todo está bien, respóndenos "AUTORIZO" para pasarlo a producción. Si quieres algún cambio, dinos cuál.`;
+    const previos = its.filter(i => i.mockup && (i.mockupTipo === "diseno" || i.taller)).map(i => ({ prenda: i.prenda, modelo: i.modelo || "", src: i.mockup }));
+    if (!previos.length) return toast("Primero sube la vista previa (el previo) de cómo quedará", true);
+    const nota = ($("#oAutNota") && $("#oAutNota").value.trim()) || "";
+    const ronda = ((v.autorizacion && v.autorizacion.rondas) || []).length + 1;
+    v.autorizacion = { ...(v.autorizacion || {}), estado: "pendiente", enviado: new Date().toISOString(), por: SES.nombre, previos, nota, ronda };
+    log(v, "Vista previa enviada al cliente para autorizar", `ronda ${ronda} · ${previos.length} imagen(es)`);
+    const liga = location.origin + location.pathname.replace(/admin\.html$/, "") + "?ver=" + v.folio;
+    const m = `Hola ${v.cliente.nombre.split(" ")[0]}, te escribimos de VITUMA. Ya está lista la vista previa de tu pedido ${v.folio}: así es como quedará tu camisa.\n\nRevísala y autorízala aquí:\n${liga}\n\nSi quieres algún cambio, también lo puedes pedir ahí mismo.`;
     window.open(`https://api.whatsapp.com/send?phone=52${v.cliente.tel}&text=${encodeURIComponent(m)}`, "_blank");
-    if (ot.estado !== "Esperando autorización" && can("cambiar_estado")) cambiarOT(id, "estado", "Esperando autorización", true);
+    if (ot.estado !== "Esperando autorización" && can("cambiar_estado")) cambiarOT(id, "estado", "Esperando autorización", true); else { save(); abrirOT(id); }
   };
   document.querySelectorAll("[data-upa]").forEach(b => b.onclick = () => { const a = archivos[+b.dataset.upa]; upPanel(a.src, a.nombre); $("#upCard").scrollIntoView({ behavior:"smooth", block:"start" }); });
   if ($("#upFile")) $("#upFile").onchange = e => { const f = e.target.files[0]; if (!f) return; const fr = new FileReader(); fr.onload = () => upPanel(fr.result, f.name.replace(/\.[^.]+$/, "")); fr.readAsDataURL(f); e.target.value = ""; };
@@ -2049,6 +2525,10 @@ function persHTML(i, n){
   const p = i.pers, lugares = [p.espalda ? `espalda al centro (${[p.espalda.nombreCm ? `nombre ${p.espalda.nombreCm} cm arriba` : "", p.espalda.numeroCm ? `número ${p.espalda.numeroCm} cm abajo` : ""].filter(Boolean).join(", ")})` : "",
     p.pecho ? `pecho ${LADO_TXT[p.pecho.lado] || ""} (${({ numero:"número", nombre:"nombre", ambos:"nombre y número" })[p.pecho.que]} de ${p.pecho.cm} cm)` : ""].filter(Boolean);
   const llenos = p.lista.filter(r => r.nombre || r.numero).length;
+  if (p.segunMockup) return `<div class="pidio"><b>🔢 Nombre y número:</b> ${[p.nombre ? "nombre" : "", p.numero ? "número" : ""].filter(Boolean).join(" y ")} en cada playera · lugar, letra y color <b>según el mockup del cliente</b>
+    <div style="max-height:180px;overflow:auto;margin-top:6px;font-size:13px">${p.lista.map(r => `<div><b>${esc(r.talla)}</b> · ${esc(r.nombre || "—")}${p.numero ? ` · <b>${esc(r.numero || "—")}</b>` : ""}</div>`).join("")}</div>
+    <div class="muted" style="margin-top:4px">${llenos} de ${p.lista.length} con datos.</div>
+    <button class="btn sec sm" data-perscsv="${n}" style="margin-top:6px">⬇ Lista en Excel (CSV)</button></div>`;
   return `<div class="pidio"><b>🔢 Nombre y número:</b> ${lugares.join(" · ")} · letra <b>${esc(p.fuente)}</b> · color <span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #999;vertical-align:middle;background:${esc(p.color)}"></span> ${esc(p.color)}${p.contorno ? ` · contorno <span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #999;vertical-align:middle;background:${esc(p.contorno.color)}"></span> ${esc(p.contorno.color)} (${esc(p.contorno.grosor)})` : " · sin contorno"}
     <div style="max-height:180px;overflow:auto;margin-top:6px;font-size:13px">${p.lista.map(r => `<div><b>${esc(r.talla)}</b> · ${esc(r.nombre || "—")}${p.numero ? ` · <b>${esc(r.numero || "—")}</b>` : ""}</div>`).join("")}</div>
     <div class="muted" style="margin-top:4px">${llenos} de ${p.lista.length} con datos.</div>
