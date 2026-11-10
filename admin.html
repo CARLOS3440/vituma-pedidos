@@ -2102,7 +2102,13 @@ ELEMENTOS
 3. [Línea] Nombre del elemento — dónde va
 4. [Logo] Nombre del elemento — dónde va
 
-Ordénalos así: primero las texturas, después las piezas o fragmentos (placas, remaches, detalles), después las líneas o franjas y al final los logotipos, cada logo por separado. Usa solo estos tipos: Textura, Pieza, Línea, Logo u Otro. En "dónde va" di la pieza (frente, espalda o mangas) y, si es de un lado, derecho o izquierdo de quien viste la camisa.${hayLogos ? "\nEl cliente ya nos dio sus logotipos originales: NO los incluyas en la lista." : ""}${pers ? "\nNo incluyas nombres ni números de jugadores: esos los ponemos nosotros." : ""}
+Escribe solo los renglones numerados, sin títulos ni secciones. Ordénalos así: primero las texturas, después las piezas o fragmentos, después las líneas o franjas y al final los logotipos, cada logo por separado.
+
+Cada elemento debe ser una pieza COMPLETA, tal como la vamos a usar para armar la camisa:
+- Un conjunto se pide junto: por ejemplo, todas las placas de un hombro con sus remaches y bordes son UN solo elemento; una franja con su texto y sus filetes es UN solo elemento.
+- No separes bordes, filetes, sombras, costuras, remates ni ribetes delgados: van incluidos en su elemento.
+- No incluyas el cuello: lo hacemos de color liso.
+- Procura que sean 8 elementos o menos. Usa solo estos tipos: Textura, Pieza, Línea, Logo u Otro. En "dónde va" di la pieza (frente, espalda o mangas) y, si es de un lado, derecho o izquierdo de quien viste la camisa.${hayLogos ? "\nEl cliente ya nos dio sus logotipos originales: NO los incluyas en la lista." : ""}${pers ? "\nNo incluyas nombres ni números de jugadores: esos los ponemos nosotros." : ""}
 
 PASO 2. Después de la lista, genera la imagen del elemento 1. Cada vez que te escriba "siguiente", genera el siguiente elemento de la lista, uno por uno, hasta terminar.
 
@@ -2119,7 +2125,7 @@ Reglas para cada elemento:
 function tlLeerLista(txt){
   const TIP = { textura:"textura", pieza:"pieza", fragmento:"pieza", linea:"linea", línea:"linea", franja:"linea", logo:"logo", logotipo:"logo", otro:"otro" }, out = [];
   for (const l of String(txt || "").split(/\r?\n/)){
-    const m = l.replace(/\*\*/g, "").match(/^\s*(?:\d+\s*[.)\-:]|[-•*])\s*\[?\s*(textura|pieza|fragmento|l[ií]nea|franja|logotipo|logo|otro)s?\s*\]?\s*[:\-–—]?\s*(.+)$/i);
+    const m = l.replace(/\*\*/g, "").match(/^\s*(?:\d+\s*[.)\-:]|[-•*])?\s*\[\s*(textura|pieza|fragmento|l[ií]nea|franja|logotipo|logo|otro)s?\s*\]\s*[:\-–—]?\s*(.+)$/i);
     if (!m) continue;
     const [nom, ...resto] = m[2].split(/\s+[—–-]\s+/), nombre = nom.replace(/[.:;]+$/, "").trim();
     if (nombre) out.push({ tipo: TIP[m[1].toLowerCase()] || "otro", nombre: nombre.slice(0, 80), nota: resto.join(" - ").replace(/[.]+$/, "").trim().slice(0, 120) });
@@ -2183,7 +2189,7 @@ function tallerHTML(G, n){
           <button class="linkbtn" data-tlmv="${n}|${k}|-1" title="Subir"${k ? "" : " disabled"}>▲</button><button class="linkbtn" data-tlmv="${n}|${k}|1" title="Bajar"${k < E.length - 1 ? "" : " disabled"}>▼</button>
           <button class="linkdel" data-tldel="${n}|${k}">Quitar</button></div></div>`; }).join("") || `<div class="muted" style="padding:6px 0">Aún no hay elementos. Agrega el primero abajo (por ejemplo: <i>Textura de cota de malla</i>).</div>`}</div>
     <div class="tlbulk"><details${E.length ? "" : " open"}><summary>📥 Pegar la lista de ChatGPT</summary>
-        <textarea data-tllist="${n}" placeholder="Pega aquí la lista que te dio ChatGPT:&#10;1. [Textura] Cota de malla — parte superior&#10;2. [Pieza] Placa del hombro — hombros&#10;…"></textarea>
+        <textarea data-tllist="${n}" placeholder="Copia y pega aquí toda la respuesta de ChatGPT (la app toma solo los renglones con [Textura], [Pieza], [Línea] o [Logo]):&#10;1. [Textura] Cota de malla — parte superior&#10;2. [Pieza] Placa del hombro — hombros&#10;…"></textarea>
         <button class="btn pri sm" data-tllistok="${n}">Crear los elementos</button></details>
       ${E.some(e => !e.src) ? `<label class="btn pri sm" style="cursor:pointer">⬆ Subir varios PNG (en orden)<input type="file" accept="image/png,image/jpeg,image/webp" multiple hidden data-tlmulti="${n}"></label><span class="muted" style="font-size:12px">Se acomodan solos en los elementos que faltan, en el orden en que los descargaste.</span>` : ""}</div>
     <details class="tlman"><summary>＋ Agregar un elemento a mano</summary>
