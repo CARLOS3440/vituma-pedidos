@@ -1662,23 +1662,31 @@ function dspAuto(T){
     if (dspTiene(t, "espalda|trasera")) L.push("espalda");
     if (dspTiene(t, "manga")) L.push("mangaD", "mangaI");
     return L.length && !dspTiene(t, "toda la|todo|completa") ? L : ["frente","espalda","mangaD","mangaI"]; };
-  /* texturas: llenan cada pieza; si hay varias en la misma pieza se reparten de arriba hacia abajo (el diseñador ajusta la altura) */
-  const tex = E.filter(e => e.tipo === "textura"), porPieza = {};
+  /* texturas: llenan cada pieza; si hay varias en la misma pieza se reparten de arriba hacia abajo (el diseñador ajusta la altura).
+     Las de "costados/laterales" van como franjas a los lados, debajo del corte. Si hay una franja en el pecho, el corte queda a esa altura. */
+  const tex = E.filter(e => e.tipo === "textura"), porPieza = {}, lat = e => dspTiene(e.nombre + " " + e.nota, "lateral|costado|laterales|costados");
   tex.forEach(e => dondeTex(e).forEach(k => (porPieza[k] = porPieza[k] || []).push(e)));
+  /* la espalda no se ve en el mockup: si ninguna textura la menciona, lleva las mismas que el frente */
+  if (!porPieza.espalda && porPieza.frente) porPieza.espalda = porPieza.frente.slice();
+  const franjaPecho = E.some(e => e.tipo === "linea" && dspTiene(e.nombre + " " + e.nota, "pecho") && !dspTiene(e.nombre + " " + e.nota, "manga"));
   for (const [k, L] of Object.entries(porPieza)){
-    const arriba = L.filter(e => dspTiene(e.nombre + " " + e.nota, "superior|arriba|pecho|hombro|alta")), abajo = L.filter(e => dspTiene(e.nombre + " " + e.nota, "inferior|abajo|cintura|baja"));
-    const resto = L.filter(e => !arriba.includes(e) && !abajo.includes(e)), orden = [...arriba, ...resto, ...abajo], n = orden.length;
-    orden.forEach((e, j) => pon(k, { eid: e.id, x: 0, y: j / n, w: 1, h: n === 1 ? 1 : 1 / n }));
+    const lados = L.filter(lat), M = L.filter(e => !lat(e));
+    const arriba = M.filter(e => dspTiene(e.nombre + " " + e.nota, "superior|arriba|pecho|hombro|alta")), abajo = M.filter(e => dspTiene(e.nombre + " " + e.nota, "inferior|abajo|cintura|baja|debajo"));
+    const resto = M.filter(e => !arriba.includes(e) && !abajo.includes(e)), orden = [...arriba, ...resto, ...abajo], n = orden.length;
+    const corte = n === 2 && !k.startsWith("manga") && franjaPecho ? .42 : null;
+    orden.forEach((e, j) => pon(k, corte != null ? { eid: e.id, x: 0, y: j ? corte : 0, w: 1, h: j ? 1 - corte : corte } : { eid: e.id, x: 0, y: j / n, w: 1, h: n === 1 ? 1 : 1 / n }));
+    const y0 = corte != null ? corte : n > 1 ? 1 / n : .42;
+    lados.forEach(e => { pon(k, { eid: e.id, x: 0, y: y0, w: .13, h: 1 - y0 }); pon(k, { eid: e.id, x: .87, y: y0, w: .13, h: 1 - y0 }); });
   }
   /* líneas o franjas */
   E.filter(e => e.tipo === "linea").forEach(e => { const t = e.nombre + " " + (e.nota || "");
-    const y = dspTiene(t, "cintura|abajo|inferior") ? .82 : dspTiene(t, "hombro|arriba") ? .2 : .38;
+    const y = dspTiene(t, "cintura|abajo|inferior") ? .82 : dspTiene(t, "hombro|arriba") ? .2 : .39;
     if (dspTiene(t, "manga")) ["mangaD","mangaI"].forEach(k => pon(k, { eid: e.id, x: 0, y: dspTiene(t, "borde|inferior|abajo|puño|ribete") ? .86 : .55, w: 1 }));
     else { pon("frente", { eid: e.id, x: 0, y, w: 1 }); if (dspTiene(t, "espalda|ambos|todo|alrededor|horizontal")) pon("espalda", { eid: e.id, x: 0, y, w: 1 }); } });
   /* piezas o fragmentos */
   E.filter(e => e.tipo === "pieza" || e.tipo === "otro").forEach(e => { const t = e.nombre + " " + (e.nota || "");
     const izq = dspTiene(t, "izquierd"), der = dspTiene(t, "derech");   // de quien viste la camisa: su derecha se ve a la izquierda
-    if (dspTiene(t, "hombro") && dspTiene(t, "frente|pecho")) pon("frente", { eid: e.id, x: izq ? .6 : .02, y: .02, w: .38, fx: izq && !der });
+    if (dspTiene(t, "hombro") && !dspTiene(t, "espalda|manga")) pon("frente", { eid: e.id, x: izq ? .6 : .02, y: .02, w: .38, fx: izq && !der });
     else if (dspTiene(t, "hombro") && dspTiene(t, "espalda")) pon("espalda", { eid: e.id, x: izq ? .02 : .6, y: .02, w: .38 });
     else if (dspTiene(t, "hombro")){ pon("mangaD", { eid: e.id, x: .25, y: .03, w: .5 }); pon("mangaI", { eid: e.id, x: .25, y: .03, w: .5, fx: true }); }
     else if (dspTiene(t, "manga")){ pon("mangaD", { eid: e.id, x: .3, y: .25, w: .4 }); pon("mangaI", { eid: e.id, x: .3, y: .25, w: .4, fx: true }); }
