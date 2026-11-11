@@ -210,10 +210,10 @@ async function leerImagen(ref){
   const m = /[?&]p=([^&]+)/.exec(String(ref || "")); if (!m) throw Object.assign(new Error("Imagen no encontrada"), { code: 400 });
   const p = decodeURIComponent(m[1]); if (!/^[\w-]+\/[\w.-]+$/.test(p)) throw Object.assign(new Error("Imagen no válida"), { code: 400 });
   const tipo = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" }[p.split(".").pop()] || "image/png";
-  if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"); if (!fs.existsSync(path.join(process.env.VT_BLOB_DIR, p))) await restaurar(p, "sistema", "Se usó en la IA").catch(() => false); return { buf: fs.readFileSync(path.join(process.env.VT_BLOB_DIR, p)), tipo }; }
+  if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"); if (!fs.existsSync(path.join(process.env.VT_BLOB_DIR, p))) await restaurarSiSeUsa(null, p, "Se usó en la IA y algún registro lo usa"); return { buf: fs.readFileSync(path.join(process.env.VT_BLOB_DIR, p)), tipo }; }
   await blobOK();
   const { get } = await blob(), acceso = (await r1("GET", "vt:cfg:blob")) || "private"; let r = await get(p, { access: acceso, ...BLOB_OP });
-  if ((!r || r.statusCode !== 200) && await restaurar(p, "sistema", "Se usó en la IA").catch(() => false)) r = await get(p, { access: acceso, ...BLOB_OP });
+  if ((!r || r.statusCode !== 200) && await restaurarSiSeUsa(null, p, "Se usó en la IA y algún registro lo usa")) r = await get(p, { access: acceso, ...BLOB_OP });
   if (!r || r.statusCode !== 200) throw Object.assign(new Error("Imagen no encontrada"), { code: 404 });
   return { buf: Buffer.from(await new Response(r.stream).arrayBuffer()), tipo: r.blob.contentType || tipo };
 }
@@ -364,6 +364,17 @@ async function restaurar(p, quien, motivo){
     await rp([["HDEL", LIMP_PAP, p], ["HDEL", "vt:img", rutaPapelera(p)], ["HSET", "vt:img", p, b], ["HDEL", LIMP_K, p]]);
     await limpLog({ por: quien || "sistema", accion: "recuperado", ruta: p, bytes: b, motivo: motivo || "" }); return true; }
   finally { await r1("DEL", "vt:limp:rest:" + p).catch(() => {}); }
+}
+/* al ABRIR una liga de un archivo que está en la papelera: solo se recupera si algún pedido, cliente, configuración o versión de STUDIO
+   lo usa (revisión completa). Si nadie lo usa, NO se recupera y la liga responde 404. Con límite de intentos por equipo. */
+async function restaurarSiSeUsa(req, p, motivo){
+  try {
+    if (!(await r1("HEXISTS", LIMP_PAP, p))) return false;
+    if (req && !(await limite(req, "imgpap", 30, 3600))) return false;
+    const h = huellaDe(p); if (!h) return false;
+    const ref = await mapaDeReferencias(); if (!ref.usos.has(h)) return false;
+    return await restaurar(p, "sistema", motivo);
+  } catch(e){ console.error("restaurarSiSeUsa", e); return false; }
 }
 /* cada vez que se GUARDA algo (panel, pedido, pago): si usa archivos en espera, salen de la lista; si usa archivos en la papelera, se recuperan */
 async function rescatar(obj, quien){
@@ -721,6 +732,49 @@ const A = {
     if (espera.length){ const ahora = Date.now(); await rp(espera.map(p => ["HSETNX", LIMP_K, p, JSON.stringify({ desde: ahora, por: u.nombre || u.usuario, motivo: "El elemento de STUDIO/Taller dejó de usarlo" })])); }
     return { borrados: ya.length, enEspera: espera.length };
   },
+  /* ---- SOLO EN PRUEBAS, para la autoprueba: nunca existen en producción ---- */
+  /* pregunta DIRECTO al almacenamiento (sin caché) si existen un original y su copia en la papelera */
+  async prueba_existe(req, u){
+    if (!PRUEBAS) throw errS("Solo en el entorno de pruebas", 403);
+    if (!puedeStudio(u)) throw errS("Sin permiso", 403);
+    const out = []; await blobOK();
+    const existe = async q => { if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"); return fs.existsSync(path.join(process.env.VT_BLOB_DIR, q)); }
+      const { head } = await blob(); try { return !!(await head(q, BLOB_OP)); } catch(e){ if (/not.?found|404/i.test(String(e && (e.name + e.message)))) return false; throw e; } };
+    for (const r of [].concat((req.body || {}).refs || []).slice(0, 50)){ const m = /[?&]p=([^&]+)/.exec(String(r)); if (!m) continue; const p = decodeURIComponent(m[1]); if (!p.startsWith("originales/")) continue;
+      out.push({ ruta: p, existe: await existe(p), enPapelera: await existe(rutaPapelera(p)), registroPapelera: !!(await r1("HEXISTS", LIMP_PAP, p)) }); }
+    return { archivos: out };
+  },
+  /* manda un original de la AUTOPRUEBA (del mismo usuario) directo a la papelera, sin esperar los plazos */
+  async prueba_papelera(req, u){
+    if (!PRUEBAS) throw errS("Solo en el entorno de pruebas", 403);
+    if (!puedeStudio(u)) throw errS("Sin permiso", 403);
+    const m = /[?&]p=([^&]+)/.exec(String((req.body || {}).ref || "")); const p = m && decodeURIComponent(m[1]);
+    if (!p || !p.startsWith("originales/")) throw errS("Ruta inválida", 400);
+    const reg = J(await r1("GET", "vt:orig:" + p)); if (!reg || reg.folio !== "AUTOPRUEBA" || reg.u !== u.id) throw errS("Solo archivos de la autoprueba", 403);
+    await r1("HSET", LIMP_PAP, p, JSON.stringify({ desde: Date.now(), por: u.nombre || u.usuario, motivo: "Autoprueba", tipo: "Autoprueba", bytes: reg.bytes, subido: reg.fecha }));
+    const n = await moverArchivo(p, rutaPapelera(p)); await rp([["HDEL", "vt:img", p], ["HSET", "vt:img", rutaPapelera(p), n], ["HDEL", LIMP_K, p]]);
+    return { ok: true };
+  },
+  /* pone o quita una referencia de prueba (colección "autoprueba") para comprobar la recuperación con referencia válida */
+  async prueba_referencia(req, u){
+    if (!PRUEBAS) throw errS("Solo en el entorno de pruebas", 403);
+    if (!puedeStudio(u)) throw errS("Sin permiso", 403);
+    const refs = [].concat((req.body || {}).refs || []).map(String).filter(r => /^\/api\/vt\?a=img&p=originales%2F[\w.-]+$/.test(r)).slice(0, 10);
+    if ((req.body || {}).quitar || !refs.length){ await rp([["SREM", "vt:ik", "autoprueba"], ["DEL", "vt:col:autoprueba"]]); return { ok: true, refs: 0 }; }
+    await rp([["SET", "vt:col:autoprueba", JSON.stringify({ nota: "Referencia temporal de la autoprueba", refs })], ["SADD", "vt:ik", "autoprueba"]]);
+    return { ok: true, refs: refs.length };
+  },
+  /* eliminación definitiva de un original de la AUTOPRUEBA que está en la papelera (mismas operaciones que la eliminación real) */
+  async prueba_eliminar(req, u){
+    if (!PRUEBAS) throw errS("Solo en el entorno de pruebas", 403);
+    if (!puedeStudio(u)) throw errS("Sin permiso", 403);
+    const m = /[?&]p=([^&]+)/.exec(String((req.body || {}).ref || "")); const p = m && decodeURIComponent(m[1]);
+    if (!p || !p.startsWith("originales/")) throw errS("Ruta inválida", 400);
+    const reg = J(await r1("GET", "vt:orig:" + p)); if (!reg || reg.folio !== "AUTOPRUEBA" || reg.u !== u.id) throw errS("Solo archivos de la autoprueba", 403);
+    if (!(await r1("HDEL", LIMP_PAP, p))) throw errS("No está en la papelera", 400);
+    await borrarImagenes([rutaPapelera(p)]); await rp([["DEL", "vt:orig:" + p]]);
+    return { ok: true };
+  },
   /* ---- barrido de huérfanos (solo administrador) ---- */
   async limpieza_simular(req, u){
     if (u.rol !== "Administrador") throw errS("Solo un administrador", 403);
@@ -813,18 +867,20 @@ const A = {
   async img(req, u, res){
     const p = String(req.query.p || "");
     if (!/^[\w-]+\/[\w.-]+$/.test(p)) { res.status(400).end(); return null; }
+    if (/^(papelera|_vituma)\//i.test(p)){ res.setHeader("Cache-Control", "no-store"); res.setHeader("CDN-Cache-Control", "no-store"); res.setHeader("Vercel-CDN-Cache-Control", "no-store"); res.status(404).end(); return null; }   // rutas internas: nunca por liga
     const tipo = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", gif: "image/gif", pdf: "application/pdf", svg: "image/svg+xml" }[p.split(".").pop()] || "application/octet-stream";
-    res.setHeader("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable");
+    if (p.startsWith("originales/")){ res.setHeader("Cache-Control", "no-store"); res.setHeader("CDN-Cache-Control", "no-store"); res.setHeader("Vercel-CDN-Cache-Control", "no-store"); }   // originales de STUDIO: sin copia en el navegador ni en la red de Vercel (también en 404)
+    else res.setHeader("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable");   // demás imágenes: igual que antes
     if (tipo === "image/svg+xml"){ res.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox"); res.setHeader("X-Content-Type-Options", "nosniff"); }
     if (process.env.VT_BLOB_DIR){
       const fs = await import("node:fs"), path = await import("node:path"); const f = path.join(process.env.VT_BLOB_DIR, p);
-      if (!fs.existsSync(f) && !(await restaurar(p, "sistema", "Se abrió una liga que lo usa").catch(() => false))) { res.status(404).end(); return null; }
+      if (!fs.existsSync(f) && !(await restaurarSiSeUsa(req, p, "Se abrió una liga y algún registro lo usa"))) { res.status(404).end(); return null; }
       res.setHeader("Content-Type", tipo); res.end(fs.readFileSync(f)); return null;
     }
     await blobOK();
     const { get } = await blob(), acceso = (await r1("GET", "vt:cfg:blob")) || "private";
     let r = await get(p, { access: acceso, ...BLOB_OP });
-    if ((!r || r.statusCode !== 200) && await restaurar(p, "sistema", "Se abrió una liga que lo usa").catch(() => false)) r = await get(p, { access: acceso, ...BLOB_OP });   // estaba en la papelera: regresa solo
+    if ((!r || r.statusCode !== 200) && await restaurarSiSeUsa(req, p, "Se abrió una liga y algún registro lo usa")) r = await get(p, { access: acceso, ...BLOB_OP });   // estaba en la papelera y algo lo usa: regresa
     if (!r || r.statusCode !== 200) { res.status(404).end(); return null; }
     res.setHeader("Content-Type", tipo === "image/svg+xml" ? tipo : r.blob.contentType || tipo);
     if (p.startsWith("originales/")){ const rd = r.stream.getReader(); for (;;){ const { done, value } = await rd.read(); if (done) break; res.write(Buffer.from(value)); } res.end(); return null; }   // originales grandes: se envían por partes
