@@ -726,7 +726,7 @@ const VT = (() => {
       : { method: "POST", headers: { "Content-Type": "application/json", "x-vt-token": tok() }, body: JSON.stringify(body) });
     let j = null; try { j = await r.json(); } catch(e){}
     if (r.status === 401 && S.modo === "admin" && a !== "login" && S.alSalir) S.alSalir();
-    if (!r.ok) throw Object.assign(new Error((j && j.error) || ("Error " + r.status)), { status: r.status });
+    if (!r.ok) throw Object.assign(new Error((j && j.error) || ("Error " + r.status)), { status: r.status, debeCambiar: !!(j && j.debeCambiar) });
     return j;
   }
   /* ¿hay base de datos? (si no responde, modo muestra) */
@@ -736,14 +736,27 @@ const VT = (() => {
       if (location.protocol === "file:") return false;
       try { const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
         const r = await fetch(API + "?a=estado", { signal: ctl.signal }); clearTimeout(t);
-        const j = r.ok ? await r.json() : null; S.srv = !!(j && j.db);
+        const j = r.ok ? await r.json() : null; S.srv = !!(j && j.db); S.ia = !!(j && j.ia); S.entorno = j && j.entorno; S.candado = j && j.candado; franjaEntorno(j);
       } catch(e){ S.srv = false; }
       if (S.srv){ try { localStorage.removeItem(KEY); } catch(e){} }   // ya no se usan los datos de muestra de este navegador
       if (S.srv && modo === "cliente") cliCargarCache();
       return S.srv;
     })());
   }
+  /* franja naranja permanente cuando NO es producción (rama desarrollo / Preview) */
+  function franjaEntorno(j){
+    const host = location.hostname, esProdHost = /^vituma-pedidos\.vercel\.app$/i.test(host);
+    const pruebas = (j && j.entorno === "pruebas") || (!esProdHost && /\.vercel\.app$/i.test(host));
+    if (!pruebas) return;
+    const poner = () => { let d = document.getElementById("vtFranja"); if (!d){ d = document.createElement("div"); d.id = "vtFranja"; document.body.prepend(d); document.documentElement.classList.add("vtPruebas");
+        const st = document.createElement("style"); st.textContent = "#vtFranja{position:fixed;top:0;left:0;right:0;z-index:2147483000;background:#F26B21;color:#fff;font:800 12.5px/26px system-ui,Arial;text-align:center;letter-spacing:.08em;height:26px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}html.vtPruebas body{padding-top:26px!important}"; document.head.appendChild(st); }
+      d.textContent = "ENTORNO DE PRUEBAS · NO ES LA APP PUBLICADA" + (j && j.candado ? " · 🔒 " + j.candado : j && !j.db ? " · SIN BASE DE PRUEBAS" : ""); d.title = d.textContent; };
+    if (document.body) poner(); else document.addEventListener("DOMContentLoaded", poner);
+  }
   const enLinea = () => S.srv;
+  const hayIA = () => !!(S.srv && S.ia);
+  const entorno = () => S.entorno || "";
+  const ia = (a, body) => api(a, body);
 
   /* ---------- imágenes: se suben una por una y se cambian por su liga ---------- */
   const esDato = v => typeof v === "string" && v.startsWith("data:") && v.length > 3000;
@@ -784,6 +797,7 @@ const VT = (() => {
     try { sessionStorage.setItem("vituma_tok", r.token); sessionStorage.setItem("vituma_ses", r.usuario.id); localStorage.setItem("vituma_mostrador", JSON.stringify(r.usuario)); } catch(e){}
     return r.usuario;
   }
+  async function cambiarPass(actual, nueva){ return api("cambiar_pass", { actual, nueva }); }
   async function salir(){ try { await api("salir", {}); } catch(e){} try { sessionStorage.removeItem("vituma_tok"); sessionStorage.removeItem("vituma_ses"); } catch(e){} }
   async function cargarTodo(){
     const d = await api("datos", undefined, "&desde=0");
@@ -892,7 +906,7 @@ const VT = (() => {
     if (S.modo === "cliente"){ S.db = { ventas: clon(d.ventas || []) }; cliGuardarCache(); return true; }
     return guardarNube(d);
   }
-  const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, uso, recalcular, depurar, pendientes, crearPedido, agregarPago, misPedidos, buscar, autorizar, subirImagenes,
+  const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, uso, recalcular, depurar, pendientes, crearPedido, agregarPago, misPedidos, buscar, autorizar, hayIA, ia, cambiarPass, entorno, subirImagenes,
     set alSalir(f){ S.alSalir = f; }, set alCambio(f){ S.alCambio = f; } };
 
   /* colores con otro nombre según la marca (para inventario y proveedores) */

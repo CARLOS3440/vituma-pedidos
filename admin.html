@@ -139,7 +139,66 @@ table.prod td.bub,table.prod th.bubth{padding:0}table.prod .bubble{padding:4px}
 table.prod .badge{font-size:10.5px;white-space:nowrap}table.prod td.cen .sub{text-align:center}
 .linkbtn{background:none;border:0;color:#1F4FBF;font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:2px 4px}.linkbtn:disabled{opacity:.3;cursor:default}
 .aut{border-radius:10px;padding:9px 12px;margin-top:10px;font-size:13.5px}.aut.pend{background:#FFF7E6;border:1px solid #F5C26B}.aut.ok{background:#EAF7EF;border:1px solid #9AD9B4}.aut.cam{background:#FDECEC;border:2px solid #E2445C}
+/* ===== VITUMA STUDIO (tema oscuro) ===== */
+#stOv{position:fixed;inset:0;z-index:9500;background:#16181D;color:#E6E8EB;display:none;flex-direction:column;font-size:13px}
+html.vtPruebas #stOv{top:26px}
+#stOv label.stRow{display:flex;align-items:center;gap:8px;margin:6px 0}#stOv label.stRow input{width:auto;margin:0;flex:0 0 auto}
+#stOv button{font:inherit}
+.stTop{display:flex;align-items:center;gap:6px;padding:7px 12px;background:#1E2126;border-bottom:1px solid #2C3038;flex-wrap:wrap}@media(max-width:1500px){.stDim{display:none}.stLogo span{display:none}}
+.stLogo{display:flex;flex-direction:column;line-height:1.15;margin-right:10px}.stLogo b{font-size:15px;letter-spacing:.06em;color:#fff}.stLogo b::first-letter{color:#FF8A3D}.stLogo span{font-size:10.5px;color:#8B95A1}
+.stInfo{display:flex;gap:10px;align-items:center;color:#C5CBD3;flex-wrap:wrap}.stInfo select{background:#2B2F36;color:#fff;border:1px solid #3A3F48;border-radius:6px;padding:3px 6px}.stDim{color:#8B95A1}
+.stB{background:#2B2F36;color:#E6E8EB;border:1px solid #3A3F48;border-radius:7px;padding:5px 10px;cursor:pointer;white-space:nowrap}.stB:hover{background:#353A43}.stB:disabled{opacity:.35;cursor:default}
+.stB.pri{background:#FF8A3D;border-color:#FF8A3D;color:#16181D;font-weight:700}.stB.pri:hover{background:#FF9C59}
+.stSep{width:1px;height:22px;background:#3A3F48;margin:0 2px}.stZv{min-width:44px;text-align:center;color:#C5CBD3}
+.stMain{flex:1;display:grid;grid-template-columns:48px minmax(0,1fr) 320px;min-height:0}
+.stTools{background:#1E2126;border-right:1px solid #2C3038;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
+.stTools button{width:36px;height:36px;border-radius:8px;border:1px solid transparent;background:none;color:#E6E8EB;cursor:pointer;font-size:16px;font-weight:700}
+.stTools button:hover{background:#2B2F36}.stTools button.on{background:#3A2A1E;border-color:#FF8A3D;color:#FF8A3D}.stTools button:disabled{opacity:.3;cursor:default}.stTools span{height:1px;width:28px;background:#2C3038;margin:4px 0}
+.stCenter{display:flex;flex-direction:column;min-width:0;min-height:0}
+.stTabs{display:flex;gap:2px;padding:6px 8px 0;background:#1A1C21;overflow-x:auto}.stTabs button{background:none;border:0;color:#8B95A1;padding:8px 12px;cursor:pointer;font-weight:700;font-size:11.5px;letter-spacing:.05em;border-radius:8px 8px 0 0;white-space:nowrap}
+.stTabs button.on{background:#2B2F36;color:#fff;box-shadow:inset 0 2px 0 #FF8A3D}
+.stAviso:empty{display:none}.stAviso{background:#3A2A12;color:#FFD6A8;padding:7px 12px;font-size:12.5px;border-bottom:1px solid #5A4020}
+.stStage{flex:1;position:relative;min-height:0;background:#2B2F36}
+.stRul{position:absolute;background:#1E2126;z-index:2}.stRul.h{left:20px;right:0;top:0;height:20px;width:calc(100% - 20px)}.stRul.v{left:0;top:20px;bottom:0;width:20px;height:calc(100% - 20px)}
+.stScroll{position:absolute;left:20px;top:20px;right:0;bottom:0;overflow:auto}
+.stBar{background:#1E2126;border-top:1px solid #2C3038;padding:7px 12px;color:#AEB6C1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:36px}
+.stBar input,.stBar select{background:#2B2F36;color:#fff;border:1px solid #3A3F48;border-radius:6px;padding:4px 6px;font:inherit}.stBar input[type=color]{width:34px;height:24px;padding:0}
+.stL{background:none;border:0;color:#7FB0FF;cursor:pointer;text-decoration:underline}
+.stSide{background:#1E2126;border-left:1px solid #2C3038;overflow-y:auto;display:flex;flex-direction:column}
+.stPanel{padding:10px 12px;border-bottom:1px solid #2C3038}.stPanel h4{margin:0 0 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8B95A1}
+.stMuted{color:#8B95A1;font-size:12px}
+.stCapa{display:grid;grid-template-columns:34px minmax(0,1fr) 26px 26px;gap:6px;align-items:center;padding:5px 6px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+.stCapa:hover{background:#262A31}.stCapa.on{background:#2E2620;border-color:#FF8A3D}
+.stCapa button{background:none;border:0;cursor:pointer;font-size:13px;padding:0;color:#E6E8EB}
+.stTh{width:34px;height:34px;object-fit:contain;border-radius:6px;background:repeating-conic-gradient(#3A3F48 0 25%,#2B2F36 0 50%) 0 0/10px 10px}.stTh.t{display:grid;place-items:center;font-weight:800;color:#FF8A3D;background:#2B2F36}
+.stCn{min-width:0;display:flex;flex-direction:column}.stCn b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}.stCn span,.stEl span{font-size:11px;color:#8B95A1;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.stCn i,.stEl i{width:8px;height:8px;border-radius:50%;display:inline-block}.stCn em{font-style:normal;font-weight:700}.stCn em.aviso{color:#FDB022}.stCn em.mal{color:#F97066}
+.stG2{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px}.stG2 label,.stRow{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:#AEB6C1}.stRow{margin-top:6px}
+#stProp input,#stProp select,.stMod input,.stMod select,#stModal input{background:#2B2F36;color:#fff;border:1px solid #3A3F48;border-radius:6px;padding:5px 7px;font:inherit;min-width:0}
+#stProp input[type=color]{height:30px;padding:0 2px}#stProp input[type=range]{padding:0}
+.stPpp{margin-top:8px;padding:7px 9px;border-radius:8px;font-size:12px}.stPpp.ok{background:#12301F;color:#A6F4C5}.stPpp.aviso{background:#3A2A12;color:#FEC84B}.stPpp.mal{background:#3B1414;color:#FDA29B}
+.stBtns{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.stBtns button{background:#2B2F36;color:#E6E8EB;border:1px solid #3A3F48;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px}.stBtns button:hover{background:#353A43}.stBtns button.del{color:#FDA29B}
+.stEl{display:grid;grid-template-columns:36px minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:4px 0}.stEl img{width:36px;height:36px;object-fit:contain;border-radius:6px;background:repeating-conic-gradient(#3A3F48 0 25%,#2B2F36 0 50%) 0 0/10px 10px}
+.stEl b{font-weight:600;font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stEl button{background:#2B2F36;color:#E6E8EB;border:1px solid #3A3F48;border-radius:6px;width:28px;height:28px;cursor:pointer}
+.stGen{display:flex;flex-wrap:wrap;gap:18px;padding:24px;align-items:flex-end;justify-content:center}.stGen figure{margin:0;cursor:pointer;text-align:center}.stGen img{max-height:46vh;max-width:30vw;background:repeating-conic-gradient(#3A3F48 0 25%,#2B2F36 0 50%) 0 0/14px 14px;border-radius:8px}.stGen figcaption{color:#AEB6C1;margin-top:6px;font-weight:700}
+.stMod{position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px}
+.stModC{background:#1E2126;border:1px solid #3A3F48;border-radius:14px;padding:14px;width:100%;max-width:1100px;height:88vh;display:flex;flex-direction:column;gap:8px;color:#E6E8EB}
+.stModH{display:flex;align-items:center;gap:10px}.stModT{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.stModT button{background:#2B2F36;color:#E6E8EB;border:1px solid #3A3F48;border-radius:7px;padding:5px 10px;cursor:pointer}.stModT button.on{border-color:#FF8A3D;color:#FF8A3D}
+.stModT label{display:flex;align-items:center;gap:5px;color:#AEB6C1;font-size:12px}
+.stModW{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#3A3F48 0 25%,#2B2F36 0 50%) 0 0/16px 16px;border-radius:10px}#meCv{cursor:crosshair;touch-action:none}
+.stVer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2C3038}
+.stSal{display:flex;align-items:center;gap:5px;color:#AEB6C1;font-size:12px}.stSal select{background:#2B2F36;color:#fff;border:1px solid #3A3F48;border-radius:6px;padding:4px 6px;font:inherit}
+.stRepW{overflow:auto;flex:1;min-height:0}.stRep{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 12px}.stRep th{text-align:left;color:#8B95A1;font-weight:600;border-bottom:1px solid #3A3F48;padding:5px 6px;white-space:nowrap}
+.stRep td{border-bottom:1px solid #2C3038;padding:5px 6px;vertical-align:top}.stRep tr.q-rojo td{background:rgba(240,68,56,.10)}.stRep tr.q-naranja td{background:rgba(247,144,9,.10)}.stRep tr.q-amarillo td{background:rgba(253,176,34,.06)}
+.stRepRes{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0;font-weight:600}.stRepP{margin-top:10px;color:#E6E8EB}
+.stPpp.verde,.stPpp.vector{background:#12301F;color:#A6F4C5}.stPpp.amarillo{background:#33300F;color:#FDE272}.stPpp.naranja{background:#3A2A12;color:#FEC84B}.stPpp.rojo{background:#3B1414;color:#FDA29B}.stPpp div{margin-top:3px}
+.stCn em.verde,.stCn em.ok{color:#75E0A7}.stCn em.amarillo{color:#FDE272}.stCn em.naranja{color:#FDB022}.stCn em.rojo{color:#F97066}
+.stValT{padding:9px 11px;border-radius:9px;margin-bottom:6px}.stValT.ok{background:#12301F;color:#A6F4C5}.stValT.aviso{background:#3A2A12;color:#FEC84B}.stValT.mal{background:#3B1414;color:#FDA29B}.stValI{font-size:12.5px;padding:2px 0}
+@media(max-width:1000px){.stMain{grid-template-columns:44px minmax(0,1fr)}.stSide{position:fixed;right:0;top:auto;bottom:0;height:42vh;width:100%;z-index:3;border-top:1px solid #2C3038}}
 .tl{border:2px solid #1C2340}
+.tlia{margin:10px 0 0 34px;background:linear-gradient(135deg,#FFF5EE,#F3F6FD);border:1.5px solid #F7B58C;border-radius:12px;padding:12px 14px;display:grid;gap:8px;justify-items:start}
+.tlst:empty{display:none}.tlst{font-size:13.5px;background:#fff;border-radius:8px;padding:8px 10px;border:1px solid var(--line);width:100%}
+.tlmanual{margin:10px 0 0 34px}.tlmanual>summary{cursor:pointer;font-weight:700;font-size:13.5px;color:#1F4FBF}.tlmanual .tlfast{margin-left:0}
 #dspOv{position:fixed;inset:0;z-index:9000;background:#F4F5F8;display:none;flex-direction:column}
 .dspTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}.dspTop .tabs{margin:0}
 .dspBody{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;padding:12px 16px;overflow:auto}
@@ -167,7 +226,7 @@ table.prod .badge{font-size:10.5px;white-space:nowrap}table.prod td.cen .sub{tex
 .tlinfo{display:flex;flex-direction:column;min-width:0}.tlinfo .muted{font-size:12px}.tlacc{grid-column:3/-1;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .tladd{display:grid;grid-template-columns:170px minmax(0,1fr);gap:6px;margin:8px 0 0 34px}.tladd select,.tladd input{border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;font:inherit;font-size:13px;min-width:0}
 .tlrev{display:grid;gap:6px;margin-left:34px;font-size:13.5px}.tlrev label{display:flex;gap:8px;align-items:center;cursor:pointer}.tlrev input{width:16px;height:16px;margin:0}
-@media(max-width:860px){.tlfast,.tlbulk,.tlman{margin-left:0}.tladd{grid-template-columns:1fr}.tlel{grid-template-columns:22px 48px minmax(0,1fr)}.tlacc{grid-column:1/-1;justify-content:flex-start}.tlrefs,.tlels,.tladd,.tlrev,.tltallas,.tl .accrow{margin-left:0}}
+@media(max-width:860px){.tlfast,.tlbulk,.tlman,.tlia,.tlmanual{margin-left:0}.tladd{grid-template-columns:1fr}.tlel{grid-template-columns:22px 48px minmax(0,1fr)}.tlacc{grid-column:1/-1;justify-content:flex-start}.tlrefs,.tlels,.tladd,.tlrev,.tltallas,.tl .accrow{margin-left:0}}
 .pidio{background:#FFF7F2;border-left:4px solid #F26B21;border-radius:8px;padding:8px 10px;margin-top:8px;display:grid;gap:3px}
 .okbox{background:#E7F7EE;color:#067647;border-radius:10px;padding:10px 12px;font-weight:600}
 .bubble{position:relative;border:0;background:none;font-size:22px;cursor:pointer;padding:4px 6px;border-radius:8px}.bubble:hover{background:#EEF1F7}
@@ -291,7 +350,7 @@ const VT = (() => {
       : { method: "POST", headers: { "Content-Type": "application/json", "x-vt-token": tok() }, body: JSON.stringify(body) });
     let j = null; try { j = await r.json(); } catch(e){}
     if (r.status === 401 && S.modo === "admin" && a !== "login" && S.alSalir) S.alSalir();
-    if (!r.ok) throw Object.assign(new Error((j && j.error) || ("Error " + r.status)), { status: r.status });
+    if (!r.ok) throw Object.assign(new Error((j && j.error) || ("Error " + r.status)), { status: r.status, debeCambiar: !!(j && j.debeCambiar) });
     return j;
   }
   /* ¿hay base de datos? (si no responde, modo muestra) */
@@ -301,14 +360,27 @@ const VT = (() => {
       if (location.protocol === "file:") return false;
       try { const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
         const r = await fetch(API + "?a=estado", { signal: ctl.signal }); clearTimeout(t);
-        const j = r.ok ? await r.json() : null; S.srv = !!(j && j.db);
+        const j = r.ok ? await r.json() : null; S.srv = !!(j && j.db); S.ia = !!(j && j.ia); S.entorno = j && j.entorno; S.candado = j && j.candado; franjaEntorno(j);
       } catch(e){ S.srv = false; }
       if (S.srv){ try { localStorage.removeItem(KEY); } catch(e){} }   // ya no se usan los datos de muestra de este navegador
       if (S.srv && modo === "cliente") cliCargarCache();
       return S.srv;
     })());
   }
+  /* franja naranja permanente cuando NO es producción (rama desarrollo / Preview) */
+  function franjaEntorno(j){
+    const host = location.hostname, esProdHost = /^vituma-pedidos\.vercel\.app$/i.test(host);
+    const pruebas = (j && j.entorno === "pruebas") || (!esProdHost && /\.vercel\.app$/i.test(host));
+    if (!pruebas) return;
+    const poner = () => { let d = document.getElementById("vtFranja"); if (!d){ d = document.createElement("div"); d.id = "vtFranja"; document.body.prepend(d); document.documentElement.classList.add("vtPruebas");
+        const st = document.createElement("style"); st.textContent = "#vtFranja{position:fixed;top:0;left:0;right:0;z-index:2147483000;background:#F26B21;color:#fff;font:800 12.5px/26px system-ui,Arial;text-align:center;letter-spacing:.08em;height:26px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}html.vtPruebas body{padding-top:26px!important}"; document.head.appendChild(st); }
+      d.textContent = "ENTORNO DE PRUEBAS · NO ES LA APP PUBLICADA" + (j && j.candado ? " · 🔒 " + j.candado : j && !j.db ? " · SIN BASE DE PRUEBAS" : ""); d.title = d.textContent; };
+    if (document.body) poner(); else document.addEventListener("DOMContentLoaded", poner);
+  }
   const enLinea = () => S.srv;
+  const hayIA = () => !!(S.srv && S.ia);
+  const entorno = () => S.entorno || "";
+  const ia = (a, body) => api(a, body);
 
   /* ---------- imágenes: se suben una por una y se cambian por su liga ---------- */
   const esDato = v => typeof v === "string" && v.startsWith("data:") && v.length > 3000;
@@ -349,6 +421,7 @@ const VT = (() => {
     try { sessionStorage.setItem("vituma_tok", r.token); sessionStorage.setItem("vituma_ses", r.usuario.id); localStorage.setItem("vituma_mostrador", JSON.stringify(r.usuario)); } catch(e){}
     return r.usuario;
   }
+  async function cambiarPass(actual, nueva){ return api("cambiar_pass", { actual, nueva }); }
   async function salir(){ try { await api("salir", {}); } catch(e){} try { sessionStorage.removeItem("vituma_tok"); sessionStorage.removeItem("vituma_ses"); } catch(e){} }
   async function cargarTodo(){
     const d = await api("datos", undefined, "&desde=0");
@@ -457,7 +530,7 @@ const VT = (() => {
     if (S.modo === "cliente"){ S.db = { ventas: clon(d.ventas || []) }; cliGuardarCache(); return true; }
     return guardarNube(d);
   }
-  const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, uso, recalcular, depurar, pendientes, crearPedido, agregarPago, misPedidos, buscar, autorizar, subirImagenes,
+  const nube = { iniciar, enLinea, login, salir, cargarTodo, traerCambios, respaldo, uso, recalcular, depurar, pendientes, crearPedido, agregarPago, misPedidos, buscar, autorizar, hayIA, ia, cambiarPass, entorno, subirImagenes,
     set alSalir(f){ S.alSalir = f; }, set alCambio(f){ S.alCambio = f; } };
 
   /* colores con otro nombre según la marca (para inventario y proveedores) */
@@ -697,6 +770,28 @@ const ROLES = {
 const AJUSTADOR = "https://ajustador-tallas.vercel.app";
 let SES = null;
 const can = k => !!SES && (SES.rol === "Administrador" || (SES.permisos || []).includes(k));
+/* primer ingreso: no se entra al panel hasta crear una contraseña nueva (el servidor también lo exige) */
+function forzarCambio(u, actualTexto){
+  $("#login").style.display = "flex"; $("#app").style.display = "none";
+  const box = $("#login .box"), antes = box.innerHTML;
+  box.innerHTML = `<h2 style="margin:0 0 6px">Crea tu contraseña</h2><p class="muted" style="margin:0 0 12px">Por seguridad, antes de entrar debes cambiar la contraseña inicial.</p>
+    ${actualTexto ? "" : `<label>Contraseña actual</label><input id="cpA" type="password" autocomplete="current-password">`}
+    <label>Contraseña nueva (mínimo 8 caracteres)</label><input id="cpN" type="password" autocomplete="new-password">
+    <label>Repite la contraseña nueva</label><input id="cpR" type="password" autocomplete="new-password">
+    <button class="btn pri" id="cpOk" style="width:100%;margin-top:12px">Guardar y entrar</button>
+    <div id="cpErr" class="muted" style="color:#B42318;margin-top:8px"></div>
+    <button class="linkbtn" id="cpSalir" style="margin-top:8px">Salir</button>`;
+  $("#cpN").focus();
+  $("#cpSalir").onclick = async () => { await VT.nube.salir(); location.reload(); };
+  const ok = async () => { const n = $("#cpN").value, r = $("#cpR").value, act = actualTexto || ($("#cpA") ? $("#cpA").value : ""), er = $("#cpErr");
+    if (n.length < 8) return er.textContent = "La contraseña nueva debe tener al menos 8 caracteres.";
+    if (n !== r) return er.textContent = "Las dos contraseñas no coinciden.";
+    $("#cpOk").disabled = true;
+    try { await VT.nube.cambiarPass(await hash(act), n); await VT.nube.cargarTodo(); box.innerHTML = antes; $("#lbtn").onclick = entrar; $("#lp").onkeydown = e => { if (e.key === "Enter") entrar(); };
+      DB = VT.cargar(); iniciar(); toast("Contraseña actualizada"); }
+    catch(e){ $("#cpOk").disabled = false; er.textContent = e.message || "No se pudo cambiar la contraseña."; } };
+  $("#cpOk").onclick = ok; $("#cpR").onkeydown = e => { if (e.key === "Enter") ok(); };
+}
 async function hash(t){
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("vituma::" + t));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
@@ -714,8 +809,10 @@ function log(v, accion, detalle){ v.historial = v.historial || []; v.historial.u
 async function entrar(){
   if (await VT.nube.iniciar("admin")){
     $("#lerr").textContent = "Entrando…";
-    try { await VT.nube.login($("#lu").value.trim().toLowerCase(), await hash($("#lp").value)); await VT.nube.cargarTodo(); }
-    catch(e){ $("#lerr").textContent = e.status === 401 || e.status === 429 ? e.message : "No se pudo conectar. Revisa tu internet e intenta de nuevo."; return; }
+    try { const u = await VT.nube.login($("#lu").value.trim().toLowerCase(), await hash($("#lp").value));
+      if (u && u.debeCambiar) return forzarCambio(u, $("#lp").value);
+      await VT.nube.cargarTodo(); }
+    catch(e){ if (e.debeCambiar) return forzarCambio(null, $("#lp").value); $("#lerr").textContent = e.status === 401 || e.status === 429 ? e.message : "No se pudo conectar. Revisa tu internet e intenta de nuevo."; return; }
     $("#lerr").textContent = ""; DB = VT.cargar(); iniciar(); return;
   }
   await asegurarAdmin();
@@ -762,7 +859,15 @@ async function verEspacio(){
       <span class="label">¿De qué pedidos entregados?</span>
       <select id="espMeses" style="width:auto">${[[0, "Todos los entregados"], [1, "Entregados hace más de 1 mes"], [3, "Entregados hace más de 3 meses"], [6, "Entregados hace más de 6 meses"], [12, "Entregados hace más de 12 meses"]].map(([m, t]) => `<option value="${m}"${m === 3 ? " selected" : ""}>${t}</option>`).join("")}</select>
       <div id="espSim" class="muted" style="margin:10px 0;font-size:13px"></div>
-      <button class="btn no" id="espGo" disabled>Liberar espacio</button></div>`;
+      <button class="btn no" id="espGo" disabled>Liberar espacio</button></div>
+    ${SES.rol !== "Administrador" ? "" : `<div class="card" style="margin-top:16px"><h3 style="margin-top:0">Pedidos cancelados <span class="muted" style="font-weight:400;font-size:13px">(opcional)</span></h3>
+      <p class="muted" style="font-size:13px">Quita las ligas de las <b>imágenes del diseño que solo usa</b> cada pedido cancelado que tú marques, y esos archivos pasan a la <b>lista de espera</b> (no se borran ahora). El pedido <b>no se elimina ni cambia de estado</b> y los comprobantes se conservan. Lo que use otro pedido, un cliente, la configuración o una versión de STUDIO no se toca.</p>
+      <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" id="espCancOn" style="width:auto"> Mostrar los pedidos cancelados</label>
+      <div id="espCanc" style="margin-top:8px"></div></div>
+    <div class="card" style="margin-top:16px"><h3 style="margin-top:0">Archivos huérfanos</h3>
+      <p class="muted" style="font-size:13px">Busca archivos que <b>ningún pedido (ni cancelado), cliente, configuración ni versión de STUDIO</b> usa. Primero se simula sin borrar nada. Pasos, cada uno con tu confirmación: <b>lista de espera</b> (7 días) → <b>papelera</b> (30 días; si algo los vuelve a usar, regresan solos) → <b>eliminación definitiva</b>. En cada paso se vuelve a revisar todo. Nunca se tocan <i>_vituma</i>, los comprobantes ni archivos de procedencia desconocida.</p>
+      <div class="accrow" style="margin-left:0;gap:8px;flex-wrap:wrap"><button class="btn sec sm" id="limSim">🔍 Simular (no borra nada)</button><button class="btn sec sm" id="limReg">📜 Registro</button></div>
+      <div id="limRes" style="margin-top:10px"></div></div>`}`;
   abrir();
   const simular = async () => { $("#espGo").disabled = true; $("#espSim").textContent = "Calculando…";
     try { const r = await VT.nube.depurar(+$("#espMeses").value, true);
@@ -774,6 +879,55 @@ async function verEspacio(){
     $("#espGo").disabled = true; $("#espGo").textContent = "Liberando…";
     try { const r = await VT.nube.depurar(+$("#espMeses").value, false); toast(`Listo: se liberaron ${MB(r.bytes)}`); await VT.nube.traerCambios(); } catch(e){ toast(e.message, true); }
     USO = null; await revisarEspacio(); verEspacio(); };
+  if (SES.rol === "Administrador") limpiezaUI();
+}
+/* ---- herramientas de limpieza (administrador): pedidos cancelados y archivos huérfanos ---- */
+function limpiezaUI(){
+  const F = x => x ? new Date(x).toLocaleString("es-MX", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
+  const TAM = b => !b ? "0 KB" : b < 1048576 ? Math.max(1, Math.round(b / 1024)) + " KB" : MB(b), CORTO = r => { const i = r.lastIndexOf("/"), c = r.slice(0, i + 1), n = r.slice(i + 1); return n.length > 22 ? c + n.slice(0, 8) + "…" + n.slice(-12) : r; };
+  const pide = (txt, palabra) => (window.prompt(txt + `\n\nPara confirmar escribe: ${palabra}`) || "").trim().toUpperCase() === palabra;
+  $("#espCancOn").onchange = async () => { const box = $("#espCanc"); if (!$("#espCancOn").checked){ box.innerHTML = ""; return; } box.textContent = "Revisando todos los registros…";
+    try { const r = await VT.nube.ia("canceladas_simular", {}), P = r.pedidos.filter(p => p.imagenes);
+      if (!P.length){ box.innerHTML = `<div class="muted" style="font-size:13px">${r.pedidos.length ? "Los pedidos cancelados no tienen imágenes que solo usen ellos (las que usan otros pedidos, clientes o la configuración no se tocan)." : "No hay pedidos cancelados."}</div>`; return; }
+      box.innerHTML = `<div style="overflow:auto;max-height:300px"><table class="t" style="font-size:13px;table-layout:auto"><tr><th></th><th>Folio</th><th>Cliente</th><th>Cancelado</th><th>Imágenes solo suyas</th><th>Tamaño</th></tr>${P.map(p => `<tr><td><input type="checkbox" data-canc="${esc(p.folio)}" style="width:auto"></td><td>${esc(p.folio)}</td><td>${esc(p.cliente)}</td><td>${F(p.cancelada || p.fecha)}</td><td>${p.imagenes}</td><td>${TAM(p.bytes)}</td></tr>`).join("")}</table></div>
+        <button class="btn no sm" id="espCancGo" disabled style="margin-top:8px">Liberar imágenes de los seleccionados</button>`;
+      const sel = () => [...document.querySelectorAll("[data-canc]:checked")].map(x => x.dataset.canc);
+      document.querySelectorAll("[data-canc]").forEach(x => x.onchange = () => { const n = sel().length; $("#espCancGo").disabled = !n; $("#espCancGo").textContent = n ? `Liberar imágenes de ${n} pedido(s)` : "Liberar imágenes de los seleccionados"; });
+      $("#espCancGo").onclick = async () => { const f = sel(), info = P.filter(p => f.includes(p.folio));
+        if (!pide(`Se quitarán de ${f.join(", ")} las ligas de ${info.reduce((a, p) => a + p.imagenes, 0)} imágenes (${TAM(info.reduce((a, p) => a + p.bytes, 0))}) y esos archivos pasarán a la LISTA DE ESPERA (no se borran ahora).\nLos pedidos siguen cancelados, con sus datos y comprobantes.`, "LIBERAR")) return toast("No se cambió nada");
+        $("#espCancGo").disabled = true; try { const x = await VT.nube.ia("canceladas_liberar", { folios: f, confirmar: "LIBERAR" }); toast(`Listo: ${x.imagenes} imágenes a la lista de espera${x.conservadas ? ` · ${x.conservadas} se conservaron` : ""}`); await VT.nube.traerCambios(); } catch(e){ toast(e.message, true); }
+        USO = null; await revisarEspacio(); verEspacio(); }; }
+    catch(e){ box.textContent = e.message; } };
+  const EST = { eliminable: ["⛔", "Se puede eliminar definitivamente"], papelera: ["🗑️", "En la papelera"], rescatar: ["♻️", "En papelera, pero se volvió a usar"], listo: ["🔴", "Listo para la papelera"], espera: ["🟡", "En espera"], huerfano: ["🟠", "Huérfano: pasaría a espera"], reciente: ["⏳", "Reciente (protegido)"], recuperado: ["↩️", "Volvió a usarse"], protegido: ["🔒", "Protegido"], en_uso: ["🟢", "En uso"] }, ORD = Object.keys(EST);
+  let todos = false;
+  const pinta = R => { const box = $("#limRes"), vis = R.filas.filter(x => todos || x.estado !== "en_uso").sort((a, b) => ORD.indexOf(a.estado) - ORD.indexOf(b.estado) || String(a.fecha).localeCompare(String(b.fecha)));
+    const n = k => (R.resumen[k] || {}).archivos || 0, b = k => (R.resumen[k] || {}).bytes || 0;
+    box.innerHTML = `${R.rapida ? `<div style="background:#FFF4E5;border:1px solid #F26B21;border-radius:8px;padding:8px;font-size:13px;margin-bottom:8px"><b>⚡ Plazos cortos de prueba activos</b> (solo Preview): ${esc(R.plazos)}.</div>` : ""}
+      <div style="font-size:13px;margin-bottom:6px">Simulación del ${new Date(R.generado).toLocaleString("es-MX")} · ${R.filas.length} archivos revisados contra ${R.registros} registros (pedidos, clientes, configuración y versiones de STUDIO) · plazos: ${esc(R.plazos)}. <b>No se borró nada.</b></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:13px;margin-bottom:8px">${ORD.map(k => `<span class="badge" style="background:#F3F4F6;color:#111">${EST[k][0]} ${EST[k][1]}: <b>${n(k)}</b> · ${TAM(b(k))}</span>`).join("")}</div>
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="limTodos" style="width:auto"${todos ? " checked" : ""}> Mostrar también los archivos en uso</label>
+      <div style="overflow:auto;max-height:420px;margin-top:6px"><table class="t" style="font-size:12px;table-layout:auto"><tr><th></th><th>Archivo</th><th>Tipo</th><th>Tamaño</th><th>Subido</th><th>Estado</th><th>Motivo / dónde se usa</th><th>Fecha programada</th></tr>
+      ${vis.map(x => `<tr><td>${x.estado === "listo" ? `<input type="checkbox" data-lim="${esc(x.ruta)}" style="width:auto">` : x.estado === "eliminable" ? `<input type="checkbox" data-eli="${esc(x.ruta)}" style="width:auto">` : ""}${x.enPapelera ? ` <button class="btn sec sm" data-res="${esc(x.ruta)}" style="padding:2px 6px">Restaurar</button>` : ""}</td><td title="${esc(x.ruta)}" style="white-space:nowrap">${esc(CORTO(x.ruta))}</td><td>${esc(x.tipo)}</td><td style="white-space:nowrap">${TAM(x.bytes)}</td><td>${F(x.fecha)}</td><td>${EST[x.estado][0]} ${EST[x.estado][1]}</td><td>${esc(x.usadoEn ? x.usadoEn.join(", ") : x.motivo)}</td><td>${x.programado ? (x.enPapelera ? "Eliminar desde " : x.estado === "listo" || x.estado === "espera" || x.estado === "huerfano" || x.estado === "reciente" ? "A papelera desde " : "") + F(x.programado) : "—"}</td></tr>`).join("") || `<tr><td colspan="8" class="muted">No hay archivos sin uso.</td></tr>`}</table></div>
+      <div class="accrow" style="margin-left:0;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sec sm" id="limEsp"${n("huerfano") || n("recuperado") || n("rescatar") ? "" : " disabled"}>${n("huerfano") ? `Pasar ${n("huerfano")} huérfano(s) a la lista de espera` : "Actualizar la lista de espera"}</button><button class="btn no sm" id="limPap" disabled>Mover los seleccionados a la papelera</button><button class="btn no sm" id="limEli" disabled>Eliminar definitivamente los seleccionados</button></div>`;
+    $("#limTodos").onchange = () => { todos = $("#limTodos").checked; pinta(R); };
+    const sel = a => [...document.querySelectorAll(`[${a}]:checked`)].map(x => x.getAttribute(a));
+    const tam = r => TAM(R.filas.filter(x => r.includes(x.ruta)).reduce((a, x) => a + x.bytes, 0));
+    document.querySelectorAll("[data-lim]").forEach(x => x.onchange = () => { const k = sel("data-lim").length; $("#limPap").disabled = !k; $("#limPap").textContent = k ? `Mover ${k} archivo(s) a la papelera` : "Mover los seleccionados a la papelera"; });
+    document.querySelectorAll("[data-eli]").forEach(x => x.onchange = () => { const k = sel("data-eli").length; $("#limEli").disabled = !k; $("#limEli").textContent = k ? `Eliminar definitivamente ${k} archivo(s)` : "Eliminar definitivamente los seleccionados"; });
+    $("#limEsp").onclick = async () => { if (!pide(`${n("huerfano")} archivo(s) (${TAM(b("huerfano"))}) pasarán a la lista de espera. No se borra nada ahora.`, "PASAR A ESPERA")) return toast("No se cambió nada");
+      try { const x = await VT.nube.ia("limpieza_espera", { confirmar: "PASAR A ESPERA" }); toast(`${x.enEspera} en espera${x.salieron ? ` · ${x.salieron} salieron` : ""}${x.recuperados ? ` · ${x.recuperados} recuperados de la papelera` : ""}`); simular(); } catch(e){ toast(e.message, true); } };
+    $("#limPap").onclick = async () => { const r = sel("data-lim");
+      if (!pide(`Se moverán ${r.length} archivo(s) (${tam(r)}) a la PAPELERA. Antes se vuelve a revisar todo. Se pueden recuperar durante el plazo de la papelera; si algo los vuelve a usar, regresan solos.`, "MOVER A PAPELERA")) return toast("No se movió nada");
+      try { const x = await VT.nube.ia("limpieza_papelera", { rutas: r, confirmar: "MOVER A PAPELERA" }); toast(`A la papelera: ${x.movidos}${x.omitidos.length ? ` · ${x.omitidos.length} se conservaron: ${x.omitidos.map(o => o.motivo).join("; ")}` : ""}`, !!x.omitidos.length); simular(); } catch(e){ toast(e.message, true); } };
+    $("#limEli").onclick = async () => { const r = sel("data-eli");
+      if (!pide(`Se ELIMINARÁN DEFINITIVAMENTE ${r.length} archivo(s) (${tam(r)}) de la papelera. Antes se vuelve a revisar todo. Esto NO se puede deshacer.`, "ELIMINAR DEFINITIVAMENTE")) return toast("No se eliminó nada");
+      try { const x = await VT.nube.ia("limpieza_eliminar", { rutas: r, confirmar: "ELIMINAR DEFINITIVAMENTE" }); toast(`Eliminados: ${x.eliminados} (${TAM(x.bytes)})${x.omitidos.length ? ` · ${x.omitidos.length} se conservaron` : ""}`, !!x.omitidos.length); USO = null; await revisarEspacio(); simular(); } catch(e){ toast(e.message, true); } };
+    document.querySelectorAll("[data-res]").forEach(x => x.onclick = async () => { try { const y = await VT.nube.ia("limpieza_restaurar", { rutas: [x.dataset.res] }); toast(y.restaurados ? "Archivo restaurado" : "No se encontró en la papelera", !y.restaurados); simular(); } catch(e){ toast(e.message, true); } }); };
+  const simular = async () => { $("#limRes").textContent = "Revisando el almacenamiento y todos los registros… (no se borra nada)"; try { pinta(await VT.nube.ia("limpieza_simular", {})); } catch(e){ $("#limRes").innerHTML = `<div style="color:#B42318;font-size:13px"><b>${esc(e.message)}</b></div>`; } };
+  $("#limSim").onclick = simular;
+  const ACC = { papelera: "A la papelera", eliminado: "Eliminado definitivamente", recuperado: "Recuperado de la papelera", espera: "A lista de espera", salen_espera: "Salieron de la espera", canceladas: "Cancelados liberados" };
+  $("#limReg").onclick = async () => { try { const r = (await VT.nube.ia("limpieza_registro", {})).registro.filter(Boolean);
+      $("#limRes").innerHTML = `<b style="font-size:13px">Registro de limpiezas</b><div style="overflow:auto;max-height:420px"><table class="t" style="font-size:12px;table-layout:auto"><tr><th>Fecha</th><th>Quién</th><th>Acción</th><th>Detalle</th><th>Tamaño</th></tr>${r.map(x => `<tr><td>${new Date(x.fecha).toLocaleString("es-MX")}</td><td>${esc(x.por || "")}</td><td>${ACC[x.accion] || esc(x.accion)}</td><td style="word-break:break-all">${esc(x.ruta ? x.ruta + " · " + (x.tipo || "") + (x.motivo ? " · " + x.motivo : "") : x.accion === "espera" ? x.archivos + " archivo(s)" + (x.salen ? " · " + x.salen + " salieron" : "") + (x.recuperados ? " · " + x.recuperados + " recuperados" : "") : x.accion === "salen_espera" ? (x.rutas || []).join(", ") : (x.folios || []).join(", ") + " · " + x.archivos + " imágenes a espera")}</td><td>${TAM(x.bytes || 0)}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">Sin limpiezas todavía.</td></tr>`}</table></div>`; } catch(e){ toast(e.message, true); } };
 }
 $("#espacio").onclick = e => { e.preventDefault(); verEspacio(); };
 $("#respaldo").onclick = async e => { e.preventDefault();
@@ -802,7 +956,7 @@ async function iniciar(){
     $("#reset").style.display = "none";
     let t = ""; try { t = sessionStorage.getItem("vituma_tok") || ""; } catch(e){}
     if (!t){ $("#login").style.display = "flex"; $("#app").style.display = "none"; return; }
-    if (!VT.cargar().ventas.length && !VT.cargar().usuarios){ try { await VT.nube.cargarTodo(); } catch(e){ if (e.status !== 401){ $("#login").style.display = "flex"; $("#app").style.display = "none"; $("#lerr").textContent = "No se pudo conectar. Revisa tu internet."; } return; } }
+    if (!VT.cargar().ventas.length && !VT.cargar().usuarios){ try { await VT.nube.cargarTodo(); } catch(e){ if (e.debeCambiar) return forzarCambio(null, ""); if (e.status !== 401){ $("#login").style.display = "flex"; $("#app").style.display = "none"; $("#lerr").textContent = "No se pudo conectar. Revisa tu internet."; } return; } }
     DB = VT.cargar(); DB.usuarios = DB.usuarios || [];
   }
   await asegurarAdmin();
@@ -1854,6 +2008,840 @@ async function dspAbrir(id, v, G){
   pinta(); await cargar(); dibujar();
 }
 
+/* =====================================================================
+   🎛 VITUMA STUDIO · editor del diseñador (solo en el panel)
+   "Del mockup a las piezas listas para sublimación"
+   - Usa los moldes que ya existen (sublima.json → DSP_M) y la talla más grande del pedido (dspBase).
+   - No reemplaza "Armar despiece": guarda su propio proyecto en el taller (T.studio) con versiones (T.studioVer).
+   - Capas: imagen, textura (se repite a escala real, anclada a la pieza) y texto (fijo o VARIABLE: nombre / número).
+   - Cada elemento indica su procedencia: recorte del mockup, recreado por IA, creado a mano, archivo del cliente o texto variable.
+   - Posiciones en fracciones de la pieza (sirven para caballero y dama); tamaños de texto en cm.
+   ===================================================================== */
+const ST_FAB = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js";
+const ST_ZIP = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+const ST_PZ = [["frente","Frente"],["espalda","Espalda"],["mangaD","Manga derecha"],["mangaI","Manga izquierda"],["cuello","Cuello"]];
+/* resolución: la app ya arma las texturas a 60 px/cm (~150 ppp) y los logos hasta 120 px/cm (~300 ppp) para el ajustador;
+   por eso se avisa debajo de 150 ppp y se marca como insuficiente debajo de 100 ppp */
+const ST_PPP_OK = 150, ST_PPP_MIN = 100;
+const ST_ORIGEN = { recorte: ["Recorte del mockup", "#2E90FA"], ia: ["Recreado por IA", "#9E77ED"], manual: ["Creado a mano", "#12B76A"], cliente: ["Archivo del cliente", "#F79009"], variable: ["Texto variable", "#F04438"] };
+const stOrigenDe = e => e ? (e.origen || (e.deCliente ? "cliente" : e.por === "IA" || e.por !== "manual" ? "ia" : "manual")) : "manual";
+const stId = () => "C" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const stCargar = src => new Promise((ok, no) => { if (window[src === ST_FAB ? "fabric" : "JSZip"]) return ok(); const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+const stPPP = (px, cm) => cm > 0 ? Math.round(px / (cm / 2.54)) : 0;
+/* tamaño del patrón por omisión en STUDIO: el que deja la textura a ~150 ppp (si el diseñador lo cambia, se respeta) */
+const stTile = (e, im) => e.tileCm || Math.max(6, Math.min(35, Math.round((im ? im.width : 1024) / ST_PPP_OK * 2.54 * 10) / 10));
+const stNivel = ppp => ppp >= ST_PPP_OK ? "ok" : ppp >= ST_PPP_MIN ? "aviso" : "mal";
+
+/* ---------- proyecto: se crea a partir del despiece (o del acomodo automático) ---------- */
+async function stNuevo(T, item){
+  const D = T.despiece || dspAuto(T), b = dspBase(item), E = new Map(T.elementos.map(e => [e.id, e])), st = { v: 1, piezas: {}, cuello: D.cuello || "#111111", creado: new Date().toISOString() };
+  const ref = T.elementos.some(e => dspTiene(e.nombre + " " + (e.nota || ""), "espalda|trasera"));
+  for (const [k] of ST_PZ){
+    if (k === "cuello"){ st.piezas.cuello = { fondo: D.cuello || "#111111", capas: [] }; continue; }
+    const P = b.m[k], capas = [];
+    for (const o of (D.piezas[k] || { els: [] }).els){ const e = E.get(o.eid); if (!e || !e.src) continue;
+      if (e.tipo === "textura"){ const h = o.h || 1; capas.push({ id: stId(), tipo: "tex", eid: e.id, cx: o.x + o.w / 2, cy: o.y + h / 2, w: o.w, h, angle: 0, opacity: 1, visible: true, locked: false }); }
+      else { const im = await dspImg(e.src), hf = im ? (o.w * P.w * im.height / im.width) / P.h : o.w; capas.push({ id: stId(), tipo: "img", eid: e.id, cx: o.x + o.w / 2, cy: o.y + hf / 2, w: o.w, angle: 0, opacity: 1, visible: true, locked: false, fx: !!o.fx }); } }
+    st.piezas[k] = { fondo: (D.piezas[k] || {}).fondo || "#FFFFFF", capas, sinReferencia: k === "espalda" && !ref && capas.length > 0 };
+  }
+  return st;
+}
+
+/* ---------- dibujo de una capa en un contexto 2D (exportar, PDF, miniaturas): mismo cálculo que en el editor ---------- */
+async function stDibujarCapa(g, c, P, E, k2, muestra, original){
+  if (!c.visible) return;
+  const e = c.eid ? E.get(c.eid) : null, fuente = e ? (original ? stFuente(e) : e.src) : null;
+  g.save(); g.globalAlpha = c.opacity == null ? 1 : c.opacity;
+  const cx = c.cx * P.w * k2, cy = c.cy * P.h * k2;
+  if (c.tipo === "tex"){ const im = e && await dspImg(fuente); if (!im){ g.restore(); return; }
+    const W = c.w * P.w * k2, H = c.h * P.h * k2, sc = stTile(e, im) * DSP_CM * k2 / im.width, pat = g.createPattern(im, "repeat");
+    pat.setTransform(new DOMMatrix([sc, 0, 0, sc, 0, 0]));   // anclada a la esquina de la pieza: continuidad del patrón
+    g.translate(cx, cy); g.rotate((c.angle || 0) * Math.PI / 180); g.beginPath(); g.rect(-W / 2, -H / 2, W, H); g.rotate(-(c.angle || 0) * Math.PI / 180); g.translate(-cx, -cy);
+    g.fillStyle = pat; g.fill(); }
+  else if (c.tipo === "img"){ const im = e && await dspImg(fuente); if (!im){ g.restore(); return; }
+    const W = c.w * P.w * k2, H = W * im.height / im.width; if (original){ g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"; }
+    g.translate(cx, cy); g.rotate((c.angle || 0) * Math.PI / 180); if (c.fx) g.scale(-1, 1); g.drawImage(im, -W / 2, -H / 2, W, H); }
+  else if (c.tipo === "texto"){ if (c.var && !muestra){ g.restore(); return; }
+    const F = PERS_F[c.fuente] || ["Arial", 700]; try { await persFuente(c.fuente); } catch(x){}
+    const fs = (c.tam || 4) * DSP_CM * k2 / .72; g.font = `${F[1]} ${fs}px "${F[0]}", Arial`; g.textAlign = c.align || "center"; g.textBaseline = "middle";
+    g.translate(cx, cy); g.rotate((c.angle || 0) * Math.PI / 180);
+    const t = stTextoDe(c);
+    if (c.borde && c.bordeCm > 0){ g.lineJoin = "round"; g.strokeStyle = c.borde; g.lineWidth = c.bordeCm * DSP_CM * k2 * 2; g.strokeText(t, 0, 0); }
+    g.fillStyle = c.color || "#FFFFFF"; g.fillText(t, 0, 0); }
+  g.restore();
+}
+const stTextoDe = c => c.var === "nombre" ? (c.muestra || "NOMBRE") : c.var === "numero" ? (c.muestra || "10") : (c.texto || "Texto");
+async function stPintarPieza(st, T, P, k, ppc, op = {}){
+  const k2 = ppc / DSP_CM, cv = document.createElement("canvas"); cv.width = Math.max(1, Math.round(P.w * k2)); cv.height = Math.max(1, Math.round(P.h * k2));
+  const g = cv.getContext("2d"), S = st.piezas[k], E = new Map(T.elementos.map(e => [e.id, e]));
+  g.fillStyle = S.fondo || "#FFFFFF"; g.fillRect(0, 0, cv.width, cv.height);
+  for (const c of S.capas) await stDibujarCapa(g, c, P, E, k2, op.muestra);
+  if (op.silueta && P.d){ g.globalCompositeOperation = "destination-in"; g.setTransform(k2, 0, 0, k2, 0, 0); g.fill(new Path2D(P.d)); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = "source-over"; }
+  return cv;
+}
+
+
+/* =====================================================================
+   RESOLUCIÓN REAL (originales, reporte de calidad y exportación por franjas)
+   - Cada elemento puede tener: e.src (vista previa liviana, la de siempre), e.orig (ORIGINAL sin reducir) y e.edit
+     (resultado de recortes/borrador/quitar fondo, guardado aparte: nunca sobrescribe el original).
+   - Para exportar se usa: edición > original > vista previa. El editor y el PDF del ajustador siguen usando la vista previa (sin cambios).
+   ===================================================================== */
+const ST_SALIDAS = [150, 200, 300];
+const stFuente = e => e ? ((e.edit && e.edit.ref) || (e.orig && e.orig.ref) || e.src) : null;
+const stEsVector = e => !!e && !!((e.edit && e.edit.vector) || (!e.edit && e.orig && e.orig.vector));
+const stSalida = st => ST_SALIDAS.includes(+st.salidaPpp) ? +st.salidaPpp : 150;
+async function stPxOrig(e){ const o = e.edit || e.orig; if (o && o.w) return [o.w, o.h]; const im = await dspImg(e.src); return im ? [im.width, im.height] : null; }
+const stEstado = (ef, salida) => ef == null ? "vector" : ef >= salida ? "verde" : ef >= 150 ? "amarillo" : ef >= 100 ? "naranja" : "rojo";
+const ST_EST = { verde: ["🟢", "Suficiente"], amarillo: ["🟡", "Menor que la salida (aceptable)"], naranja: ["🟠", "Baja"], rojo: ["🔴", "Insuficiente"], vector: ["🟢", "Vectorial, sin límite de resolución"] };
+const stCm = n => Math.round(n * 10) / 10;
+const stPxPieza = (P, ppp) => [Math.round(P.w / 72 * ppp), Math.round(P.h / 72 * ppp)];
+async function stCalidadCapa(c, P, E, salida){
+  const e = c.eid && E.get(c.eid), base = { capa: c.id, visible: c.visible !== false, nombre: c.tipo === "texto" ? stTextoDe(c) + (c.var ? ` (${c.var === "numero" ? "número" : "nombre"} variable)` : "") : e ? e.nombre : "Elemento",
+    origen: c.tipo === "texto" ? (c.var ? "variable" : "manual") : stOrigenDe(e) };
+  if (c.tipo === "texto" || stEsVector(e)){ const B = await stCaja(c, P, E); return { ...base, clase: c.tipo === "texto" ? "texto" : "vector", estado: "vector", cm: B ? [stCm((B.crudo.x1 - B.crudo.x0) / DSP_CM), stCm((B.crudo.y1 - B.crudo.y0) / DSP_CM)] : null, nota: "Vectorial, sin límite de resolución: se dibuja directo a la resolución de salida" }; }
+  const px = e && e.src ? await stPxOrig(e) : null; if (!px) return { ...base, clase: "raster", estado: "rojo", nota: "Falta la imagen" };
+  let cm, ef, extra = "";
+  if (c.tipo === "tex"){ const tile = stTile(e, { width: px[0] }); cm = [stCm(c.w * P.w / DSP_CM), stCm(c.h * P.h / DSP_CM)]; ef = stPPP(px[0], tile); extra = `patrón de ${tile} cm repetido`; }
+  else { const w = c.w * P.w / DSP_CM; cm = [stCm(w), stCm(w * px[1] / px[0])]; ef = stPPP(px[0], w); }
+  const factor = salida / ef, estado = stEstado(ef, salida);
+  return { ...base, clase: c.tipo === "tex" ? "textura" : "raster", pxOrig: px, fuenteOrig: !!(e.orig || e.edit), cm, ef, salida, factor, estado, extra,
+    nota: factor > 1.005 ? `Se amplía ×${factor.toFixed(2)}: Interpolado, no recupera detalle` : "Sin ampliación: conserva su información original" };
+}
+async function stReporte(st, T, item, salida){
+  const b = dspBase(item), E = new Map(T.elementos.map(e => [e.id, e])), piezas = [], cuenta = { verde: 0, amarillo: 0, naranja: 0, rojo: 0, vector: 0 };
+  for (const [k, t] of ST_PZ){ const P = b.m[k]; if (!P) continue; const S = st.piezas[k] || { capas: [] }, els = [];
+    for (const c of S.capas){ if (c.visible === false) continue; const q = await stCalidadCapa(c, P, E, salida); els.push(q); cuenta[q.estado]++; }
+    const px = stPxPieza(P, salida); piezas.push({ k, t, cm: [stCm(P.w / DSP_CM), stCm(P.h / DSP_CM)], px, mb: Math.round(px[0] * px[1] * 3 / 1048576), elementos: els }); }
+  return { folio: "", modelo: b.nombre, talla: b.molde, salida, piezas, cuenta, fecha: new Date().toISOString() };
+}
+function stReporteHTML(R){
+  const fila = q => `<tr class="q-${q.estado}"><td>${ST_EST[q.estado][0]}</td><td>${esc(q.nombre)}<div class="stMuted">${ST_ORIGEN[q.origen] ? ST_ORIGEN[q.origen][0] : ""}${q.extra ? " · " + esc(q.extra) : ""}</div></td>
+    <td>${q.pxOrig ? `${q.pxOrig[0]} × ${q.pxOrig[1]} px${q.fuenteOrig ? "" : " <span class='stMuted'>(vista previa)</span>"}` : q.clase === "texto" ? "Texto" : q.clase === "vector" ? "Vector" : "—"}</td>
+    <td>${q.cm ? `${q.cm[0]}${q.cm[1] != null ? " × " + q.cm[1] : ""} cm` : "—"}</td><td><b>${q.ef != null ? q.ef + " ppp" : "∞"}</b></td><td>${R.salida} ppp</td><td>${q.factor ? "×" + q.factor.toFixed(2) : "—"}</td><td>${esc(q.nota)}</td></tr>`;
+  return `<div class="stRepRes">${["verde","amarillo","naranja","rojo","vector"].filter(k => R.cuenta[k]).map(k => `<span>${ST_EST[k][0]} ${R.cuenta[k]} ${ST_EST[k][1].toLowerCase()}</span>`).join("")}</div>
+    ${R.piezas.map(P2 => `<div class="stRepP"><b>${P2.t}</b> · ${P2.cm[0]} × ${P2.cm[1]} cm → <b>${P2.px[0]} × ${P2.px[1]} px</b> a ${R.salida} ppp</div>
+      ${P2.elementos.length ? `<table class="stRep"><tr><th></th><th>Elemento</th><th>Original</th><th>Impreso</th><th>Efectiva</th><th>Salida</th><th>Factor</th><th>Nota</th></tr>${P2.elementos.map(fila).join("")}</table>` : `<div class="stMuted">Sin elementos visibles (solo color de fondo).</div>`}`).join("")}`;
+}
+function stReporteTexto(R, folio, cliente){
+  const L = [`VITUMA STUDIO · REPORTE DE CALIDAD`, `Folio: ${folio} · ${cliente}`, `Modelo: ${R.modelo} · talla base ${R.talla} · salida ${R.salida} ppp`, `Generado: ${new Date(R.fecha).toLocaleString("es-MX")}`, "",
+    "Estados: 🟢 efectiva ≥ salida · 🟡 menor que la salida pero ≥150 ppp · 🟠 100–149 ppp · 🔴 <100 ppp · vectores y textos: sin límite.", "La ampliación por interpolación NO recupera detalle.", ""];
+  for (const P2 of R.piezas){ L.push(`== ${P2.t.toUpperCase()} · ${P2.cm[0]} × ${P2.cm[1]} cm → ${P2.px[0]} × ${P2.px[1]} px`);
+    if (!P2.elementos.length) L.push("   (solo color de fondo)");
+    for (const q of P2.elementos) L.push(`   ${ST_EST[q.estado][0]} ${q.nombre} | ${ST_ORIGEN[q.origen] ? ST_ORIGEN[q.origen][0] : ""} | original ${q.pxOrig ? q.pxOrig.join("×") + " px" : q.clase} | impreso ${q.cm ? q.cm.filter(x => x != null).join(" × ") + " cm" : "—"} | efectiva ${q.ef != null ? q.ef + " ppp" : "sin límite"} | salida ${R.salida} ppp | ${q.factor ? "factor ×" + q.factor.toFixed(2) : "—"} | ${q.nota}`);
+    L.push(""); }
+  return L.join("\n");
+}
+function stReporteCSV(R){
+  const q2 = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`, L = [["Pieza","Pieza cm","Pieza px","Elemento","Procedencia","Clase","Px originales","Impreso cm","PPP efectiva","PPP salida","Factor","Estado","Nota"].join(",")];
+  for (const P2 of R.piezas) for (const q of (P2.elementos.length ? P2.elementos : [null]))
+    L.push([P2.t, P2.cm.join(" x "), P2.px.join(" x "), q ? q.nombre : "(solo fondo)", q && ST_ORIGEN[q.origen] ? ST_ORIGEN[q.origen][0] : "", q ? q.clase : "", q && q.pxOrig ? q.pxOrig.join(" x ") : "", q && q.cm ? q.cm.filter(x => x != null).join(" x ") : "",
+      q && q.ef != null ? q.ef : q ? "sin limite" : "", R.salida, q && q.factor ? q.factor.toFixed(2) : "", q ? ST_EST[q.estado][1] : "", q ? q.nota : ""].map(q2).join(","));
+  return "﻿" + L.join("\n");
+}
+
+/* ---------- PNG por franjas: cualquier tamaño (300 ppp en piezas grandes) sin rebasar los límites del navegador ---------- */
+const _crcT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function stCrc(bufs){ let c = 0xFFFFFFFF; for (const b of bufs) for (let i = 0; i < b.length; i++) c = _crcT[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function stChunk(tipo, datos){ const t = new TextEncoder().encode(tipo), L = new Uint8Array(4), C = new Uint8Array(4); new DataView(L.buffer).setUint32(0, datos.length); new DataView(C.buffer).setUint32(0, stCrc([t, datos])); return [L, t, datos, C]; }
+async function stPNGFranjas(st, T, P, k, ppp, op = {}, avance){
+  if (typeof CompressionStream === "undefined") throw new Error("Este navegador no puede generar archivos grandes (falta CompressionStream). Actualiza Chrome o Safari.");
+  const [W, H] = stPxPieza(P, ppp), k2 = ppp / 72, alfa = !!op.silueta, bpp = alfa ? 4 : 3, S = st.piezas[k], E = new Map(T.elementos.map(e => [e.id, e]));
+  for (const c of S.capas){ const e = c.eid && E.get(c.eid); if (e) await dspImg(stFuente(e)); }   // originales en memoria antes de empezar
+  const filas = Math.max(8, Math.min(H, Math.floor(8e6 / W)));
+  const cs = new CompressionStream("deflate"), wr = cs.writable.getWriter(), partes = [];
+  const lector = (async () => { const r = cs.readable.getReader(); for (;;){ const { done, value } = await r.read(); if (done) break; partes.push(value); } })();
+  let prev = new Uint8Array(W * bpp), cv = document.createElement("canvas");
+  for (let y0 = 0; y0 < H; y0 += filas){
+    const h = Math.min(filas, H - y0); cv.width = W; cv.height = h;
+    const g = cv.getContext("2d", { willReadFrequently: true }); g.setTransform(1, 0, 0, 1, 0, -y0); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+    g.fillStyle = S.fondo || "#FFFFFF"; g.fillRect(0, y0, W, h);
+    for (const c of S.capas) await stDibujarCapa(g, c, P, E, k2, op.muestra, true);
+    if (alfa && P.d){ g.globalCompositeOperation = "destination-in"; g.setTransform(k2, 0, 0, k2, 0, -y0); g.fill(new Path2D(P.d)); g.globalCompositeOperation = "source-over"; }
+    const d = g.getImageData(0, 0, W, h).data, out = new Uint8Array(h * (1 + W * bpp));
+    for (let r = 0, o = 0, i = 0; r < h; r++){ out[o++] = 2;   // filtro "Up" (comprime mejor)
+      for (let x = 0, j = 0; x < W; x++, i += 4){ const R2 = d[i], G2 = d[i + 1], B2 = d[i + 2]; out[o++] = (R2 - prev[j]) & 255; prev[j++] = R2; out[o++] = (G2 - prev[j]) & 255; prev[j++] = G2; out[o++] = (B2 - prev[j]) & 255; prev[j++] = B2;
+        if (alfa){ const A2 = d[i + 3]; out[o++] = (A2 - prev[j]) & 255; prev[j++] = A2; } } }
+    await wr.write(out); if (avance) avance((y0 + h) / H);
+  }
+  await wr.close(); await lector;
+  const ihdr = new Uint8Array(13), dv = new DataView(ihdr.buffer); dv.setUint32(0, W); dv.setUint32(4, H); ihdr[8] = 8; ihdr[9] = alfa ? 6 : 2;
+  const phys = new Uint8Array(9), dp = new DataView(phys.buffer), ppm = Math.round(ppp / .0254); dp.setUint32(0, ppm); dp.setUint32(4, ppm); phys[8] = 1;
+  const blobs = [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), ...stChunk("IHDR", ihdr), ...stChunk("pHYs", phys)];
+  let lote = [], tam = 0; const soltar = () => { if (!tam) return; const u = new Uint8Array(tam); let o = 0; for (const x of lote){ u.set(x, o); o += x.length; } blobs.push(...stChunk("IDAT", u)); lote = []; tam = 0; };
+  for (const x of partes){ lote.push(x); tam += x.length; if (tam >= 4 << 20) soltar(); } soltar();
+  blobs.push(...stChunk("IEND", new Uint8Array(0)));
+  return new Blob(blobs, { type: "image/png" });
+}
+/* lee ancho, alto y ppp de un PNG (para comprobar lo exportado) */
+async function stLeerPNG(blob){ const b = new Uint8Array(await blob.slice(0, 4096).arrayBuffer()), dv = new DataView(b.buffer); let i = 8, out = {};
+  while (i + 8 < b.length){ const L = dv.getUint32(i), t = String.fromCharCode(...b.slice(i + 4, i + 8));
+    if (t === "IHDR"){ out.w = dv.getUint32(i + 8); out.h = dv.getUint32(i + 12); out.color = b[i + 17]; }
+    if (t === "pHYs"){ out.ppp = Math.round(dv.getUint32(i + 8) * .0254 * 100) / 100; out.unidad = b[i + 16]; }
+    if (t === "IDAT") break; i += 12 + L; }
+  return out; }
+
+/* ---------- subir ORIGINALES sin reducir (directo a Vercel Blob con permiso de un solo uso; SVG limpiado por el servidor) ---------- */
+let _stBC = null;
+const stBlobCliente = () => _stBC || (_stBC = import(new URL("blobcliente.js", location.href).href));
+const stEsSVG = f => /svg/i.test(f.type || "") || /\.svg$/i.test(f.name || "");
+async function stMedidas(file){ try { const b = await createImageBitmap(file); const r = [b.width, b.height]; b.close && b.close(); return r; } catch(e){ return [0, 0]; } }
+async function stSubirOriginal(file, folio, avance, clase){
+  if (!VT.nube.enLinea()) throw new Error("Los originales se guardan solo con la base de datos conectada.");
+  if (stEsSVG(file)){ const r = await VT.nube.ia("svg_subir", { svg: await file.text(), folio }); return { ref: r.ref, w: r.w, h: r.h, tipo: r.tipo, bytes: r.bytes, vector: true, quitado: r.quitado }; }
+  const tipo = file.type === "image/jpg" ? "image/jpeg" : file.type, [w, h] = await stMedidas(file);
+  const tk = await VT.nube.ia("orig_token", { tipo, bytes: file.size, folio, clase: clase === "edicion" ? "edicion" : "original" });
+  if (tk.modo === "directo"){ const { put } = await stBlobCliente();
+    await put(tk.pathname, file, { access: tk.access, token: tk.clientToken, contentType: tipo, multipart: file.size > 8 * 1048576, onUploadProgress: avance ? ev => avance(ev.percentage / 100) : undefined }); }
+  else { const data = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(file); }); await VT.nube.ia("orig_subir_local", { pathname: tk.pathname, data }); }
+  const r = await VT.nube.ia("orig_registrar", { pathname: tk.pathname, folio, w, h });
+  return { ref: r.ref, w: r.w, h: r.h, tipo: r.tipo, bytes: r.bytes };
+}
+/* vista previa de un SVG: PNG de hasta 2400 px (la que usan el editor, el PDF y el ajustador, igual que con cualquier imagen); el vector queda en e.orig para exportar */
+async function stVistaSVG(ref){ const im = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error("No se pudo leer el SVG")); i.src = ref; });
+  const w0 = im.naturalWidth || 1000, h0 = im.naturalHeight || 1000, r = 2400 / Math.max(w0, h0), c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w0 * r)); c.height = Math.max(1, Math.round(h0 * r));
+  c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); const b = await new Promise(ok => c.toBlob(ok, "image/png")); return tlLeer(new File([b], "vista.png", { type: "image/png" })); }
+/* originales que ya nadie usa: se borran (solo los registrados como originales) */
+function stBorrarOriginales(refs){ refs = refs.filter(Boolean); if (!refs.length || !VT.nube.enLinea()) return; VT.nube.ia("orig_borrar", { refs }).catch(() => {}); }
+/* tamaño del patrón por omisión calculado con el ORIGINAL (se fija al subirlo, así editor, PDF y exportación coinciden) */
+const stTileDeOriginal = w => Math.max(6, Math.min(35, Math.round(w / ST_PPP_OK * 2.54 * 10) / 10));
+
+/* ---------- validaciones (antes de exportar) y resolución de cada capa ---------- */
+async function stResolucion(c, P, E){
+  const e = c.eid && E.get(c.eid); if (!e) return null; const im = await dspImg(e.src); if (!im) return null;
+  if (c.tipo === "tex") return stPPP(im.width, stTile(e, im));
+  if (c.tipo === "img") return stPPP(im.width, c.w * P.w / DSP_CM);
+  return null;
+}
+async function stValidar(st, T, b){
+  const E = new Map(T.elementos.map(e => [e.id, e])), out = [];
+  for (const [k, t] of ST_PZ){ if (k === "cuello") continue; const S = st.piezas[k], P = b.m[k], vis = S.capas.filter(c => c.visible);
+    if (!vis.length && (S.fondo || "#FFFFFF").toUpperCase() === "#FFFFFF") out.push({ n: "mal", t: `${t}: la pieza está vacía.` });
+    if (S.sinReferencia) out.push({ n: "aviso", t: `${t}: diseñada a partir del frente (el mockup no muestra la espalda).` });
+    for (const c of vis){ const nom = c.tipo === "texto" ? stTextoDe(c) : (E.get(c.eid) || {}).nombre || "Elemento";
+      if (c.eid && (!E.get(c.eid) || !E.get(c.eid).src)){ out.push({ n: "mal", t: `${t}: falta la imagen de "${nom}".` }); continue; }
+      const q = await stCalidadCapa(c, P, E, stSalida(st)); if (q.estado === "rojo") out.push({ n: "mal", t: `${t}: "${nom}" queda a ${q.ef} ppp: insuficiente.` });
+      else if (q.estado === "naranja" || q.estado === "amarillo") out.push({ n: "aviso", t: `${t}: "${nom}" queda a ${q.ef} ppp (salida ${stSalida(st)}): ${q.estado === "naranja" ? "baja" : "aceptable"}, interpolado, no recupera detalle.` });
+      if (c.tipo !== "tex"){ const B = await stCaja(c, P, E); if (B){ const r = B.crudo, area = (r.x1 - r.x0) * (r.y1 - r.y0), dentro = Math.max(0, B.x1 - B.x0) * Math.max(0, B.y1 - B.y0);
+        if (B.x1 <= B.x0 || B.y1 <= B.y0) out.push({ n: "mal", t: `${t}: "${nom}" está fuera de la pieza.` });
+        else if (dentro < area * .97) out.push({ n: "aviso", t: `${t}: "${nom}" se sale ${Math.round((1 - dentro / area) * 100)} % del borde de la pieza (esa parte no se imprime).` }); } } } }
+  return out;
+}
+
+/* ---------- PNG con su tamaño real (chunk pHYs) ---------- */
+async function stPNG(cv, ppc){
+  const b = await new Promise(ok => cv.toBlob(ok, "image/png")), buf = new Uint8Array(await b.arrayBuffer()), ppm = Math.round(ppc * 100);
+  const ch = new Uint8Array(21), dv = new DataView(ch.buffer); dv.setUint32(0, 9); ch.set([112, 72, 89, 115], 4); dv.setUint32(8, ppm); dv.setUint32(12, ppm); ch[16] = 1;
+  let crc = -1; for (let i = 4; i < 17; i++){ crc ^= ch[i]; for (let j = 0; j < 8; j++) crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1)); } dv.setUint32(17, (crc ^ -1) >>> 0);
+  const out = new Uint8Array(buf.length + 21); out.set(buf.subarray(0, 33)); out.set(ch, 33); out.set(buf.subarray(33), 54);
+  return new Blob([out], { type: "image/png" });
+}
+const stEsSafari = () => /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+const stMaxPpc = P => { const lim = stEsSafari() ? 16e6 : 60e6; return Math.floor(Math.sqrt(lim / ((P.w / DSP_CM) * (P.h / DSP_CM)))); };
+const stDescargar = (blob, nombre) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
+
+/* ---------- PDF sin molde para el ajustador (mismo formato que ya usa) a partir de las capas ---------- */
+async function stSub(st, T, item){
+  const b = dspBase(item), E = new Map(T.elementos.map(e => [e.id, e])), piezas = {};
+  for (const [k] of ST_PZ){ const P = b.m[k]; if (!P) continue; const S = st.piezas[k], els = [];
+    if (k !== "cuello") for (const c of S.capas){ if (!c.visible || c.tipo === "texto" && c.var) continue;
+      /* cada capa a su propia resolución (texturas 60 px/cm, imágenes hasta 120), recortada a la pieza */
+      const e = c.eid && E.get(c.eid), im = e && await dspImg(e.src);
+      const ppc = c.tipo === "tex" ? Math.max(20, Math.min(60, im ? im.width / stTile(e, im) : 40)) : c.tipo === "img" && im ? Math.max(20, Math.min(120, im.width / (c.w * P.w / DSP_CM))) : 80;
+      const full = await stPintarCapaSola(c, P, E, ppc); if (full) els.push({ tipo: c.tipo === "tex" ? "fondo" : "logo", nombre: e ? e.nombre : stTextoDe(c), ...full }); }
+    piezas[k] = { w: P.w, h: P.h, fondo: { color: S.fondo || "#FFFFFF" }, els };
+  }
+  if (piezas.cuello) piezas.cuello.fondo = { color: st.piezas.cuello.fondo || st.cuello || "#111111" };
+  return { modelo: dspKey(item), modeloTxt: b.nombre, tallaApp: b.app, tallaBase: b.molde, piezas, larga: dspLarga(item) };
+}
+/* caja de la capa (en pt de la pieza), ya girada */
+async function stCaja(c, P, E){
+  const e = c.eid && E.get(c.eid), a = (c.angle || 0) * Math.PI / 180; let W, H, cx = c.cx * P.w, cy = c.cy * P.h;
+  if (c.tipo === "img"){ const im = e && await dspImg(e.src); if (!im) return null; W = c.w * P.w; H = W * im.height / im.width; }
+  else if (c.tipo === "tex"){ W = c.w * P.w; H = c.h * P.h; }
+  else { const F = PERS_F[c.fuente] || ["Arial", 700], fs = (c.tam || 4) * DSP_CM / .72; try { await persFuente(c.fuente); } catch(x){}
+    _pctx.font = `${F[1]} ${fs}px "${F[0]}", Arial`; W = _pctx.measureText(stTextoDe(c)).width + 2 * (c.bordeCm || 0) * DSP_CM + 4; H = fs * 1.4 + 2 * (c.bordeCm || 0) * DSP_CM;
+    const dx = (c.align === "left" ? W / 2 : c.align === "right" ? -W / 2 : 0); cx += dx * Math.cos(a); cy += dx * Math.sin(a); }
+  const ex = Math.abs(W / 2 * Math.cos(a)) + Math.abs(H / 2 * Math.sin(a)), ey = Math.abs(W / 2 * Math.sin(a)) + Math.abs(H / 2 * Math.cos(a));
+  return { x0: Math.max(0, cx - ex), y0: Math.max(0, cy - ey), x1: Math.min(P.w, cx + ex), y1: Math.min(P.h, cy + ey), crudo: { x0: cx - ex, y0: cy - ey, x1: cx + ex, y1: cy + ey } };
+}
+async function stPintarCapaSola(c, P, E, ppc){
+  const B = await stCaja(c, P, E); if (!B || B.x1 - B.x0 < .5 || B.y1 - B.y0 < .5) return null;
+  const k2 = ppc / DSP_CM, cv = document.createElement("canvas"); cv.width = Math.max(1, Math.round((B.x1 - B.x0) * k2)); cv.height = Math.max(1, Math.round((B.y1 - B.y0) * k2));
+  const g = cv.getContext("2d"); g.translate(-B.x0 * k2, -B.y0 * k2); await stDibujarCapa(g, c, P, E, k2, true);
+  const opaco = c.tipo === "tex" && !(c.angle % 360) && (c.opacity == null || c.opacity >= 1);
+  return { x: B.x0, y: B.y0, w: B.x1 - B.x0, h: B.y1 - B.y0, src: cv.toDataURL(opaco ? "image/jpeg" : "image/png", .92) };
+}
+
+/* =====================================================================
+   EDITOR
+   ===================================================================== */
+const STU = { k: "frente", item: 0, z: 1, sel: null, regla: true, rejilla: false, modo: "mover", hist: [], rehacer: [] };
+async function stAbrir(id, v, G){
+  try { await Promise.all([dspDatos(), stCargar(ST_FAB)]); } catch(e){ return toast("No se pudo cargar el editor. Revisa tu internet.", true); }
+  const folio = v.folio, frente = G.ref.frente;
+  const X = () => tlVigente(folio, frente), T = () => X().t, item = () => G.items[Math.min(STU.item, G.items.length - 1)], b = () => dspBase(item());
+  await Promise.all(T().elementos.filter(e => e.src).map(e => dspImg(e.src)));
+  if (!T().studio){ T().studio = await stNuevo(T(), item()); log(X().v, "VITUMA STUDIO: proyecto creado", ""); save(); }
+  const st = () => T().studio, E = () => new Map(T().elementos.map(e => [e.id, e]));
+  Object.assign(STU, { k: "frente", item: 0, z: 1, sel: null, modo: "mover", hist: [JSON.stringify(st())], rehacer: [] });
+  let ov = $("#stOv"); if (!ov){ ov = document.createElement("div"); ov.id = "stOv"; document.body.appendChild(ov); }
+  ov.style.display = "flex"; document.body.style.overflow = "hidden";
+  let cv = null, guardT = null, pad = 30, s = 1, mk = null, fuera = null;
+  const guardar = () => { clearTimeout(guardT); st().actualizado = new Date().toISOString(); st().por = SES.nombre; guardT = setTimeout(save, 600); };
+  const commit = () => { const j = JSON.stringify(st()); if (STU.hist[STU.hist.length - 1] !== j){ STU.hist.push(j); if (STU.hist.length > 80) STU.hist.shift(); STU.rehacer = []; } guardar(); botones(); };
+  const restaurarJSON = j => { T().studio = JSON.parse(j); guardar(); render(); };
+  const P = () => b().m[STU.k], S = () => st().piezas[STU.k];
+  const capa = id => S().capas.find(c => c.id === id);
+  const cm = pt => Math.round(pt / DSP_CM * 10) / 10;
+
+  /* ----- estructura de la pantalla ----- */
+  ov.innerHTML = `
+    <div class="stTop"><div class="stLogo"><b>VITUMA STUDIO</b><span>Transforma tus mockups en diseños listos para sublimación</span></div>
+      <div class="stInfo" id="stInfo"></div><span style="flex:1"></span>
+      <button class="stB" id="stUndo" title="Deshacer (Ctrl+Z)">↶</button><button class="stB" id="stRedo" title="Rehacer (Ctrl+Y)">↷</button>
+      <span class="stSep"></span><button class="stB" id="stZm" title="Alejar">−</button><span id="stZv" class="stZv">100%</span><button class="stB" id="stZp" title="Acercar">+</button><button class="stB" id="stZf" title="Ajustar a la pantalla">⤢</button>
+      <span class="stSep"></span><label class="stSal" title="Resolución de salida del proyecto (no cambia los moldes ni las medidas)">Salida <select id="stSal">${ST_SALIDAS.map(n => `<option value="${n}">${n} ppp</option>`).join("")}</select></label><button class="stB" id="stCal">📊 Calidad</button>
+      <span class="stSep"></span><button class="stB" id="stVer">🕘 Versiones</button><button class="stB pri" id="stGV">💾 Guardar versión</button><button class="stB pri" id="stExp">⬇ Exportar</button><button class="stB" id="stX">Cerrar</button></div>
+    <div class="stMain">
+      <div class="stTools" id="stTools">
+        <button data-t="mover" title="Mover, escalar y rotar (V)">🖐</button>
+        <button data-t="rect" title="Selección rectangular en el mockup">⬚</button>
+        <button data-t="poli" title="Selección poligonal en el mockup">⬠</button>
+        <span></span>
+        <button data-a="texto" title="Texto fijo">T</button>
+        <button data-a="nombre" title="Nombre variable">N</button>
+        <button data-a="numero" title="Número variable">#</button>
+        <button data-a="imagen" title="Insertar imagen">🖼</button>
+        <button data-a="editar" title="Recortar, borrador y quitar fondo del elemento elegido">✂</button>
+        <span></span>
+        <button data-a="regla" title="Reglas">📏</button>
+        <button data-a="rejilla" title="Cuadrícula">▦</button>
+        <input type="file" id="stImgF" accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg" hidden>
+      </div>
+      <div class="stCenter">
+        <div class="stTabs" id="stTabs"></div>
+        <div class="stAviso" id="stAviso"></div>
+        <div class="stStage"><canvas class="stRul h" id="stRH"></canvas><canvas class="stRul v" id="stRV"></canvas><div class="stScroll" id="stScroll"><canvas id="stCv"></canvas></div></div>
+        <div class="stBar" id="stBar"></div>
+      </div>
+      <div class="stSide"><div class="stPanel"><h4>Capas</h4><div id="stCapas"></div></div><div class="stPanel" id="stProp"></div><div class="stPanel"><h4>Elementos</h4><div id="stLib"></div></div></div>
+    </div><div id="stModal"></div>`;
+  const cerrar = () => { clearTimeout(guardT); save(); document.removeEventListener("keydown", teclas); window.removeEventListener("resize", ajustar); if (cv){ cv.dispose(); cv = null; } ov.style.display = "none"; document.body.style.overflow = ""; abrirOT(id); };
+  $("#stX").onclick = cerrar;
+
+  /* ----- cabecera: modelo y talla ----- */
+  const info = () => { $("#stInfo").innerHTML = `<span>${esc(folio)} · ${esc(X().v.cliente.nombre)}</span>
+    ${G.items.length > 1 ? `<select id="stItem">${G.items.map((x, n) => `<option value="${n}"${n === STU.item ? " selected" : ""}>${esc(x.modelo)}</option>`).join("")}</select>` : `<span>${esc(item().modelo)}</span>`}
+    <span class="stDim">Molde ${esc(b().nombre)} · talla <b>${b().molde}</b> (la más grande del pedido)</span>`;
+    const si = $("#stItem"); if (si) si.onchange = () => { STU.item = +si.value; info(); render(); }; };
+
+  /* ----- pestañas: mockup, piezas, vista general ----- */
+  const tabs = () => { $("#stTabs").innerHTML = [["mockup", "MOCKUP"], ...ST_PZ.map(([k, t]) => [k, t.toUpperCase()]), ["general", "VISTA GENERAL"]]
+      .map(([k, t]) => `<button class="${STU.k === k ? "on" : ""}" data-k="${k}">${t}</button>`).join("");
+    $("#stTabs").querySelectorAll("button").forEach(x => x.onclick = () => { STU.k = x.dataset.k; STU.sel = null; if (STU.k !== "mockup" && STU.modo !== "mover") STU.modo = "mover"; render(); }); };
+
+  /* ----- lienzo ----- */
+  const ajustar = () => render();
+  function tamLienzo(Pw, Ph){ const sc = $("#stScroll"), fit = Math.min((sc.clientWidth - 2 * pad) / Pw, (sc.clientHeight - 2 * pad) / Ph); s = fit * STU.z;
+    return [Math.round(Pw * s + 2 * pad), Math.round(Ph * s + 2 * pad)]; }
+  function nuevoCanvas(W, H){ if (cv){ cv.dispose(); } const el = document.createElement("canvas"); el.id = "stCv"; $("#stScroll").innerHTML = ""; $("#stScroll").appendChild(el);
+    cv = new fabric.Canvas(el, { width: W, height: H, preserveObjectStacking: true, selection: false, backgroundColor: "#2B2F36", uniformScaling: true, enableRetinaScaling: true });
+    return cv; }
+  async function render(){
+    tabs(); info(); botones(); $("#stAviso").innerHTML = ""; $("#stBar").innerHTML = "";
+    if (STU.k === "mockup") return renderMockup();
+    if (STU.k === "general") return renderGeneral();
+    const p = P(), [W, H] = tamLienzo(p.w, p.h); nuevoCanvas(W, H);
+    if (S().sinReferencia) $("#stAviso").innerHTML = `⚠️ Esta pieza se diseñó a partir del frente: el mockup del cliente no muestra la espalda. Revísala antes de autorizar.`;
+    const Em = E();
+    cv.add(new fabric.Rect({ left: pad, top: pad, width: p.w * s, height: p.h * s, fill: S().fondo || "#FFFFFF", selectable: false, evented: false, stFondo: true, strokeWidth: 0 }));
+    fuera = null;
+    if (p.d){ const dpr = window.devicePixelRatio || 1; fuera = document.createElement("canvas"); fuera.width = W * dpr; fuera.height = H * dpr; const f = fuera.getContext("2d");
+      f.setTransform(dpr, 0, 0, dpr, 0, 0); f.fillStyle = "rgba(43,47,54,.84)"; f.fillRect(pad, pad, p.w * s, p.h * s);
+      f.save(); f.beginPath(); f.rect(pad, pad, p.w * s, p.h * s); f.clip(); f.strokeStyle = "rgba(255,255,255,.09)"; f.lineWidth = 6;
+      for (let d = -p.h * s; d < p.w * s; d += 16){ f.beginPath(); f.moveTo(pad + d, pad); f.lineTo(pad + d + p.h * s, pad + p.h * s); f.stroke(); } f.restore();
+      f.setTransform(dpr * s, 0, 0, dpr * s, dpr * pad, dpr * pad); f.globalCompositeOperation = "destination-out"; f.fill(new Path2D(p.d)); }
+    for (const c of S().capas){ const o = await objDe(c, Em); if (o) cv.add(o); }
+    cv.on("after:render", decorar);
+    cv.on("object:modified", ev => { leer(ev.target); commit(); panel(); });
+    cv.on("selection:created", ev => { STU.sel = ev.selected[0] && ev.selected[0].cid; panel(); });
+    cv.on("selection:updated", ev => { STU.sel = ev.selected[0] && ev.selected[0].cid; panel(); });
+    cv.on("selection:cleared", () => { STU.sel = null; panel(); });
+    if (STU.sel){ const o = cv.getObjects().find(x => x.cid === STU.sel); if (o) cv.setActiveObject(o); }
+    cv.requestRenderAll(); reglas(); panel();
+    $("#stBar").innerHTML = `Pieza de ${cm(p.w)} × ${cm(p.h)} cm · fondo <input type="color" id="stFondo" value="${S().fondo || "#FFFFFF"}"> <button class="stL" id="stFondoT">usar en todas las piezas</button>`;
+    $("#stFondo").oninput = x => { S().fondo = x.target.value; const r = cv.getObjects().find(o => o.stFondo); if (r){ r.set("fill", S().fondo); cv.requestRenderAll(); } }; $("#stFondo").onchange = () => commit();
+    $("#stFondoT").onclick = () => { ST_PZ.forEach(([k]) => { if (k !== "cuello") st().piezas[k].fondo = S().fondo; }); commit(); toast("Fondo aplicado a todas las piezas"); };
+  }
+  /* fondo, cuadrícula, silueta del molde (lo que queda fuera en gris) */
+  function decorar(){
+    const g = cv.getContext(), p = P(), dpr = cv.getRetinaScaling ? cv.getRetinaScaling() : 1;
+    g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (STU.rejilla){ const paso = (s * DSP_CM * 5 < 25 ? 10 : 5); g.strokeStyle = "rgba(255,255,255,.18)"; g.lineWidth = 1; g.beginPath();
+      for (let x = 0; x <= p.w / DSP_CM; x += paso){ const X = pad + x * DSP_CM * s; g.moveTo(X, pad); g.lineTo(X, pad + p.h * s); }
+      for (let y = 0; y <= p.h / DSP_CM; y += paso){ const Y = pad + y * DSP_CM * s; g.moveTo(pad, Y); g.lineTo(pad + p.w * s, Y); } g.stroke(); }
+    if (p.d && fuera){ g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(fuera, 0, 0); g.restore();
+      g.save(); g.setTransform(dpr * s, 0, 0, dpr * s, dpr * pad, dpr * pad); g.strokeStyle = "#FF8A3D"; g.lineWidth = 1.5 / s; g.stroke(new Path2D(p.d)); g.restore(); }
+    g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 1; g.strokeRect(pad, pad, p.w * s, p.h * s); g.restore();
+  }
+  const TexClase = fabric.util.createClass(fabric.Rect, { type: "stTex", objectCaching: false,
+    _render(ctx){ const im = this.stIm; if (!im) return fabric.Rect.prototype._render.call(this, ctx);
+      const sc = this.stTile / im.width, pat = ctx.createPattern(im, "repeat"), M = new DOMMatrix(this.calcTransformMatrix()).inverse().multiply(new DOMMatrix([sc, 0, 0, sc, pad, pad]));
+      pat.setTransform(M); ctx.fillStyle = pat; ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height); } });
+  async function objDe(c, Em){
+    const p = P(), e = c.eid ? Em.get(c.eid) : null, comun = { originX: "center", originY: "center", left: pad + c.cx * p.w * s, top: pad + c.cy * p.h * s, angle: c.angle || 0,
+      opacity: c.opacity == null ? 1 : c.opacity, visible: c.visible !== false, selectable: !c.locked, evented: !c.locked, cornerColor: "#FF8A3D", borderColor: "#FF8A3D", cornerSize: 10, transparentCorners: false };
+    let o = null;
+    if (c.tipo === "img"){ const im = e && await dspImg(e.src); if (!im) return null; const sc = c.w * p.w * s / im.width;
+      o = new fabric.Image(im, { ...comun, scaleX: sc, scaleY: sc, flipX: !!c.fx }); o.setControlsVisibility({ ml: false, mr: false, mt: false, mb: false }); }
+    else if (c.tipo === "tex"){ const im = e && await dspImg(e.src); if (!im) return null;
+      o = new TexClase({ ...comun, width: c.w * p.w * s, height: c.h * p.h * s, fill: "#555", strokeWidth: 0 }); o.stIm = im; o.stTile = stTile(e, im) * DSP_CM * s; }
+    else if (c.tipo === "texto"){ const F = PERS_F[c.fuente] || ["Arial", 700]; try { await persFuente(c.fuente); } catch(x){}
+      o = new fabric.Text(stTextoDe(c), { ...comun, originX: c.align || "center", fontFamily: F[0], fontWeight: F[1], fontSize: (c.tam || 4) * DSP_CM * s / .72, fill: c.color || "#FFFFFF",
+        stroke: c.borde && c.bordeCm > 0 ? c.borde : null, strokeWidth: c.borde && c.bordeCm > 0 ? c.bordeCm * DSP_CM * s * 2 : 0, paintFirst: "stroke", strokeLineJoin: "round", textAlign: c.align || "center" });
+      o.setControlsVisibility({ ml: false, mr: false, mt: false, mb: false }); }
+    if (o) o.cid = c.id; return o;
+  }
+  /* del objeto del lienzo al proyecto */
+  function leer(o){ const c = capa(o.cid), p = P(); if (!c) return;
+    c.cx = (o.left - pad) / (p.w * s); c.cy = (o.top - pad) / (p.h * s); c.angle = Math.round((o.angle || 0) * 10) / 10;
+    if (c.tipo === "img"){ c.w = o.width * o.scaleX / (p.w * s); c.fx = !!o.flipX; }
+    if (c.tipo === "tex"){ c.w = o.width * o.scaleX / (p.w * s); c.h = o.height * o.scaleY / (p.h * s); o.set({ width: o.width * o.scaleX, height: o.height * o.scaleY, scaleX: 1, scaleY: 1 }); o.setCoords(); }
+    if (c.tipo === "texto"){ c.tam = Math.round((c.tam || 4) * o.scaleY * 10) / 10; o.set({ fontSize: c.tam * DSP_CM * s / .72, scaleX: 1, scaleY: 1 }); o.setCoords(); }
+  }
+  /* ----- reglas en cm ----- */
+  function reglas(){
+    const rh = $("#stRH"), rv = $("#stRV"), sc = $("#stScroll"); if (!rh) return;
+    [rh, rv].forEach(r => r.style.display = STU.regla && STU.k !== "mockup" && STU.k !== "general" ? "" : "none"); if (!STU.regla || STU.k === "mockup" || STU.k === "general") return;
+    const dpr = window.devicePixelRatio || 1, p = P(); rh.width = sc.clientWidth * dpr; rh.height = 20 * dpr; rv.width = 20 * dpr; rv.height = sc.clientHeight * dpr;
+    const dib = (r, horiz) => { const g = r.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = "#1E2126"; g.fillRect(0, 0, r.width, r.height); g.fillStyle = "#9AA3AF"; g.strokeStyle = "#5B6470"; g.font = "10px Arial";
+      const off = (horiz ? sc.scrollLeft : sc.scrollTop) - pad, L = horiz ? sc.clientWidth : sc.clientHeight, paso = s * DSP_CM, max = (horiz ? p.w : p.h) / DSP_CM;
+      for (let c = 0; c <= max; c++){ const z = c * paso - off; if (z < 0 || z > L) continue; const largo = c % 10 === 0 ? 14 : c % 5 === 0 ? 9 : 5; if (paso < 4 && c % 5) continue;
+        g.beginPath(); if (horiz){ g.moveTo(z + .5, 20); g.lineTo(z + .5, 20 - largo); } else { g.moveTo(20, z + .5); g.lineTo(20 - largo, z + .5); } g.stroke();
+        if (c % 10 === 0 || (paso > 12 && c % 5 === 0)){ if (horiz) g.fillText(c, z + 2, 9); else { g.save(); g.translate(9, z + 2); g.rotate(-Math.PI / 2); g.fillText(c, -12, 0); g.restore(); } } } };
+    dib(rh, true); dib(rv, false);
+  }
+  $("#stScroll").onscroll = reglas;
+
+  /* ----- panel de capas ----- */
+  async function panel(){
+    if (STU.k === "mockup" || STU.k === "general"){ $("#stCapas").innerHTML = `<div class="stMuted">Elige una pieza para ver sus capas.</div>`; $("#stProp").innerHTML = ""; lib(); return; }
+    const Em = E(), p = P(), L = [...S().capas].reverse();
+    const filas = await Promise.all(L.map(async c => { const e = c.eid && Em.get(c.eid), or = c.tipo === "texto" ? (c.var ? "variable" : "manual") : stOrigenDe(e);
+      const q = await stCalidadCapa(c, p, Em, stSalida(st())), nv = q.estado;
+      return `<div class="stCapa${STU.sel === c.id ? " on" : ""}" data-c="${c.id}">
+        ${c.tipo === "texto" ? `<span class="stTh t">${c.var === "numero" ? "#" : "T"}</span>` : `<img class="stTh" src="${e ? e.src : ""}" alt="">`}
+        <div class="stCn"><b>${esc(c.tipo === "texto" ? (c.var ? (c.var === "nombre" ? "Nombre (variable)" : "Número (variable)") : stTextoDe(c)) : e ? e.nombre : "Elemento")}</b>
+          <span><i style="background:${ST_ORIGEN[or][1]}"></i>${ST_ORIGEN[or][0]}${e && e.editado ? " · editado" : ""}${nv === "vector" ? ` · <em class="ok">vector</em>` : ` · <em class="${nv}">${ST_EST[nv][0]} ${q.ef != null ? q.ef + " ppp" : ""}</em>`}</span></div>
+        <button data-ojo="${c.id}" title="Ocultar o mostrar">${c.visible === false ? "🚫" : "👁"}</button><button data-lock="${c.id}" title="Bloquear">${c.locked ? "🔒" : "🔓"}</button></div>`; }));
+    $("#stCapas").innerHTML = filas.join("") || `<div class="stMuted">Pieza sin capas. Agrega elementos desde la lista de abajo.</div>`;
+    $("#stCapas").querySelectorAll(".stCapa").forEach(x => x.onclick = ev => { if (ev.target.closest("button")) return; const o = cv.getObjects().find(q => q.cid === x.dataset.c);
+      STU.sel = x.dataset.c; if (o && o.selectable) cv.setActiveObject(o); cv.requestRenderAll(); panel(); });
+    $("#stCapas").querySelectorAll("[data-ojo]").forEach(x => x.onclick = () => { const c = capa(x.dataset.ojo); c.visible = c.visible === false; const o = cv.getObjects().find(q => q.cid === c.id); if (o){ o.visible = c.visible; if (!c.visible) cv.discardActiveObject(); } cv.requestRenderAll(); commit(); panel(); });
+    $("#stCapas").querySelectorAll("[data-lock]").forEach(x => x.onclick = () => { const c = capa(x.dataset.lock); c.locked = !c.locked; const o = cv.getObjects().find(q => q.cid === c.id); if (o){ o.selectable = o.evented = !c.locked; if (c.locked) cv.discardActiveObject(); } cv.requestRenderAll(); commit(); panel(); });
+    prop(); lib();
+  }
+  /* ----- propiedades de la capa elegida ----- */
+  async function prop(){
+    const c = STU.sel && capa(STU.sel), box = $("#stProp"); if (!c){ box.innerHTML = `<h4>Propiedades</h4><div class="stMuted">Toca una capa en la pieza o en la lista.</div>`; return; }
+    const p = P(), Em = E(), e = c.eid && Em.get(c.eid), im = e && await dspImg(e.src);
+    const W = c.tipo === "texto" ? null : c.w * p.w, H = c.tipo === "tex" ? c.h * p.h : c.tipo === "img" && im ? W * im.height / im.width : null;
+    const num = (idn, val, paso = .5) => `<input type="number" step="${paso}" id="${idn}" value="${val}">`;
+    box.innerHTML = `<h4>Propiedades</h4>
+      <div class="stG2"><label>X (cm) ${num("spX", cm(c.cx * p.w))}</label><label>Y (cm) ${num("spY", cm(c.cy * p.h))}</label>
+        ${W != null ? `<label>Ancho (cm) ${num("spW", cm(W))}</label>` : `<label>Alto letra (cm) ${num("spT", c.tam || 4)}</label>`}
+        ${c.tipo === "tex" ? `<label>Alto (cm) ${num("spH", cm(H))}</label>` : H != null ? `<label>Alto (cm) <input disabled value="${cm(H)}"></label>` : "<span></span>"}
+        <label>Rotación (°) ${num("spA", c.angle || 0, 1)}</label><label>Opacidad <input type="range" min="0" max="1" step=".05" id="spO" value="${c.opacity == null ? 1 : c.opacity}"></label></div>
+      ${c.tipo === "tex" ? `<label class="stRow">Tamaño del patrón (cm) ${num("spTile", stTile(e, im), 1)}</label><div class="stMuted">Se repite a escala real, alineada a la pieza.</div>` : ""}
+      ${c.tipo === "texto" ? `${c.var ? `<label class="stRow">Texto de muestra <input id="spMu" value="${esc(c.muestra || "")}" placeholder="${c.var === "nombre" ? "NOMBRE" : "10"}"></label><div class="stMuted">Es una variable: el ajustador pondrá el ${c.var === "numero" ? "número" : "nombre"} de cada camisa del pedido.</div>`
+          : `<label class="stRow">Texto <input id="spTx" value="${esc(c.texto || "")}"></label>`}
+        <div class="stG2"><label>Tipografía <select id="spF">${Object.keys(PERS_F).map(f => `<option${f === (c.fuente || "Arial") ? " selected" : ""}>${f}</option>`).join("")}</select></label>
+          <label>Alineación <select id="spAl">${[["left","Izquierda"],["center","Centro"],["right","Derecha"]].map(([v2, t]) => `<option value="${v2}"${(c.align || "center") === v2 ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+          <label>Color <input type="color" id="spC" value="${c.color || "#FFFFFF"}"></label><label>Contorno <input type="color" id="spB" value="${c.borde || "#000000"}"></label>
+          <label>Grosor contorno (cm) ${num("spBg", c.bordeCm || 0, .05)}</label></div>` : ""}
+      ${(q => `<div class="stPpp ${q.estado}"><b>${ST_EST[q.estado][0]} ${q.estado === "vector" ? "Vectorial, sin límite de resolución" : ST_EST[q.estado][1]}</b>
+        ${q.estado === "vector" ? "" : `<div>Original: <b>${q.pxOrig ? q.pxOrig.join(" × ") + " px" : "—"}</b>${q.fuenteOrig ? "" : " (vista previa: no hay original guardado)"}</div>
+        <div>Impreso: <b>${q.cm ? q.cm.join(" × ") + " cm" : "—"}</b>${q.extra ? " · " + esc(q.extra) : ""}</div>
+        <div>Efectiva: <b>${q.ef} ppp</b> · Salida: <b>${q.salida} ppp</b> · Factor: <b>×${q.factor.toFixed(2)}</b></div><div>${esc(q.nota)}</div>`}</div>`)(await stCalidadCapa(c, p, Em, stSalida(st())))}
+      <div class="stBtns"><button data-p="full">↔ Todo el ancho</button><button data-p="centro">⇹ Centrar</button>${c.tipo === "tex" ? `<button data-p="alto">⇕ Todo el alto</button>` : ""}${c.tipo === "img" ? `<button data-p="fx">⇋ Voltear</button>` : ""}
+        <button data-p="up">⬆ Subir</button><button data-p="down">⬇ Bajar</button><button data-p="dup">⧉ Duplicar</button>
+        ${STU.k.startsWith("manga") ? `<button data-p="espejo">Copiar a la otra manga</button>` : STU.k === "frente" || STU.k === "espalda" ? `<button data-p="otra">Copiar a ${STU.k === "frente" ? "espalda" : "frente"}</button>` : ""}
+        ${e && c.tipo !== "texto" ? `<button data-p="editar">✂ Editar imagen</button>` : ""}<button data-p="del" class="del">🗑 Eliminar</button></div>`;
+    const set = (idn, f) => { const el = $("#" + idn); if (el) el.onchange = () => { const n = parseFloat(el.value); if (isNaN(n)) return; f(n); commit(); render(); }; };
+    set("spX", n => c.cx = n * DSP_CM / p.w); set("spY", n => c.cy = n * DSP_CM / p.h); set("spW", n => c.w = Math.max(.005, n * DSP_CM / p.w)); set("spH", n => c.h = Math.max(.005, n * DSP_CM / p.h));
+    set("spA", n => c.angle = n); set("spT", n => c.tam = Math.max(.3, n)); set("spBg", n => c.bordeCm = Math.max(0, n));
+    set("spTile", n => { if (e && n >= 2) e.tileCm = n; });
+    if ($("#spO")){ $("#spO").oninput = x => { c.opacity = +x.target.value; const o = cv.getObjects().find(q => q.cid === c.id); if (o){ o.opacity = c.opacity; cv.requestRenderAll(); } }; $("#spO").onchange = () => commit(); }
+    const txt = (idn, f) => { const el = $("#" + idn); if (el) el.onchange = () => { f(el.value); commit(); render(); }; };
+    txt("spTx", x => c.texto = x); txt("spMu", x => c.muestra = x.trim()); txt("spF", x => c.fuente = x); txt("spAl", x => c.align = x); txt("spC", x => c.color = x); txt("spB", x => c.borde = x);
+    box.querySelectorAll("[data-p]").forEach(x => x.onclick = () => accion(x.dataset.p, c));
+  }
+  function accion(a, c){
+    const L = S().capas, i = L.indexOf(c);
+    if (a === "full"){ c.cx = .5; c.w = 1; if (c.tipo === "tex") c.angle = 0; }
+    if (a === "alto"){ c.cy = .5; c.h = 1; }
+    if (a === "centro") c.cx = .5;
+    if (a === "fx") c.fx = !c.fx;
+    if (a === "up" && i < L.length - 1){ [L[i], L[i + 1]] = [L[i + 1], L[i]]; }
+    if (a === "down" && i > 0){ [L[i], L[i - 1]] = [L[i - 1], L[i]]; }
+    if (a === "dup"){ const n = { ...c, id: stId(), cx: c.cx + .03, cy: c.cy + .03 }; L.splice(i + 1, 0, n); STU.sel = n.id; }
+    if (a === "espejo"){ const k2 = STU.k === "mangaD" ? "mangaI" : "mangaD"; st().piezas[k2].capas.push({ ...c, id: stId(), cx: 1 - c.cx, fx: c.tipo === "img" ? !c.fx : c.fx, angle: -(c.angle || 0) }); toast("Copiado en espejo a la otra manga"); }
+    if (a === "otra"){ const k2 = STU.k === "frente" ? "espalda" : "frente"; st().piezas[k2].capas.push({ ...c, id: stId() }); toast("Copiado"); }
+    if (a === "del"){ L.splice(i, 1); STU.sel = null; }
+    if (a === "editar") return editarElemento(c.eid);
+    commit(); render();
+  }
+  /* ----- biblioteca de elementos ----- */
+  function lib(){
+    const Em = T().elementos.filter(e => e.src), pz = STU.k !== "mockup" && STU.k !== "general" && STU.k !== "cuello";
+    $("#stLib").innerHTML = Em.map(e => { const or = stOrigenDe(e); return `<div class="stEl"><img src="${e.src}" alt=""><div><b>${esc(e.nombre)}</b><span><i style="background:${ST_ORIGEN[or][1]}"></i>${ST_ORIGEN[or][0]}${e.editado ? " · editado" : ""}</span></div>
+      ${pz ? `<button data-add="${e.id}" title="Agregar a esta pieza">＋</button>` : ""}<button data-ed="${e.id}" title="Recortar, borrador, quitar fondo">✂</button></div>`; }).join("") || `<div class="stMuted">Aún no hay elementos. Recórtalos del mockup (pestaña MOCKUP) o genéralos en el Taller.</div>`;
+    $("#stLib").querySelectorAll("[data-add]").forEach(x => x.onclick = async () => { const e = E().get(x.dataset.add), im = await dspImg(e.src), p = P();
+      const c = e.tipo === "textura" ? { id: stId(), tipo: "tex", eid: e.id, cx: .5, cy: .5, w: 1, h: 1, angle: 0, opacity: 1, visible: true, locked: false }
+        : { id: stId(), tipo: "img", eid: e.id, cx: .5, cy: .35, w: Math.min(.4, (im ? im.width / 150 * 2.54 * DSP_CM : 20 * DSP_CM) / p.w), angle: 0, opacity: 1, visible: true, locked: false };
+      if (c.tipo === "tex") S().capas.unshift(c); else S().capas.push(c); STU.sel = c.id; commit(); render(); });
+    $("#stLib").querySelectorAll("[data-ed]").forEach(x => x.onclick = () => editarElemento(x.dataset.ed));
+  }
+  /* ----- barra de herramientas ----- */
+  function botones(){
+    const u = $("#stUndo"), r = $("#stRedo"); if (u) u.disabled = STU.hist.length < 2; if (r) r.disabled = !STU.rehacer.length;
+    $("#stZv").textContent = Math.round(STU.z * 100) + "%";
+    $("#stTools").querySelectorAll("[data-t]").forEach(x => x.classList.toggle("on", STU.modo === x.dataset.t));
+    $("#stTools").querySelector('[data-a="regla"]').classList.toggle("on", STU.regla); $("#stTools").querySelector('[data-a="rejilla"]').classList.toggle("on", STU.rejilla);
+    $("#stTools").querySelectorAll('[data-a="texto"],[data-a="nombre"],[data-a="numero"],[data-a="imagen"]').forEach(x => x.disabled = STU.k === "mockup" || STU.k === "general" || STU.k === "cuello");
+  }
+  $("#stTools").querySelectorAll("[data-t]").forEach(x => x.onclick = () => { if (x.dataset.t !== "mover" && STU.k !== "mockup"){ STU.k = "mockup"; } STU.modo = x.dataset.t; render(); });
+  $("#stTools").querySelectorAll("[data-a]").forEach(x => x.onclick = () => { const a = x.dataset.a;
+    if (a === "regla"){ STU.regla = !STU.regla; botones(); return reglas(); }
+    if (a === "rejilla"){ STU.rejilla = !STU.rejilla; botones(); return cv && cv.requestRenderAll(); }
+    if (a === "imagen") return $("#stImgF").click();
+    if (a === "editar"){ const c = STU.sel && capa(STU.sel); if (!c || !c.eid) return toast("Elige primero una capa de imagen", true); return editarElemento(c.eid); }
+    const c = a === "texto" ? { id: stId(), tipo: "texto", texto: "TEXTO", fuente: "Montserrat", tam: 4, color: "#FFFFFF", align: "center", cx: .5, cy: .3, angle: 0, opacity: 1, visible: true, locked: false }
+      : { id: stId(), tipo: "texto", var: a, fuente: a === "numero" ? "Anton" : "Bebas Neue", tam: a === "numero" ? 20 : 6, color: "#FFFFFF", borde: "#000000", bordeCm: 0, align: "center", cx: .5, cy: a === "numero" ? .45 : .18, angle: 0, opacity: 1, visible: true, locked: false };
+    S().capas.push(c); STU.sel = c.id; commit(); render(); });
+  $("#stImgF").onchange = async ev => { const f = ev.target.files[0]; ev.target.value = ""; if (!f) return;
+    try { toast("Guardando el original…"); const o = await stSubirOriginal(f, folio), r = o.vector ? await stVistaSVG(o.ref) : await tlLeer(f);
+      const e = { id: "E" + Date.now(), tipo: "logo", nombre: f.name.replace(/\.[^.]+$/, ""), nota: "", estado: "listo", src: r.src, orig: o, origen: "manual", por: SES.nombre, fecha: new Date().toISOString() };
+      if (o.quitado && o.quitado.length) toast("SVG limpiado: se quitó " + o.quitado.slice(0, 4).join(", "));
+      T().elementos.push(e); await dspImg(e.src); const p = P(), c = { id: stId(), tipo: "img", eid: e.id, cx: .5, cy: .35, w: Math.min(.4, 20 * DSP_CM / p.w), angle: 0, opacity: 1, visible: true, locked: false };
+      S().capas.push(c); STU.sel = c.id; log(X().v, "VITUMA STUDIO: imagen insertada", e.nombre); commit(); render(); } catch(x){ toast(x.message || "No se pudo leer la imagen", true); } };
+  /* ----- deshacer / rehacer / zoom / teclas ----- */
+  $("#stUndo").onclick = () => { if (STU.hist.length < 2) return; STU.rehacer.push(STU.hist.pop()); restaurarJSON(STU.hist[STU.hist.length - 1]); };
+  $("#stRedo").onclick = () => { if (!STU.rehacer.length) return; const j = STU.rehacer.pop(); STU.hist.push(j); restaurarJSON(j); };
+  const zoom = z => { STU.z = Math.max(.25, Math.min(6, z)); render(); };
+  $("#stZp").onclick = () => zoom(STU.z * 1.25); $("#stZm").onclick = () => zoom(STU.z / 1.25); $("#stZf").onclick = () => zoom(1);
+  function teclas(ev){ if (/input|select|textarea/i.test(ev.target.tagName)) return;
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z"){ ev.preventDefault(); (ev.shiftKey ? $("#stRedo") : $("#stUndo")).click(); }
+    else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "y"){ ev.preventDefault(); $("#stRedo").click(); }
+    else if ((ev.key === "Delete" || ev.key === "Backspace") && STU.sel && capa(STU.sel)){ ev.preventDefault(); accion("del", capa(STU.sel)); }
+    else if (STU.sel && capa(STU.sel) && /^Arrow/.test(ev.key)){ ev.preventDefault(); const c = capa(STU.sel), d = (ev.shiftKey ? 1 : .1) * DSP_CM, p = P();
+      if (ev.key === "ArrowLeft") c.cx -= d / p.w; if (ev.key === "ArrowRight") c.cx += d / p.w; if (ev.key === "ArrowUp") c.cy -= d / p.h; if (ev.key === "ArrowDown") c.cy += d / p.h; commit(); render(); }
+    else if (ev.key === "Escape" && $("#stModal").innerHTML){ $("#stModal").innerHTML = ""; } }
+  document.addEventListener("keydown", teclas); window.addEventListener("resize", ajustar);
+
+  /* =================== MOCKUP: selección rectangular y poligonal → nueva capa (recorte) =================== */
+  async function renderMockup(){
+    const im = await dspImg(frente); if (!im){ $("#stScroll").innerHTML = `<div class="stMuted" style="padding:20px">No se pudo cargar el mockup.</div>`; return; }
+    const sc = $("#stScroll"), fit = Math.min((sc.clientWidth - 2 * pad) / im.width, (sc.clientHeight - 2 * pad) / im.height), k = fit * STU.z;
+    nuevoCanvas(Math.round(im.width * k + 2 * pad), Math.round(im.height * k + 2 * pad));
+    cv.add(new fabric.Image(im, { left: pad, top: pad, scaleX: k, scaleY: k, selectable: false, evented: false }));
+    reglas(); panel();
+    mk = { k, pts: [], rect: null, forma: null };
+    $("#stBar").innerHTML = STU.modo === "rect" ? "Arrastra un rectángulo sobre el elemento que quieres separar." : STU.modo === "poli" ? "Haz clic alrededor del elemento; cierra tocando el primer punto o con doble clic." : "Elige ⬚ (rectángulo) o ⬠ (polígono) a la izquierda para recortar un elemento del mockup.";
+    let ini = null;
+    cv.on("mouse:down", o => { const p = cv.getPointer(o.e);
+      if (STU.modo === "rect"){ ini = p; if (mk.forma) cv.remove(mk.forma); mk.forma = new fabric.Rect({ left: p.x, top: p.y, width: 1, height: 1, fill: "rgba(255,138,61,.15)", stroke: "#FF8A3D", strokeDashArray: [6, 4], strokeWidth: 1.5, selectable: false, evented: false }); cv.add(mk.forma); }
+      if (STU.modo === "poli"){ if (mk.pts.length > 2 && Math.hypot(p.x - mk.pts[0].x, p.y - mk.pts[0].y) < 10) return cerrarPoli(); mk.pts.push(p); dibPoli(); } });
+    cv.on("mouse:move", o => { if (STU.modo !== "rect" || !ini) return; const p = cv.getPointer(o.e); mk.forma.set({ left: Math.min(ini.x, p.x), top: Math.min(ini.y, p.y), width: Math.abs(p.x - ini.x), height: Math.abs(p.y - ini.y) }); cv.requestRenderAll(); });
+    cv.on("mouse:up", () => { if (STU.modo === "rect" && ini){ ini = null; const r = mk.forma; if (r.width > 6 && r.height > 6){ mk.pts = [{ x: r.left, y: r.top }, { x: r.left + r.width, y: r.top }, { x: r.left + r.width, y: r.top + r.height }, { x: r.left, y: r.top + r.height }]; ofrecerRecorte(); } } });
+    cv.on("mouse:dblclick", () => { if (STU.modo === "poli" && mk.pts.length > 2) cerrarPoli(); });
+  }
+  function dibPoli(cerrado){ if (mk.forma) cv.remove(mk.forma);
+    mk.forma = new (cerrado ? fabric.Polygon : fabric.Polyline)(mk.pts.map(p => ({ x: p.x, y: p.y })), { fill: cerrado ? "rgba(255,138,61,.15)" : "", stroke: "#FF8A3D", strokeWidth: 1.5, strokeDashArray: [6, 4], selectable: false, evented: false, objectCaching: false });
+    cv.add(mk.forma); mk.pts.forEach(p => cv.add(new fabric.Circle({ left: p.x - 3, top: p.y - 3, radius: 3, fill: "#FF8A3D", selectable: false, evented: false }))); cv.requestRenderAll(); }
+  function cerrarPoli(){ dibPoli(true); ofrecerRecorte(); }
+  function ofrecerRecorte(){
+    $("#stBar").innerHTML = `<b>Nueva capa con la selección:</b> <input id="rcN" placeholder="Nombre (ej. Escudo del pecho)" style="width:220px">
+      <select id="rcT">${TL_TIPOS.map(([v2, t]) => `<option value="${v2}">${t}</option>`).join("")}</select>
+      <label style="font-size:12px"><input type="checkbox" id="rcF"> quitar fondo</label>
+      <button class="stB pri" id="rcOk">Crear capa</button><button class="stB" id="rcNo">Cancelar</button>`;
+    $("#rcN").focus(); $("#rcNo").onclick = () => render();
+    $("#rcOk").onclick = async () => { const nom = $("#rcN").value.trim() || "Recorte"; const im = await dspImg(frente), k = mk.k, pts = mk.pts.map(p => ({ x: (p.x - pad) / k, y: (p.y - pad) / k }));
+      const x0 = Math.max(0, Math.floor(Math.min(...pts.map(p => p.x)))), y0 = Math.max(0, Math.floor(Math.min(...pts.map(p => p.y)))), x1 = Math.min(im.width, Math.ceil(Math.max(...pts.map(p => p.x)))), y1 = Math.min(im.height, Math.ceil(Math.max(...pts.map(p => p.y))));
+      if (x1 - x0 < 4 || y1 - y0 < 4) return toast("La selección es muy chica", true);
+      const c2 = document.createElement("canvas"); c2.width = x1 - x0; c2.height = y1 - y0; const g = c2.getContext("2d");
+      g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p.x - x0, p.y - y0) : g.moveTo(p.x - x0, p.y - y0)); g.closePath(); g.clip(); g.drawImage(im, -x0, -y0);
+      if ($("#rcF").checked) stQuitarFondo(g, c2.width, c2.height, 0, 0, 40, false, true);
+      const tipo = $("#rcT").value, e = { id: "E" + Date.now(), tipo, nombre: nom, nota: "", estado: "listo", src: c2.toDataURL("image/png"), origen: "recorte", por: SES.nombre, fecha: new Date().toISOString(), px: c2.width + " × " + c2.height };
+      T().elementos.push(e); await dspImg(e.src); log(X().v, "VITUMA STUDIO: recorte del mockup", nom); commit();
+      toast(`"${nom}" quedó como elemento (recorte del mockup). Agrégalo a una pieza desde la lista.`); STU.modo = "mover"; render(); };
+  }
+
+  /* =================== VISTA GENERAL =================== */
+  async function renderGeneral(){
+    if (cv){ cv.dispose(); cv = null; } const sc = $("#stScroll"); sc.innerHTML = `<div class="stGen" id="stGen"><div class="stMuted">Preparando…</div></div>`; reglas(); panel();
+    const html = [];
+    for (const [k, t] of ST_PZ){ const p = b().m[k]; if (!p) continue; const c2 = await stPintarPieza(st(), T(), p, k, k === "cuello" ? 6 : 5, { muestra: true, silueta: true });
+      html.push(`<figure data-k="${k}"><img src="${c2.toDataURL()}" alt="${t}"><figcaption>${t}${st().piezas[k] && st().piezas[k].sinReferencia ? " ⚠" : ""}</figcaption></figure>`); }
+    $("#stGen").innerHTML = html.join(""); $("#stGen").querySelectorAll("figure").forEach(f => f.onclick = () => { STU.k = f.dataset.k; render(); });
+    $("#stBar").innerHTML = "Vista general (con textos de muestra). Toca una pieza para editarla. Es para revisar, no es el archivo de impresión.";
+  }
+
+  /* =================== EDITAR UN ELEMENTO: recortar, borrador, quitar fondo =================== */
+  async function editarElemento(eid){
+    const e = E().get(eid); if (!e) return; if (stEsVector(e)) return toast("Los vectores (SVG) no se editan aquí: se conservan intactos.", true);
+    const conOrig = !!(e.orig || e.edit), im = await dspImg(conOrig ? stFuente(e) : e.src); if (!im) return toast("No se pudo abrir la imagen", true);
+    if (im.width * im.height > 60e6) return toast("La imagen es demasiado grande para editarla en el navegador (más de 60 megapíxeles).", true);
+    let restaurado = false;
+    const W = im.width, H = im.height, base = document.createElement("canvas"); base.width = W; base.height = H; const bg = base.getContext("2d", { willReadFrequently: true }); bg.drawImage(im, 0, 0);
+    const pila = [bg.getImageData(0, 0, W, H)]; let herr = "borrar", radio = Math.max(6, Math.round(W / 60)), tol = 40, conectado = true, crop = null;
+    $("#stModal").innerHTML = `<div class="stMod"><div class="stModC"><div class="stModH"><b>✂ Editar: ${esc(e.nombre)}</b><span class="stMuted">${W} × ${H} px · ${ST_ORIGEN[stOrigenDe(e)][0]}</span><span style="flex:1"></span><button class="stB" id="meX">Cancelar</button><button class="stB pri" id="meOk">Guardar cambios</button></div>
+      <div class="stModT"><button data-h="borrar" class="on">🧽 Borrador</button><button data-h="fondo">🪄 Quitar fondo</button><button data-h="recortar">✂ Recortar</button>
+        <label>Tamaño <input type="range" id="meR" min="2" max="${Math.max(40, Math.round(W / 8))}" value="${radio}"></label><label>Tolerancia <input type="range" id="meTol" min="5" max="120" value="${tol}"></label>
+        <label><input type="checkbox" id="meCon" checked> solo zona conectada</label><button class="stB" id="meU">↶ Deshacer</button><button class="stB" id="meO">Restaurar original</button></div>
+      <div class="stModW"><canvas id="meCv"></canvas></div><div class="stMuted" id="meAy">Borrador: pasa el mouse con el botón presionado para borrar.</div></div></div>`;
+    const vis = $("#meCv"), wrap = vis.parentElement, k = Math.min((wrap.clientWidth - 20) / W, (wrap.clientHeight - 20) / H, 4); vis.width = Math.round(W * k); vis.height = Math.round(H * k); const vg = vis.getContext("2d");
+    const pinta = () => { vg.clearRect(0, 0, vis.width, vis.height); vg.drawImage(base, 0, 0, vis.width, vis.height); if (crop){ vg.strokeStyle = "#FF8A3D"; vg.setLineDash([6, 4]); vg.lineWidth = 2; vg.strokeRect(crop.x * k, crop.y * k, crop.w * k, crop.h * k); vg.setLineDash([]); } };
+    pinta();
+    const ayuda = { borrar: "Borrador: pasa el mouse con el botón presionado para borrar.", fondo: "Quitar fondo: toca el color que quieres quitar (con la tolerancia elegida).", recortar: "Recortar: arrastra un rectángulo y toca «Aplicar recorte»." };
+    $("#stModal").querySelectorAll("[data-h]").forEach(x => x.onclick = () => { herr = x.dataset.h; crop = null; $("#stModal").querySelectorAll("[data-h]").forEach(y => y.classList.toggle("on", y === x)); $("#meAy").innerHTML = ayuda[herr] + (herr === "recortar" ? ` <button class="stB pri" id="meCr">Aplicar recorte</button>` : "");
+      const cr = $("#meCr"); if (cr) cr.onclick = () => { if (!crop || crop.w < 2 || crop.h < 2) return toast("Arrastra primero el rectángulo", true); const d = bg.getImageData(crop.x, crop.y, crop.w, crop.h); base.width = crop.w; base.height = crop.h; bg.putImageData(d, 0, 0); pila.push(bg.getImageData(0, 0, base.width, base.height)); crop = null; reajustar(); }; pinta(); });
+    const reajustar = () => { const k2 = Math.min((wrap.clientWidth - 20) / base.width, (wrap.clientHeight - 20) / base.height, 4); vis.width = Math.round(base.width * k2); vis.height = Math.round(base.height * k2); kk = k2; pinta(); };
+    let kk = k;
+    const pos = ev => { const r = vis.getBoundingClientRect(); return { x: (ev.clientX - r.left) / (vis.width / base.width) * (vis.width / r.width), y: (ev.clientY - r.top) / (vis.height / base.height) * (vis.height / r.height) }; };
+    let abajo = false, p0 = null;
+    vis.onpointerdown = ev => { vis.setPointerCapture(ev.pointerId); const p = pos(ev); abajo = true; p0 = p;
+      if (herr === "borrar"){ bg.save(); bg.globalCompositeOperation = "destination-out"; bg.beginPath(); bg.arc(p.x, p.y, radio, 0, 7); bg.fill(); bg.restore(); pinta(); }
+      if (herr === "fondo"){ stQuitarFondo(bg, base.width, base.height, Math.round(p.x), Math.round(p.y), tol, conectado); pila.push(bg.getImageData(0, 0, base.width, base.height)); abajo = false; pinta(); } };
+    vis.onpointermove = ev => { if (!abajo) return; const p = pos(ev);
+      if (herr === "borrar"){ bg.save(); bg.globalCompositeOperation = "destination-out"; bg.lineCap = "round"; bg.lineWidth = radio * 2; bg.beginPath(); bg.moveTo(p0.x, p0.y); bg.lineTo(p.x, p.y); bg.stroke(); bg.restore(); p0 = p; pinta(); }
+      if (herr === "recortar"){ const x = Math.max(0, Math.min(p0.x, p.x)), y = Math.max(0, Math.min(p0.y, p.y)); crop = { x: Math.round(x), y: Math.round(y), w: Math.round(Math.min(base.width, Math.max(p0.x, p.x)) - x), h: Math.round(Math.min(base.height, Math.max(p0.y, p.y)) - y) }; pinta(); } };
+    vis.onpointerup = () => { if (abajo && herr === "borrar") pila.push(bg.getImageData(0, 0, base.width, base.height)); abajo = false; };
+    $("#meR").oninput = x => radio = +x.target.value; $("#meTol").oninput = x => tol = +x.target.value; $("#meCon").onchange = x => conectado = x.target.checked;
+    $("#meU").onclick = () => { if (pila.length < 2) return; pila.pop(); const d = pila[pila.length - 1]; base.width = d.width; base.height = d.height; bg.putImageData(d, 0, 0); reajustar(); };
+    $("#meO").onclick = async () => { restaurado = true; const o = await dspImg(conOrig ? (e.orig ? e.orig.ref : stFuente(e)) : (e.srcOriginal || e.src)); base.width = o.width; base.height = o.height; bg.drawImage(o, 0, 0); pila.push(bg.getImageData(0, 0, base.width, base.height)); reajustar(); };
+    $("#meX").onclick = () => { $("#stModal").innerHTML = ""; };
+    $("#meOk").onclick = async () => { if (pila.length < 2) return ($("#stModal").innerHTML = "");
+      if (conOrig){   /* el ORIGINAL no se toca: la edición se guarda como archivo aparte, a resolución completa */
+        $("#meOk").disabled = true; $("#meOk").textContent = "Guardando…";
+        try { const anterior = e.edit && e.edit.ref;
+          if (restaurado && pila.length === 2 && e.orig){ e.edit = null; e.src = e.srcOriginal || e.src; }
+          else { const b2 = await new Promise(ok => base.toBlob(ok, "image/png")), f2 = new File([b2], "edicion.png", { type: "image/png" });
+            e.edit = await stSubirOriginal(f2, folio, null, "edicion"); e.edit.fecha = new Date().toISOString();
+            const pvr = await tlLeer(f2);   /* vista previa como la de cualquier elemento: hasta 2400 px y < 3.6 MB */
+            e.srcOriginal = e.srcOriginal || e.src; e.src = pvr.src; }
+          if (anterior) stBorrarOriginales([anterior]);   /* la edición anterior ya no la usa nadie */
+          e.editado = !!e.edit; e.estado = "listo"; await dspImg(e.src); log(X().v, "VITUMA STUDIO: elemento editado (original intacto)", e.nombre); commit(); $("#stModal").innerHTML = ""; toast("Elemento actualizado; el original se conserva"); render();
+        } catch(x){ $("#meOk").disabled = false; $("#meOk").textContent = "Guardar cambios"; toast(x.message || "No se pudo guardar la edición", true); }
+        return; }
+      let out = base, src = out.toDataURL("image/png");
+      for (let i = 0; src.length > 3.6e6 && i < 5; i++){ const c3 = document.createElement("canvas"); c3.width = Math.round(out.width * .8); c3.height = Math.round(out.height * .8); c3.getContext("2d").drawImage(out, 0, 0, c3.width, c3.height); out = c3; src = out.toDataURL("image/png"); }
+      e.srcOriginal = e.srcOriginal || e.src; (e.versiones = e.versiones || []).push({ src: e.src, fecha: new Date().toISOString() }); if (e.versiones.length > 5) e.versiones.shift();
+      e.src = src; e.editado = true; e.estado = "listo"; await dspImg(src); log(X().v, "VITUMA STUDIO: elemento editado", e.nombre); commit(); $("#stModal").innerHTML = ""; toast("Elemento actualizado en todas las piezas"); render(); };
+  }
+
+  /* =================== RESOLUCIÓN DE SALIDA Y REPORTE DE CALIDAD =================== */
+  $("#stSal").value = String(stSalida(st()));
+  $("#stSal").onchange = () => { st().salidaPpp = +$("#stSal").value; commit(); panel(); toast(`Salida del proyecto: ${st().salidaPpp} ppp (los moldes y medidas no cambian)`); };
+  $("#stCal").onclick = async () => {
+    $("#stModal").innerHTML = `<div class="stMod"><div class="stModC" style="max-width:1100px"><div class="stModH"><b>📊 Reporte de calidad · ${esc(item().modelo)} · salida ${stSalida(st())} ppp</b><span style="flex:1"></span><button class="stB" id="rqCsv">⬇ CSV</button><button class="stB" id="rqX">Cerrar</button></div>
+      <div class="stMuted">Original = píxeles del archivo guardado · Efectiva = ppp al tamaño impreso · Factor = cuánto se amplía para la salida. La ampliación por interpolación no recupera detalle.</div><div id="rqB" class="stRepW">Calculando…</div></div></div>`;
+    $("#rqX").onclick = () => $("#stModal").innerHTML = "";
+    const R = await stReporte(st(), T(), item(), stSalida(st())); $("#rqB").innerHTML = stReporteHTML(R);
+    $("#rqCsv").onclick = () => stDescargar(new Blob([stReporteCSV(R)], { type: "text/csv" }), `${folio}_reporte_calidad_${R.salida}ppp.csv`);
+  };
+
+  /* =================== VERSIONES =================== */
+  /* una versión guarda también una COPIA de los elementos que usa (con sus ligas: vista previa, original y edición),
+     para poder recuperar sus imágenes aunque después el elemento se quite o se reemplace (y para que la limpieza nunca las borre) */
+  const elsDeVersion = proy => { const ids = new Set(); Object.values((proy || {}).piezas || {}).forEach(pz => (pz.capas || []).forEach(c => c.eid && ids.add(c.eid)));
+    return (T().elementos || []).filter(e => ids.has(e.id)).map(e => JSON.parse(JSON.stringify(e))); };
+  const nuevaVersion = nota => { const L = T().studioVer = T().studioVer || [], p0 = st(); L.push({ n: (L.length ? L[L.length - 1].n : 0) + 1, fecha: new Date().toISOString(), por: SES.nombre, nota, data: JSON.stringify(p0), els: elsDeVersion(p0) }); return L; };
+  $("#stGV").onclick = () => { const nota = prompt("Nota de esta versión (opcional):", "") ; if (nota === null) return;
+    const L = nuevaVersion(nota.trim().slice(0, 120));
+    if (L.length > 25) L.shift(); log(X().v, "VITUMA STUDIO: versión guardada", nota); save(); toast("Versión guardada"); };
+  $("#stVer").onclick = () => { const L = (T().studioVer || []).slice().reverse();
+    $("#stModal").innerHTML = `<div class="stMod"><div class="stModC" style="max-width:560px;height:auto"><div class="stModH"><b>🕘 Historial de versiones</b><span style="flex:1"></span><button class="stB" id="vX">Cerrar</button></div>
+      <div class="stMuted" style="margin:6px 0 10px">Los cambios se guardan solos mientras trabajas. Aquí quedan las versiones que guardaste a propósito (hasta 25).</div>
+      ${L.map(x => `<div class="stVer"><div><b>Versión ${x.n}</b>${x.nota ? ` · ${esc(x.nota)}` : ""}<div class="stMuted">${VT.fechaHora(x.fecha)} · ${esc(x.por || "")}</div></div><button class="stB" data-v="${x.n}">Restaurar</button></div>`).join("") || `<div class="stMuted">Aún no hay versiones guardadas.</div>`}</div></div>`;
+    $("#vX").onclick = () => $("#stModal").innerHTML = "";
+    $("#stModal").querySelectorAll("[data-v]").forEach(x => x.onclick = () => { const v2 = T().studioVer.find(y => y.n === +x.dataset.v); if (!confirm(`¿Restaurar la versión ${v2.n}? El estado actual se guarda antes como versión nueva.`)) return;
+      nuevaVersion(`Antes de restaurar la versión ${v2.n}`); if (T().studioVer.length > 25) T().studioVer.shift();
+      const proy = JSON.parse(v2.data), E = T().elementos = T().elementos || [], mapa = {}, liga = e => JSON.stringify([e.src, e.orig && e.orig.ref, e.edit && e.edit.ref]);
+      for (const e0 of v2.els || []){ const act = E.find(e => e.id === e0.id);
+        if (!act){ E.push({ ...e0, recuperadoDeVersion: v2.n }); continue; }                       // se había quitado: regresa tal como estaba
+        if (liga(act) !== liga(e0)){ const id2 = e0.id + "_v" + v2.n; if (!E.some(e => e.id === id2)) E.push({ ...e0, id: id2, nombre: (e0.nombre || "") + ` (versión ${v2.n})`, recuperadoDeVersion: v2.n }); mapa[e0.id] = id2; } }   // se reemplazó: se recupera la imagen de esa versión sin tocar la actual
+      Object.values(proy.piezas || {}).forEach(pz => (pz.capas || []).forEach(c => { if (mapa[c.eid]) c.eid = mapa[c.eid]; }));
+      T().studio = proy; log(X().v, "VITUMA STUDIO: versión restaurada", "v" + v2.n); commit(); $("#stModal").innerHTML = ""; toast(`Versión ${v2.n} restaurada`); render(); }); };
+
+  /* =================== EXPORTAR =================== */
+  $("#stExp").onclick = async () => {
+    $("#stModal").innerHTML = `<div class="stMod"><div class="stModC" style="max-width:1000px"><div class="stModH"><b>⬇ Exportar para sublimación</b><span style="flex:1"></span><button class="stB" id="exX">Cerrar</button></div><div class="stRepW"><div id="exVal" class="stMuted">Revisando el diseño…</div><div id="exOp"></div><div id="exRep"></div></div></div></div>`;
+    $("#exX").onclick = () => $("#stModal").innerHTML = "";
+    const ponerVal = async () => { const val = await stValidar(st(), T(), b()), malos = val.filter(x => x.n === "mal").length;
+      $("#exVal").innerHTML = val.length ? `<div class="stValT ${malos ? "mal" : "aviso"}">${malos ? `❌ ${malos} problema(s) por resolver: el diseño <b>todavía no está listo para producción</b>.` : "⚠ Revisa estos avisos antes de mandar a producción."}</div>${val.map(x => `<div class="stValI ${x.n}">${x.n === "mal" ? "❌" : "⚠"} ${esc(x.t)}</div>`).join("")}`
+        : `<div class="stValT ok">✔ Pasó las validaciones a ${stSalida(st())} ppp: sin piezas vacías, sin elementos fuera del molde y con resolución suficiente.</div>`; return val; };
+    let val = await ponerVal();
+    $("#exOp").innerHTML = `<div class="stG2" style="margin-top:12px"><label>Resolución de salida (se guarda en el proyecto) <select id="exD">${ST_SALIDAS.map(n => `<option value="${n}"${n === stSalida(st()) ? " selected" : ""}>${n} ppp</option>`).join("")}</select></label>
+        <label>Modelo <select id="exI">${G.items.map((x, n) => `<option value="${n}"${n === STU.item ? " selected" : ""}>${esc(x.modelo)}</option>`).join("")}</select></label></div>
+      <label class="stRow"><input type="checkbox" id="exS"> Recortar a la silueta del molde (transparente fuera)</label>
+      <label class="stRow"><input type="checkbox" id="exM"> Incluir textos variables de muestra (solo para revisar; el ajustador pone los reales)</label>
+      <div id="exDim"></div>
+      <div class="stMuted">Las piezas se generan por franjas a la resolución elegida, con su tamaño físico guardado en el PNG. Las imágenes usan su archivo ORIGINAL; si son más chicas que la salida se interpolan (no recuperan detalle) y el reporte lo indica. Textos y vectores se dibujan directo a la salida.</div>
+      <div class="stBtns" style="margin-top:12px"><button class="stB pri" id="exZ">⬇ ZIP con todas las piezas y el reporte</button>${ST_PZ.map(([k, t]) => b().m[k] ? `<button class="stB" data-ex="${k}">PNG ${t}</button>` : "").join("")}</div>
+      <div class="stBtns"><button class="stB pri" id="exAj">🧵 Enviar al ajustador</button><button class="stB" id="exPdf">⬇ PDF sin molde</button></div>
+      <div class="stMuted">El PDF y el envío al ajustador funcionan igual que antes (sin cambios en esta etapa).</div>
+      <div class="stMuted" id="exSt"></div>`;
+    const opts = () => ({ ppp: +$("#exD").value, silueta: $("#exS").checked, muestra: $("#exM").checked, it: G.items[+$("#exI").value] });
+    const dims = async () => { const o = opts(), b2 = dspBase(o.it);
+      $("#exDim").innerHTML = `<table class="stRep" style="margin:8px 0"><tr><th>Pieza</th><th>Medida física</th><th>Píxeles a ${o.ppp} ppp</th><th>Tamaño aprox.</th></tr>${ST_PZ.filter(([k]) => b2.m[k]).map(([k, t]) => { const P2 = b2.m[k], px = stPxPieza(P2, o.ppp);
+        return `<tr><td>${t}</td><td>${stCm(P2.w / DSP_CM)} × ${stCm(P2.h / DSP_CM)} cm</td><td><b>${px[0]} × ${px[1]} px</b></td><td>${Math.max(1, Math.round(px[0] * px[1] * 3 / 1048576 / 3))}–${Math.round(px[0] * px[1] * 3 / 1048576)} MB</td></tr>`; }).join("")}</table>`;
+      $("#exRep").innerHTML = `<h4 style="margin:14px 0 6px">Reporte de calidad</h4>` + stReporteHTML(await stReporte(st(), T(), o.it, o.ppp)); };
+    await dims();
+    $("#exD").onchange = async () => { st().salidaPpp = +$("#exD").value; $("#stSal").value = String(st().salidaPpp); commit(); val = await ponerVal(); await dims(); };
+    $("#exI").onchange = dims;
+    const nombre = (o, k) => `${folio}_${(o.it.modelo || "").toUpperCase()}_${dspBase(o.it).molde}_${k.toUpperCase()}_${o.ppp}ppp.png`;
+    const pieza = async (o, k, tx) => stPNGFranjas(st(), T(), dspBase(o.it).m[k], k, o.ppp, o, f => { $("#exSt").textContent = `${tx || "Generando"} ${k}… ${Math.round(f * 100)} %`; });
+    $("#exOp").querySelectorAll("[data-ex]").forEach(x => x.onclick = async () => { const o = opts(); try { const bl = await pieza(o, x.dataset.ex), inf = await stLeerPNG(bl); stDescargar(bl, nombre(o, x.dataset.ex)); $("#exSt").textContent = `✔ Descargado: ${inf.w} × ${inf.h} px a ${inf.ppp} ppp (${(bl.size / 1048576).toFixed(1)} MB)`; } catch(er){ $("#exSt").textContent = "No se pudo generar: " + er.message; } });
+    $("#exZ").onclick = async () => { const o = opts(); try { await stCargar(ST_ZIP); } catch(er){ return toast("No se pudo cargar el compresor ZIP", true); }
+      try { const z = new JSZip(), R = await stReporte(st(), T(), o.it, o.ppp), lista = [];
+        for (const [k] of ST_PZ){ if (!dspBase(o.it).m[k]) continue; const bl = await pieza(o, k), inf = await stLeerPNG(bl); z.file(nombre(o, k), bl, { compression: "STORE" }); lista.push(`${nombre(o, k)}: ${inf.w} × ${inf.h} px, ${inf.ppp} ppp`); }
+        z.file("REPORTE_CALIDAD.txt", stReporteTexto(R, folio, X().v.cliente.nombre) + "\nARCHIVOS\n" + lista.join("\n") + `\n\nNombres y números: ${Object.values(st().piezas).some(p2 => p2.capas.some(c => c.var)) ? (o.muestra ? "incluidos como MUESTRA" : "no incluidos (son variables: los pone el ajustador)") : "no lleva"}\n`);
+        z.file("REPORTE_CALIDAD.csv", stReporteCSV(R));
+        $("#exSt").textContent = "Armando el ZIP…"; stDescargar(await z.generateAsync({ type: "blob", compression: "STORE", streamFiles: true }), `${folio}_${(o.it.modelo || "").toUpperCase()}_piezas_${o.ppp}ppp.zip`);
+        $("#exSt").textContent = "✔ ZIP descargado"; log(X().v, "VITUMA STUDIO: ZIP exportado", o.ppp + " ppp"); save(); } catch(er){ $("#exSt").textContent = "No se pudo generar el ZIP: " + er.message; } };
+    $("#exPdf").onclick = async () => { const o = opts(); $("#exSt").textContent = "Generando PDF…"; try { const sub = await stSub(st(), T(), o.it); await pdfSinMolde(sub, dspNombrePDF(o.it, sub, X().v)); $("#exSt").textContent = "✔ PDF descargado"; } catch(er){ $("#exSt").textContent = "No se pudo generar el PDF"; } };
+    $("#exAj").onclick = () => { const o = opts(), it = o.it, dama = it.modelo === "Dama", extra = { tallas: [...new Set(Object.keys(it.qty || {}).filter(t => it.qty[t]).map(t => moldeDeTalla(t, dama)))], personas: [] };
+      $("#exSt").textContent = "Abriendo el ajustador…";
+      enviarAlAjustador(async () => { const sub = await stSub(st(), T(), it); return { pdf: await pdfSinMolde(sub, "", {}, true), extra, transfer: [] }; },
+        { nombre: "", modelo: dspKey(it), talla: dspBase(it).molde, cliente: X().v.cliente.nombre + " · " + folio }, ok2 => { $("#exSt").textContent = ok2 ? "✔ Enviado al ajustador" : "No se completó el envío"; if (ok2){ T().ajustador = new Date().toISOString(); log(X().v, "VITUMA STUDIO: enviado al ajustador", it.modelo); save(); } }); };
+  };
+
+  await render();
+}
+
+/* quita el color tocado (o todo lo parecido) con tolerancia; "bordes" = parte de las 4 esquinas */
+function stQuitarFondo(g, W, H, x, y, tol, conectado, bordes){
+  const d = g.getImageData(0, 0, W, H), a = d.data, t2 = tol * tol * 3, sem = bordes ? [[0, 0], [W - 1, 0], [0, H - 1], [W - 1, H - 1]] : [[x, y]];
+  const ref = sem.map(([sx, sy]) => { const i = (sy * W + sx) * 4; return [a[i], a[i + 1], a[i + 2]]; });
+  const pare = i => ref.some(r => { const dr = a[i] - r[0], dg = a[i + 1] - r[1], db = a[i + 2] - r[2]; return dr * dr + dg * dg + db * db <= t2; });
+  if (conectado || bordes){ const vis = new Uint8Array(W * H), pila = sem.map(([sx, sy]) => sy * W + sx);
+    while (pila.length){ const p = pila.pop(); if (vis[p]) continue; vis[p] = 1; const i = p * 4; if (a[i + 3] === 0 && !bordes) continue; if (!pare(i) && a[i + 3] !== 0) continue; a[i + 3] = 0;
+      const px = p % W, py = (p / W) | 0; if (px > 0) pila.push(p - 1); if (px < W - 1) pila.push(p + 1); if (py > 0) pila.push(p - W); if (py < H - 1) pila.push(p + W); } }
+  else for (let i = 0; i < a.length; i += 4) if (pare(i)) a[i + 3] = 0;
+  g.putImageData(d, 0, 0);
+}
+
+
+/* =====================================================================
+   🧪 AUTOPRUEBA (solo entorno de pruebas): corre en TU navegador contra la infraestructura real de pruebas
+   (Vercel Blob y Upstash de pruebas). No usa pedidos ni clientes: crea archivos de prueba y al final los borra.
+   ===================================================================== */
+const ST_HUELLAS = {"pdfSinMolde": "c1df69ac2599d403f8a385cacc2b027889d6fad8eb5b9cf7aa1d3b0a94c65486", "enviarAlAjustador": "289c89046a48fb0d127fb7b0a7feb4c532429d8fb813d1a816ae16aac7dc4395", "persParaAjustador": "2125d7f598395648b43d8f40d1bb33f84b00423dd22bbc707b30d79d8e268b3f", "dspSub": "441ce13dc2de56b5d4a4d9da8a1313545c5936d89c36e0157452b6386a7a3baf", "dspAjustador": "8ce6d24260d518996fe1125f3271d027a39098844bb51a5422ca323db97f93ea", "stSub": "4ca68c74347759258ce989581733c85ecc0fd3fc6a5d0b974ae004b31bcf5e02", "stPintarCapaSola": "5bafd7bb004bc0e6d8656a074ebbaa62162b24d7f66bf3145f74eef36adaac2a", "stCaja": "b2d969aca9e0a76f4b975477c14dc6db6e2d87f8c66d9fce447c1c08ce6d5ccc"};
+async function stSha(buf){ const h = await crypto.subtle.digest("SHA-256", buf instanceof ArrayBuffer ? buf : await buf.arrayBuffer()); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, "0")).join(""); }
+async function stAutoprueba(){
+  let ov = $("#stOv"); if (!ov){ ov = document.createElement("div"); ov.id = "stOv"; document.body.appendChild(ov); } ov.style.display = "flex"; document.body.style.overflow = "hidden";
+  const R = [], creados = [], t0 = Date.now();
+  ov.innerHTML = `<div class="stTop"><div class="stLogo"><b>VITUMA STUDIO</b><span>Autoprueba de resolución y seguridad</span></div><span style="flex:1"></span><button class="stB" id="apCopiar" disabled>📋 Copiar resultados</button><button class="stB" id="apX">Cerrar</button></div>
+    <div style="padding:16px;overflow:auto;flex:1"><div class="stMuted" id="apEst">Preparando…</div><table class="stRep" id="apT"><tr><th></th><th>Prueba</th><th>Resultado</th><th>Tiempo</th></tr></table></div>`;
+  $("#apX").onclick = () => { ov.style.display = "none"; document.body.style.overflow = ""; };
+  const pinta = () => { $("#apT").innerHTML = `<tr><th></th><th>Prueba</th><th>Resultado</th><th>Tiempo</th></tr>` + R.map(r => `<tr class="q-${r.ok ? "verde" : "rojo"}"><td>${r.ok == null ? "⏳" : r.ok ? "✅" : "❌"}</td><td><b>${esc(r.n)}</b></td><td style="white-space:pre-wrap">${esc(r.d || "")}</td><td>${r.ms != null ? (r.ms / 1000).toFixed(1) + " s" : ""}</td></tr>`).join(""); };
+  const prueba = async (n, fn) => { const r = { n, ok: null }; R.push(r); pinta(); $("#apEst").textContent = "Probando: " + n; const a = Date.now();
+    try { r.d = await fn(); r.ok = true; } catch(e){ r.ok = false; r.d = (e && e.message) || String(e); } r.ms = Date.now() - a; pinta(); return r.ok; };
+  const descargar = async ref => { const r = await fetch(ref, { cache: "no-store" }); if (!r.ok) throw new Error("No se pudo descargar (" + r.status + ")"); return r; };
+  const lienzo = (w, h, ruido) => { const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#14365E"); gr.addColorStop(1, "#F26B21"); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#fff"; g.font = `bold ${Math.round(h / 8)}px Arial`; g.fillText("VITUMA " + w + "×" + h, w * .05, h * .2);
+    if (ruido){ const [rw, rh] = ruido, d = g.createImageData(rw, rh), a = d.data; for (let i = 0; i < a.length; i += 4){ a[i] = Math.random() * 256; a[i + 1] = Math.random() * 256; a[i + 2] = Math.random() * 256; a[i + 3] = 255; } g.putImageData(d, Math.round(w * .3), Math.round(h * .35)); }
+    return c; };
+  const aArchivo = (c, nom) => new Promise(ok => c.toBlob(b => ok(new File([b], nom, { type: "image/png" })), "image/png"));
+  let grande = null, grandeHash = "", chico = null, svgOk = null, svgMal = null, edit = null;
+
+  const ent = await fetch("/api/vt?a=estado", { cache: "no-store" }).then(r => r.json()).catch(() => ({}));
+  await prueba("1. Entorno de pruebas aislado", async () => { if (ent.entorno !== "pruebas") throw new Error("Esto no es el entorno de pruebas: la autoprueba no se ejecuta en producción."); if (ent.candado) throw new Error("Candado activo: " + ent.candado); if (!ent.db || !ent.imagenes) throw new Error("Falta base o almacenamiento de pruebas"); return `entorno=${ent.entorno} · base y almacenamiento de PRUEBAS · IA ${ent.ia ? "encendida" : "apagada"}`; });
+  if (ent.entorno !== "pruebas"){ $("#apEst").textContent = "Detenida: solo corre en el entorno de pruebas."; return; }
+  await prueba("2. Subir imagen de alta resolución y conservar el original", async () => {
+    const f = await aArchivo(lienzo(4000, 3000, [2000, 1200]), "prueba_alta.png"); grandeHash = await stSha(f);
+    grande = await stSubirOriginal(f, "AUTOPRUEBA"); creados.push(grande.ref);
+    const back = await (await descargar(grande.ref)).arrayBuffer(), h2 = await stSha(back);
+    if (h2 !== grandeHash) throw new Error("El archivo descargado NO es idéntico al subido");
+    if (grande.w !== 4000 || grande.h !== 3000) throw new Error(`Medidas registradas ${grande.w}×${grande.h}`);
+    return `${(f.size / 1048576).toFixed(1)} MB (más que el límite de 4.5 MB del servidor → subida directa) · ${grande.w}×${grande.h} px · huella SHA-256 idéntica al bajarlo`; });
+  await prueba("3. Las ediciones no destruyen el original", async () => {
+    if (!grande) throw new Error("Depende de la prueba 2"); const im = await dspImg(grande.ref), c = document.createElement("canvas"); c.width = im.width; c.height = im.height; const g = c.getContext("2d"); g.drawImage(im, 0, 0);
+    g.globalCompositeOperation = "destination-out"; g.beginPath(); g.arc(800, 800, 400, 0, 7); g.fill();
+    edit = await stSubirOriginal(await aArchivo(c, "edicion.png"), "AUTOPRUEBA", null, "edicion"); creados.push(edit.ref);
+    const hO = await stSha(await (await descargar(grande.ref)).arrayBuffer()), hE = await stSha(await (await descargar(edit.ref)).arrayBuffer());
+    if (hO !== grandeHash) throw new Error("¡El original cambió!"); if (hE === grandeHash) throw new Error("La edición no se guardó aparte");
+    return `Original intacto (misma huella) · edición guardada aparte: ${edit.w}×${edit.h} px`; });
+  await prueba("4. SVG seguro se conserva como vector", async () => {
+    const txt = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><defs><linearGradient id="g"><stop offset="0" stop-color="#F26B21"/><stop offset="1" stop-color="#14365E"/></linearGradient></defs><rect width="200" height="100" rx="12" fill="url(#g)"/><text x="100" y="62" font-size="36" text-anchor="middle" fill="#fff" font-family="Arial">VITUMA</text></svg>`;
+    svgOk = await stSubirOriginal(new File([txt], "seguro.svg", { type: "image/svg+xml" }), "AUTOPRUEBA"); creados.push(svgOk.ref);
+    const r = await descargar(svgOk.ref), cuerpo = await r.text(), csp = r.headers.get("content-security-policy") || "";
+    if (!svgOk.vector) throw new Error("No quedó como vector"); if (!/<svg/.test(cuerpo) || !/<text/.test(cuerpo)) throw new Error("Contenido incompleto");
+    return `Vector ${svgOk.w}×${svgOk.h} · nada quitado: ${(svgOk.quitado || []).length ? svgOk.quitado.join(", ") : "sí"} · servido como ${r.headers.get("content-type")} ${/sandbox/.test(csp) ? "con CSP sandbox" : "(sin CSP visible)"}`; });
+  await prueba("5. SVG peligroso se limpia", async () => {
+    const malo = `<?xml version="1.0"?><!DOCTYPE svg [<!ENTITY x "boom">]><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100" onload="alert(1)"><script>alert(2)<\/script><style>@import url(https://evil.example/a.css);</style><a href="javascript:alert(3)"><rect width="50" height="50" fill="red" onclick="alert(4)"/></a><image href="https://evil.example/x.png" width="10" height="10"/><foreignObject><iframe src="https://evil.example"></iframe></foreignObject><use xlink:href="https://evil.example/s.svg#a"/><circle cx="70" cy="70" r="20" fill="blue" style="fill:url(https://evil.example/f)"/><circle cx="20" cy="80" r="10" fill="green"/></svg>`;
+    svgMal = await stSubirOriginal(new File([malo], "peligroso.svg", { type: "image/svg+xml" }), "AUTOPRUEBA"); creados.push(svgMal.ref);
+    const cuerpo = await (await descargar(svgMal.ref)).text(), malas = ["<script", "onload", "onclick", "javascript:", "evil.example", "foreignobject", "iframe", "<!entity", "@import"].filter(x => cuerpo.toLowerCase().includes(x));
+    if (malas.length) throw new Error("Quedó contenido peligroso: " + malas.join(", ")); if (!/<circle/.test(cuerpo)) throw new Error("Se perdió el contenido seguro");
+    return `Quitado: ${(svgMal.quitado || []).join(", ")} · el resto del dibujo se conserva`; });
+  /* proyecto temporal en memoria con el molde más grande (manga larga caballero XXXXL) */
+  await dspDatos();
+  const item = { prod: "sub_ml", modelo: "Caballero", qty: { "4XL": 1 }, prenda: "Playera sublimada manga larga" };
+  const T = { elementos: [] }, st = { v: 1, salidaPpp: 300, piezas: {}, cuello: "#111111" };
+  await prueba("6. Elementos de prueba para exportar", async () => {
+    chico = await stSubirOriginal(await aArchivo(lienzo(300, 200), "chico.png"), "AUTOPRUEBA"); creados.push(chico.ref);
+    T.elementos.push({ id: "eG", tipo: "logo", nombre: "Imagen grande 4000×3000", src: grande.ref, orig: grande, origen: "manual" }, { id: "eC", tipo: "logo", nombre: "Imagen chica 300×200", src: chico.ref, orig: chico, origen: "manual" },
+      { id: "eS", tipo: "logo", nombre: "SVG", src: svgOk.ref, orig: svgOk, origen: "manual" }, { id: "eT", tipo: "textura", nombre: "Textura (la grande)", src: grande.ref, orig: grande, origen: "manual", tileCm: 25 });
+    for (const [k] of ST_PZ) st.piezas[k] = { fondo: "#20262E", capas: [] };
+    st.piezas.frente.capas = [{ id: "c1", tipo: "tex", eid: "eT", cx: .5, cy: .2, w: 1, h: .4, angle: 0, opacity: 1, visible: true },
+      { id: "c2", tipo: "img", eid: "eG", cx: .5, cy: .6, w: .6, angle: 0, opacity: 1, visible: true }, { id: "c3", tipo: "img", eid: "eC", cx: .25, cy: .85, w: 25 * DSP_CM / dspBase(item).m.frente.w, angle: 0, opacity: 1, visible: true },
+      { id: "c4", tipo: "img", eid: "eS", cx: .75, cy: .85, w: .3, angle: 0, opacity: 1, visible: true }, { id: "c5", tipo: "texto", texto: "VITUMA 300", fuente: "Montserrat", tam: 6, color: "#FFFFFF", align: "center", cx: .5, cy: .08, angle: 0, opacity: 1, visible: true }];
+    st.piezas.mangaD.capas = [{ id: "c6", tipo: "img", eid: "eS", cx: .5, cy: .3, w: .2, angle: 0, opacity: 1, visible: true }];
+    return `Molde ${dspBase(item).nombre} talla ${dspBase(item).molde}: frente ${stCm(dspBase(item).m.frente.w / DSP_CM)} × ${stCm(dspBase(item).m.frente.h / DSP_CM)} cm`; });
+  for (const ppp of [150, 200, 300]) await prueba(`7. Exportar el frente a ${ppp} ppp (por franjas) y comprobar medidas`, async () => {
+    const P = dspBase(item).m.frente, esp = stPxPieza(P, ppp), bl = await stPNGFranjas(st, T, P, "frente", ppp, { silueta: ppp === 300 }), inf = await stLeerPNG(bl);
+    if (inf.w !== esp[0] || inf.h !== esp[1]) throw new Error(`Esperado ${esp.join("×")} px y salió ${inf.w}×${inf.h}`);
+    if (Math.abs(inf.ppp - ppp) > .1) throw new Error(`El archivo dice ${inf.ppp} ppp`);
+    const cmW = inf.w / inf.ppp * 2.54, cmH = inf.h / inf.ppp * 2.54;
+    if (Math.abs(cmW - P.w / DSP_CM) > .05 || Math.abs(cmH - P.h / DSP_CM) > .05) throw new Error("Las medidas físicas no coinciden");
+    if (ppp === 300){ const u = URL.createObjectURL(bl), im = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error("El PNG de 300 ppp no se pudo abrir")); i.src = u; }); URL.revokeObjectURL(u); if (im.naturalWidth !== esp[0]) throw new Error("El PNG no abre con sus medidas"); }
+    return `${inf.w} × ${inf.h} px · ${inf.ppp} ppp · ${stCm(cmW)} × ${stCm(cmH)} cm (molde ${stCm(P.w / DSP_CM)} × ${stCm(P.h / DSP_CM)}) · ${(bl.size / 1048576).toFixed(1)} MB${ppp === 300 ? " · recortado a la silueta · el PNG se abre bien" : ""}`; });
+  await prueba("8. ZIP con varias piezas", async () => {
+    await stCargar(ST_ZIP); const z = new JSZip(), b2 = dspBase(item);
+    for (const k of ["frente", "mangaD", "cuello"]) z.file(`AUTOPRUEBA_${k}_150ppp.png`, await stPNGFranjas(st, T, b2.m[k], k, 150, {}), { compression: "STORE" });
+    const Rp = await stReporte(st, T, item, 150); z.file("REPORTE_CALIDAD.txt", stReporteTexto(Rp, "AUTOPRUEBA", "Prueba")); z.file("REPORTE_CALIDAD.csv", stReporteCSV(Rp));
+    const zb = await z.generateAsync({ type: "blob", compression: "STORE", streamFiles: true }), z2 = await JSZip.loadAsync(zb), n = Object.keys(z2.files);
+    const dm = []; for (const k of ["frente", "mangaD", "cuello"]){ const pb = await z2.file(`AUTOPRUEBA_${k}_150ppp.png`).async("blob"), i2 = await stLeerPNG(pb); dm.push(`${k} ${i2.w}×${i2.h}`); }
+    return `${n.length} archivos (${(zb.size / 1048576).toFixed(1)} MB): ${dm.join(" · ")} + reporte TXT y CSV`; });
+  await prueba("9. El reporte identifica elementos insuficientes", async () => {
+    const Rp = await stReporte(st, T, item, 300), fr = Rp.piezas.find(p => p.k === "frente").elementos, por = n => fr.find(q => q.nombre.startsWith(n));
+    const c = por("Imagen chica"), g = por("Imagen grande"), s2 = por("SVG"), tx = fr.find(q => q.clase === "texto");
+    if (!c || c.estado !== "rojo") throw new Error("La imagen chica no salió en rojo"); if (!/Interpolado, no recupera detalle/.test(g.nota) && g.factor > 1) throw new Error("Falta el aviso de interpolación");
+    if (s2.estado !== "vector" || tx.estado !== "vector") throw new Error("Vectores o textos mal clasificados");
+    return `Chica: ${c.ef} ppp → 🔴 · Grande: ${g.ef} ppp → ${ST_EST[g.estado][0]} (${g.nota}) · SVG y texto: ${s2.nota.split(":")[0]}`; });
+  await prueba("10. El PDF y el ajustador no cambiaron", async () => {
+    const fns = { pdfSinMolde: window.pdfSinMolde || (typeof pdfSinMolde === "function" && pdfSinMolde), enviarAlAjustador: typeof enviarAlAjustador === "function" && enviarAlAjustador, persParaAjustador: typeof persParaAjustador === "function" && persParaAjustador,
+      dspSub: typeof dspSub === "function" && dspSub, dspAjustador: typeof dspAjustador === "function" && dspAjustador, stSub, stPintarCapaSola, stCaja }, malos = [];
+    for (const [n, f] of Object.entries(fns)){ if (!f) { malos.push(n + " (no existe)"); continue; } const h = await stSha(new TextEncoder().encode(f.toString()).buffer); if (h !== ST_HUELLAS[n]) malos.push(n); }
+    if (malos.length) throw new Error("Cambiaron: " + malos.join(", "));
+    return `${Object.keys(fns).length} funciones idénticas a la versión anterior (huella SHA-256). La capa de dibujo solo usa los originales al exportar PNG.`; });
+  await prueba("11. Navegador", async () => { const ua = navigator.userAgent, nav = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : /Firefox\//.test(ua) ? "Firefox" : "Otro";
+    if (typeof CompressionStream === "undefined") throw new Error(nav + ": falta CompressionStream (actualiza el navegador)");
+    return `${nav} · ${ua.match(/(Chrome|Version|Firefox)\/[\d.]+/) ? ua.match(/(Chrome|Version|Firefox)\/[\d.]+/)[0] : ""} · CompressionStream ✔ · pantalla ×${devicePixelRatio}`; });
+  await prueba("12. Limpieza: borrar los archivos de prueba (sin huérfanos)", async () => {
+    const r = await VT.nube.ia("orig_borrar", { refs: creados }); let vivos = 0; for (const ref of creados){ const x = await fetch(ref, { cache: "no-store" }); if (x.ok) vivos++; }
+    if (vivos) throw new Error(`${vivos} archivo(s) siguen existiendo`); return `${r.borrados} archivos borrados y comprobados (ya no existen)`; });
+  const ok = R.filter(r => r.ok).length;
+  $("#apEst").innerHTML = `<b>${ok} de ${R.length} pruebas correctas</b> · ${((Date.now() - t0) / 1000).toFixed(0)} s · ${new Date().toLocaleString("es-MX")}`;
+  $("#apCopiar").disabled = false; $("#apCopiar").onclick = async () => { const t = `AUTOPRUEBA VITUMA STUDIO · ${new Date().toLocaleString("es-MX")}\n${navigator.userAgent}\n` + R.map(r => `${r.ok ? "✅" : "❌"} ${r.n} — ${r.d} (${(r.ms / 1000).toFixed(1)} s)`).join("\n");
+    try { await navigator.clipboard.writeText(t); toast("Resultados copiados"); } catch(e){ stDescargar(new Blob([t], { type: "text/plain" }), "autoprueba.txt"); } };
+}
+/* admin.html?autoprueba=1 → al entrar al panel (solo en pruebas) arranca la autoprueba */
+if (/[?&]autoprueba=1\b/.test(location.search)){ const _ap = setInterval(() => { const app = document.querySelector("#app");
+  if (app && getComputedStyle(app).display !== "none" && VT.nube.entorno()){ clearInterval(_ap); if (VT.nube.entorno() === "pruebas") stAutoprueba(); } }, 800); }
+
 /* ---------- GASTOS ---------- */
 function pGastos(){
   const tot = DB.gastos.reduce((a,g)=>a+g.monto,0);
@@ -2129,6 +3117,58 @@ Reglas para cada elemento:
 - Piezas, líneas y logotipos: PNG con fondo transparente, conservando todos sus detalles (remaches, bordes y textos tal cual).
 - La mayor resolución y definición posible.`;
 }
+/* ---------- ✨ IA conectada (API de OpenAI): la app pide la lista y cada elemento sola ---------- */
+const tlPromptLista = G => tlPromptInicial(G).split("\n\nPASO 2.")[0].replace("PASO 1. ", "") + "\n\nResponde solo con la lista, sin explicaciones.";
+function tlPromptIA(e){
+  const tx = e.tipo === "textura";
+  return `La imagen adjunta es el diseño de referencia de una camisa sublimada. Genera ÚNICAMENTE este elemento: ${e.nombre}${e.nota ? ` (${e.nota})` : ""}.
+- Solo ese elemento, aislado: sin la camisa, sin persona ni maniquí, sin escena.
+- Conserva exactamente los colores, formas, proporciones y detalles de la referencia. No agregues nada que no exista en ella.
+${tx ? "- Textura plana vista de frente que llene TODO el lienzo, sin pliegues, arrugas, sombras ni la forma de la camisa, que se pueda repetir sin cortes notorios (seamless)."
+     : `- Fondo transparente. El elemento completo, centrado, de frente y recto (sin perspectiva ni inclinación), con todos sus detalles${e.tipo === "logo" ? " y sus textos exactamente iguales" : e.tipo === "linea" ? " y sus textos exactamente iguales, en horizontal" : ""}.`}
+- Máxima definición y nitidez.`;
+}
+const IA_RUN = {};
+/* la orden puede refrescarse mientras la IA trabaja: siempre se busca el taller vigente en DB */
+function tlVigente(folio, frente){ const vv = DB.ventas.find(x => x.folio === folio); if (!vv) return null;
+  const i = prendas(vv).find(x => x.mockupCli && x.mockupCli.frente === frente); if (!i) return null;
+  i.taller = i.taller || { elementos: [], revision: {}, previo: null }; return { v: vv, t: i.taller }; }
+async function tlIA(id, folio, n, G, soloId){
+  const key = folio + "|" + n, frente = G.ref.frente, ref = G.ref; if (IA_RUN[key]) return toast("La IA ya está trabajando en este diseño");
+  const st = m => { IA_RUN[key] = m; const el = document.querySelector(`[data-tlst="${n}"][data-f="${folio}"]`); if (el) el.innerHTML = m; };
+  const visible = () => !!document.querySelector(`.tl[data-f="${folio}"]`);
+  try {
+    let X = tlVigente(folio, frente);
+    if (!soloId && !X.t.elementos.some(e => !e.deCliente)){
+      st("🔎 Analizando el mockup…");
+      const r = await VT.nube.ia("ia_lista", { mockup: frente, prompt: tlPromptLista(G) }), L = tlLeerLista(r.texto);
+      if (!L.length) throw new Error("La IA no encontró elementos en el mockup. Intenta de nuevo o hazlo a mano.");
+      X = tlVigente(folio, frente);
+      L.forEach((x, k) => X.t.elementos.push({ id: "E" + Date.now() + k, ...x, estado: "pendiente", src: null }));
+      (ref.logos || []).forEach((l, k) => { if (!X.t.elementos.some(e => e.deCliente && e.src === l.src)) X.t.elementos.push({ id: "EL" + Date.now() + k, tipo: "logo", nombre: "Logo del cliente: " + l.nombre.replace(/\.[^.]+$/, ""), nota: "", estado: "listo", src: l.src, deCliente: true, por: "cliente" }); });
+      log(X.v, "Taller de diseño: la IA reconoció los elementos", `${L.length} elementos`); save();
+      if (visible()) abrirOT(id);
+    }
+    const pend = tlVigente(folio, frente).t.elementos.filter(e => soloId ? e.id === soloId : !e.src && !e.deCliente).map(e => e.id);
+    for (let k = 0; k < pend.length; k++){
+      let e = tlVigente(folio, frente).t.elementos.find(x => x.id === pend[k]); if (!e) continue;
+      st(`🎨 ${pend.length > 1 ? `Generando ${k + 1} de ${pend.length}` : "Generando"}: <b>${esc(e.nombre)}</b>… <span class="muted">(cada uno tarda cerca de un minuto)</span>`);
+      let r = null;
+      for (let intento = 0; intento < 2 && !r; intento++){
+        try { r = await VT.nube.ia("ia_elemento", { mockup: frente, prompt: tlPromptIA(e), transparente: e.tipo !== "textura", tam: e.tipo === "linea" ? "1536x1024" : "1024x1024" }); }
+        catch(x){ if (intento || x.status === 503 || x.status === 403 || x.status === 401) throw x; await new Promise(z => setTimeout(z, 3000)); }
+      }
+      const X2 = tlVigente(folio, frente); e = X2.t.elementos.find(x => x.id === pend[k]); if (!e) continue;
+      if (typeof tlQuitarOriginales === "function" && (e.orig || e.edit)){ tlQuitarOriginales(X2.t.elementos, e); e.orig = null; e.edit = null; e.editado = false; }
+      e.src = r.src; e.estado = "listo"; e.por = "IA"; e.fecha = new Date().toISOString(); save();
+    }
+    const X3 = tlVigente(folio, frente);
+    if (!X3.t.despiece && X3.t.elementos.some(e => e.src)){ X3.t.despiece = dspAuto(X3.t); X3.t.despiece.auto = new Date().toISOString(); }
+    log(X3.v, soloId ? "Taller de diseño: elemento rehecho con IA" : "Taller de diseño: elementos generados con IA", `${pend.length}`); save();
+    delete IA_RUN[key]; toast(soloId ? "✨ Elemento listo" : "✨ Listo: elementos generados y despiece armado. Revísalo.");
+    if (visible()) abrirOT(id);
+  } catch(x){ delete IA_RUN[key]; save(); st(`<span style="color:#B42318">⚠️ ${esc(x.message || "No se pudo")}</span> Lo que ya se generó quedó guardado; toca el botón otra vez para continuar.`); toast(x.message || "No se pudo", true); }
+}
 /* lee la lista que contesta ChatGPT ("1. [Textura] Nombre — dónde va") */
 function tlLeerLista(txt){
   const TIP = { textura:"textura", pieza:"pieza", fragmento:"pieza", linea:"linea", línea:"linea", franja:"linea", logo:"logo", logotipo:"logo", otro:"otro" }, out = [];
@@ -2172,18 +3212,23 @@ function tallerHTML(G, n){
   const tipo = k => TL_TIPOS.find(t => t[0] === k) || TL_TIPOS[4];
   const ref = (k, t) => r[k] ? `<div class="tlref"><img src="${r[k]}" alt="${t}" data-zoom><span>${t}</span><a href="${r[k]}" download="${esc(t)}.jpg">Descargar</a></div>` : "";
   const paso = (num, t, ok) => `<div class="tlp"><span class="tln${ok ? " ok" : ""}">${ok ? "✓" : num}</span><b>${t}</b></div>`;
-  return `<div class="card tl" data-tl="${n}">
+  const IAon = VT.nube.hayIA(), corre = IA_RUN[G.venta.folio + "|" + n], faltan = E.filter(e => !e.src && !e.deCliente).length;
+  return `<div class="card tl" data-tl="${n}" data-f="${G.venta.folio}">
     <h3>🎨 Taller de diseño · ${esc(G.items[0].prenda)}${G.items.length > 1 ? ` <span class="muted" style="font-weight:600">(mismo diseño para ${G.items.map(i => esc(i.modelo.toLowerCase())).join(" y ")})</span>` : ""}</h3>
     <div class="tlbar"><span>Elementos <b>${listos}/${E.length}</b></span><span>Revisión <b>${rev}/${TL_REV.length}</b></span><span>Previo <b>${T.previo ? "✅" : "pendiente"}</b></span></div>
     ${paso(1, "Diseño de referencia del cliente", true)}
     <div class="tlrefs">${ref("frente", "Frente")}${ref("espalda", "Espalda")}${ref("mangas", "Mangas")}
       ${(r.logos || []).map((l, k) => `<div class="tlref logo"><img src="${l.src}" alt="" data-zoom><span>Logo: ${esc(l.nombre)}</span><a href="${l.src}" download="${esc(l.nombre)}">Descargar</a></div>`).join("")}</div>
     <div class="tltallas">${tlTallas(G.items)}${G.items.some(i => i.pers) ? `<div class="muted" style="margin-top:4px">🔢 Lleva nombre o número por playera: la lista está en <b>Especificaciones</b> (botón ⬇ Lista en Excel).</div>` : ""}</div>
+    ${IAon ? `<div class="tlia"><button class="btn pri" data-tlia="${n}"${corre ? " disabled" : ""}>✨ ${!E.some(e => !e.deCliente) ? "Preparar diseño con IA" : faltan ? `Generar con IA los ${faltan} elemento${faltan > 1 ? "s" : ""} que faltan` : "Volver a preparar con IA"}</button>
+      <div class="muted" style="font-size:12.5px">La IA reconoce los elementos del mockup, genera cada uno y arma el despiece. Tú solo lo revisas y lo mandas al ajustador. Puedes seguir trabajando mientras.</div>
+      <div class="tlst" data-tlst="${n}" data-f="${G.venta.folio}">${corre || ""}</div></div>` : ""}
+    <details class="tlmanual"${IAon ? "" : " open"}><summary>${IAon ? "Hacerlo a mano con ChatGPT" : "⚡ Pide todos los elementos de una vez con ChatGPT"}</summary>
     <div class="tlfast"><b>⚡ Pide todos los elementos de una vez</b>
       <ol><li><button class="btn sec sm" data-tlimg="${n}">🖼 Copiar el mockup</button> y pégalo en un <a href="https://chatgpt.com/" target="_blank" rel="noopener">chat nuevo de ChatGPT ↗</a> (Ctrl + V).</li>
         <li><button class="btn pri sm" data-tlini="${n}">📋 Copiar la instrucción</button> y pégala en el mismo mensaje. Envíalo.</li>
         <li>ChatGPT te contesta con la <b>lista de elementos</b> y el primero. Copia la lista y pégala en el paso 2 (📥 Pegar la lista).</li>
-        <li>Escríbele <b>siguiente</b> hasta que te dé todos. Descárgalos y súbelos juntos con <b>⬆ Subir varios PNG</b>.</li></ol></div>
+        <li>Escríbele <b>siguiente</b> hasta que te dé todos. Descárgalos y súbelos juntos con <b>⬆ Subir varios PNG</b>.</li></ol></div></details>
 
     ${paso(2, "Separación de elementos", E.length && listos === E.length)}
     <div class="muted" style="font-size:12.5px;margin:-2px 0 8px 34px">Pega la lista que te dio ChatGPT y se crean solos los elementos, en orden: <b>texturas</b>, <b>piezas y líneas</b> y al final <b>logotipos</b>. Si alguno no salió bien, usa su <b>📋 Instrucción</b> para pedirlo de nuevo.</div>
@@ -2191,15 +3236,15 @@ function tallerHTML(G, n){
       return `<div class="tlel${e.src ? " ok" : ""}"><span class="tlnum">${k + 1}</span>
         ${e.src ? `<img src="${e.src}" alt="" data-zoom class="tlimg">` : `<span class="tlimg vacio">${tp[2]}</span>`}
         <div class="tlinfo"><b>${esc(e.nombre)}</b><span class="muted">${tp[1]}${e.nota ? " · " + esc(e.nota) : ""}${e.src ? ` · ✅ subido por ${esc(e.por || "")}` : ""}</span></div>
-        <div class="tlacc">${e.deCliente ? "" : `<button class="btn sec sm" data-tlcp="${n}|${k}">📋 Instrucción</button>`}
-          <label class="btn ${e.src ? "sec" : "pri"} sm" style="cursor:pointer">${e.src ? "Cambiar" : "⬆ Subir PNG"}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-tlup="${n}|${k}"></label>
+        <div class="tlacc">${IAon && !e.deCliente ? `<button class="btn sec sm" data-tlre="${n}|${e.id}"${corre ? " disabled" : ""}>🔁 ${e.src ? "Rehacer" : "Generar"} con IA</button>` : ""}${e.deCliente ? "" : `<button class="btn sec sm" data-tlcp="${n}|${k}">📋 Instrucción</button>`}
+          <label class="btn ${e.src ? "sec" : "pri"} sm" style="cursor:pointer">${e.src ? "Cambiar" : "⬆ Subir PNG"}<input type="file" accept="image/png,image/jpeg,image/webp${typeof stSubirOriginal === "function" ? ",image/svg+xml,.svg" : ""}" hidden data-tlup="${n}|${k}"></label>
           ${e.src ? `<a class="btn sec sm" href="${e.src}" download="${String(k + 1).padStart(2, "0")}_${esc(e.nombre).replace(/[^\wáéíóúñ]+/gi, "_")}.png" style="text-decoration:none">⬇</a>` : ""}
           <button class="linkbtn" data-tlmv="${n}|${k}|-1" title="Subir"${k ? "" : " disabled"}>▲</button><button class="linkbtn" data-tlmv="${n}|${k}|1" title="Bajar"${k < E.length - 1 ? "" : " disabled"}>▼</button>
           <button class="linkdel" data-tldel="${n}|${k}">Quitar</button></div></div>`; }).join("") || `<div class="muted" style="padding:6px 0">Aún no hay elementos. Agrega el primero abajo (por ejemplo: <i>Textura de cota de malla</i>).</div>`}</div>
-    <div class="tlbulk"><details${E.length ? "" : " open"}><summary>📥 Pegar la lista de ChatGPT</summary>
+    <div class="tlbulk"><details${E.length || IAon ? "" : " open"}><summary>📥 Pegar la lista de ChatGPT</summary>
         <textarea data-tllist="${n}" placeholder="Copia y pega aquí toda la respuesta de ChatGPT (la app toma solo los renglones con [Textura], [Pieza], [Línea] o [Logo]):&#10;1. [Textura] Cota de malla — parte superior&#10;2. [Pieza] Placa del hombro — hombros&#10;…"></textarea>
         <button class="btn pri sm" data-tllistok="${n}">Crear los elementos</button></details>
-      ${E.some(e => !e.src) ? `<label class="btn pri sm" style="cursor:pointer">⬆ Subir varios PNG (en orden)<input type="file" accept="image/png,image/jpeg,image/webp" multiple hidden data-tlmulti="${n}"></label><span class="muted" style="font-size:12px">Se acomodan solos en los elementos que faltan, en el orden en que los descargaste.</span>` : ""}</div>
+      ${E.some(e => !e.src) ? `<label class="btn pri sm" style="cursor:pointer">⬆ Subir varios PNG (en orden)<input type="file" accept="image/png,image/jpeg,image/webp${typeof stSubirOriginal === "function" ? ",image/svg+xml,.svg" : ""}" multiple hidden data-tlmulti="${n}"></label><span class="muted" style="font-size:12px">Se acomodan solos en los elementos que faltan, en el orden en que los descargaste.</span>` : ""}</div>
     <details class="tlman"><summary>＋ Agregar un elemento a mano</summary>
     <div class="tladd"><select data-tlti="${n}">${TL_TIPOS.map(([v, t, ic]) => `<option value="${v}">${ic} ${t}</option>`).join("")}</select>
       <input type="text" data-tlno="${n}" placeholder="Nombre del elemento (ej. Textura de cota de malla)" maxlength="80">
@@ -2211,6 +3256,8 @@ function tallerHTML(G, n){
     ${paso(3, "Armar el despiece y mandarlo al ajustador", !!T.ajustador)}
     <div style="margin-left:34px">
       <div class="muted" style="font-size:12.5px;margin:-2px 0 8px">La app acomoda sola los elementos en frente, espalda y mangas (talla más grande del pedido). Tú solo revisas y ajustas arrastrando; luego el ajustador saca todas las tallas.</div>
+      ${typeof stAutoprueba === "function" && VT.nube.entorno() === "pruebas" ? `<div class="accrow" style="margin-left:0"><button class="btn sec sm" data-stap>🧪 Autoprueba de STUDIO (solo pruebas)</button></div>` : ""}
+      ${typeof stAbrir !== "function" ? "" : `<div class="accrow" style="margin-left:0"><button class="btn sm" style="background:#16181D;color:#fff" data-st="${n}"${E.some(e => e.src) ? "" : " disabled"}>🎛 ${T.studio ? "Abrir VITUMA STUDIO" : "Abrir en VITUMA STUDIO"} <span style="font-size:10px;background:#FF8A3D;border-radius:6px;padding:1px 5px;margin-left:4px">BETA</span></button></div>`}
       <div class="accrow" style="margin-left:0"><button class="btn pri sm" data-dsp="${n}"${E.some(e => e.src) ? "" : " disabled"}>🧩 ${T.despiece ? "Revisar el despiece" : "Armar despiece"}</button>
         ${T.despiece ? G.items.map((i, k) => `<button class="btn pri sm" data-dspaj="${n}|${k}">🧵 Enviar al ajustador${G.items.length > 1 ? " · " + esc(i.modelo) : ""}</button><button class="btn sec sm" data-dsppdf="${n}|${k}">⬇ PDF sin molde${G.items.length > 1 ? " · " + esc(i.modelo) : ""}</button>`).join("") : ""}</div>
       ${E.some(e => e.src) ? "" : `<div class="muted" style="font-size:12px;margin-top:4px">Sube primero los PNG de los elementos (paso 2).</div>`}
@@ -2227,6 +3274,17 @@ function tallerHTML(G, n){
       <div class="muted" style="font-size:12px;margin-top:4px">Los archivos exportados para imprimir se guardan en la carpeta del cliente en tu computadora; aquí solo va el previo.</div></div>
   </div>`;
 }
+/* STUDIO (solo si está incluido): guarda también el ORIGINAL sin reducir del elemento; la vista previa sigue igual */
+async function tlConOriginal(e, f, folio){
+  if (typeof stSubirOriginal !== "function" || !VT.nube.enLinea()) return null;
+  const viejos = [e.orig && e.orig.ref, e.edit && e.edit.ref];
+  try { const o = await stSubirOriginal(f, folio); e.orig = o; e.edit = null; e.editado = false; delete e.srcOriginal; delete e.origFalla;
+    if (e.tipo === "textura" && !e.tileCm) e.tileCm = stTileDeOriginal(o.w);
+    stBorrarOriginales(viejos); return o; }
+  catch(x){ e.origFalla = x.message || "error"; toast("Se guardó la vista previa, pero no el original: " + e.origFalla, true); return null; }
+}
+const tlQuitarOriginales = (E, e) => { if (typeof stBorrarOriginales !== "function") return; const usados = new Set(E.filter(x => x !== e).flatMap(x => [x.orig && x.orig.ref, x.edit && x.edit.ref]));
+  stBorrarOriginales([e.orig && e.orig.ref, e.edit && e.edit.ref].filter(r => r && !usados.has(r))); };
 /* imagen de un elemento: PNG transparente, hasta ~2.7 MB para que se pueda subir a la base de datos */
 async function tlLeer(file){
   let max = 2400, r;
@@ -2238,6 +3296,10 @@ function tallerEventos(id, v, ot, grupos){
   const cp = async (t, b) => { try { await navigator.clipboard.writeText(t); } catch(e){ const x = document.createElement("textarea"); x.value = t; document.body.appendChild(x); x.select(); document.execCommand("copy"); x.remove(); }
     const o = b.textContent; b.textContent = "✔ Copiado"; setTimeout(() => b.textContent = o, 1500); };
   document.querySelectorAll("[data-tlini]").forEach(b => b.onclick = () => cp(tlPromptInicial(G(b.dataset.tlini)), b));
+  document.querySelectorAll("[data-tlia]").forEach(b => b.onclick = () => { const g = G(b.dataset.tlia);
+    if (g.t.elementos.some(e => !e.deCliente) && !g.t.elementos.some(e => !e.src && !e.deCliente)){ if (!confirm("¿Volver a preparar todo con IA? Se borran los elementos actuales y el despiece.")) return; g.t.elementos = g.t.elementos.filter(e => e.deCliente); g.t.despiece = null; save(); }
+    b.disabled = true; tlIA(id, v.folio, b.dataset.tlia, g); });
+  document.querySelectorAll("[data-tlre]").forEach(b => b.onclick = () => { const [n, eid] = b.dataset.tlre.split("|"); b.disabled = true; tlIA(id, v.folio, n, G(n), eid); });
   document.querySelectorAll("[data-tlimg]").forEach(b => b.onclick = async () => { const g = G(b.dataset.tlimg), t = b.textContent;
     try { b.textContent = "Preparando…"; const c = await tlMockupJunto(g.ref), blob = await new Promise(ok => c.toBlob(ok, "image/png"));
       try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); b.textContent = "✔ Mockup copiado"; }
@@ -2251,7 +3313,7 @@ function tallerEventos(id, v, ot, grupos){
     log(v, "Taller de diseño: lista de ChatGPT", `${k} elementos`); ok(`${k} elementos creados`); });
   document.querySelectorAll("[data-tlmulti]").forEach(inp => inp.onchange = async () => { const g = G(inp.dataset.tlmulti), fs = [...inp.files].sort((a, b) => a.lastModified - b.lastModified || a.name.localeCompare(b.name));
     const libres = g.t.elementos.filter(e => !e.src); let n = 0; toast("Subiendo…");
-    for (const f of fs){ const e = libres[n]; if (!e) break; try { const r = await tlLeer(f); e.src = r.src; e.estado = "listo"; e.por = SES.nombre; e.fecha = new Date().toISOString(); n++; } catch(x){} }
+    for (const f of fs){ const e = libres[n]; if (!e) break; try { if (typeof stEsSVG === "function" && stEsSVG(f)){ const og = await tlConOriginal(e, f, v.folio); if (!og) continue; e.src = (await stVistaSVG(og.ref)).src; } else { const r = await tlLeer(f); e.src = r.src; await tlConOriginal(e, f, v.folio); } e.estado = "listo"; e.por = SES.nombre; e.fecha = new Date().toISOString(); n++; } catch(x){} }
     if (fs.length > libres.length) toast(`Sobraron ${fs.length - libres.length} imagen(es): agrega más elementos`, true);
     log(v, "Taller de diseño: elementos subidos", `${n} PNG`);
     if (!VT.guardar(DB)) return toast("No hay espacio para guardar las imágenes", true); toast(`${n} elemento(s) listo(s)`); abrirOT(id); });
@@ -2264,16 +3326,22 @@ function tallerEventos(id, v, ot, grupos){
     (g.ref.logos || []).forEach(l => g.t.elementos.push({ id: "E" + Date.now() + Math.random().toString(36).slice(2, 5), tipo: "logo", nombre: "Logo del cliente: " + l.nombre.replace(/\.[^.]+$/, ""), nota: "", estado: "listo", src: l.src, deCliente: true, por: "cliente" }));
     ok("Logos del cliente agregados"); });
   document.querySelectorAll("[data-tlup]").forEach(inp => inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const [n, k] = inp.dataset.tlup.split("|"), e = G(n).t.elementos[+k];
-    try { const r = await tlLeer(f); const antes = e.src; e.src = r.src; e.estado = "listo"; e.por = SES.nombre; e.fecha = new Date().toISOString(); e.px = r.ancho + " × " + r.alto;
+    try { const svg = typeof stEsSVG === "function" && stEsSVG(f);
+      const r = svg ? null : await tlLeer(f); const antes = e.src;
+      if (svg){ const og = await tlConOriginal(e, f, v.folio); if (!og) return toast("El SVG solo se puede guardar con la base de datos conectada", true); e.src = (await stVistaSVG(og.ref)).src; e.px = og.w + " × " + og.h + " (vector)"; }
+      else { e.src = r.src; e.px = r.ancho + " × " + r.alto; await tlConOriginal(e, f, v.folio); }
+      e.estado = "listo"; e.por = SES.nombre; e.fecha = new Date().toISOString();
       log(v, "Taller de diseño: elemento listo", e.nombre);
-      if (!VT.guardar(DB)){ e.src = antes; return toast("No hay espacio para guardar la imagen", true); } toast("Elemento listo"); abrirOT(id); }
+      if (!VT.guardar(DB)){ e.src = antes; return toast("No hay espacio para guardar la imagen", true); } toast(e.origFalla ? "Vista previa lista, pero el ORIGINAL no se guardó: " + e.origFalla : "Elemento listo", !!e.origFalla); abrirOT(id); }
     catch(x){ toast("No se pudo leer la imagen", true); } });
   document.querySelectorAll("[data-tlmv]").forEach(b => b.onclick = () => { const [n, k, d] = b.dataset.tlmv.split("|").map(Number), E = G(n).t.elementos, j = k + d; if (j < 0 || j >= E.length) return; [E[k], E[j]] = [E[j], E[k]]; ok("Orden cambiado"); });
   document.querySelectorAll("[data-tldel]").forEach(b => b.onclick = () => { const [n, k] = b.dataset.tldel.split("|"), E = G(n).t.elementos, e = E[+k];
-    if (e.src && !confirm(`¿Quitar "${e.nombre}"? Se borra la imagen que subiste.`)) return; E.splice(+k, 1); log(v, "Taller de diseño: elemento quitado", e.nombre); ok("Elemento quitado"); });
+    if (e.src && !confirm(`¿Quitar "${e.nombre}"? La imagen deja de usarse en este pedido.${typeof stBorrarOriginales === "function" ? " Su original se conserva un tiempo por seguridad." : ""}`)) return; E.splice(+k, 1); tlQuitarOriginales(E, e); log(v, "Taller de diseño: elemento quitado", e.nombre); ok("Elemento quitado"); });
   document.querySelectorAll("[data-tlall]").forEach(b => b.onclick = async () => { const E = G(b.dataset.tlall).t.elementos.filter(e => e.src);
     for (const [k, e] of E.entries()){ const a = document.createElement("a"); a.href = e.src; a.download = `${v.folio}_${String(k + 1).padStart(2, "0")}_${e.nombre.replace(/[^\wáéíóúñ]+/gi, "_")}.png`; document.body.appendChild(a); a.click(); a.remove(); await new Promise(r => setTimeout(r, 400)); } });
   document.querySelectorAll("[data-dsp]").forEach(b => b.onclick = () => dspAbrir(id, v, G(b.dataset.dsp)));
+  document.querySelectorAll("[data-st]").forEach(b => b.onclick = () => stAbrir(id, v, G(b.dataset.st)));
+  document.querySelectorAll("[data-stap]").forEach(b => b.onclick = () => stAutoprueba());
   document.querySelectorAll("[data-dsppdf]").forEach(b => b.onclick = async () => { const [n, k] = b.dataset.dsppdf.split("|").map(Number), g = G(n), t = b.textContent; b.disabled = true; b.textContent = "Generando…";
     try { await dspPDF(g.items[k], g.t, v); toast("PDF para el ajustador descargado"); } catch(e){ toast("No se pudo generar el PDF", true); } b.disabled = false; b.textContent = t; });
   document.querySelectorAll("[data-dspaj]").forEach(b => b.onclick = () => { const [n, k] = b.dataset.dspaj.split("|").map(Number), g = G(n), t = b.textContent; b.disabled = true; b.textContent = "Enviando…";
