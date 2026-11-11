@@ -209,11 +209,12 @@ async function guardarImagen(dataUrl, carpeta){
 async function leerImagen(ref){
   const m = /[?&]p=([^&]+)/.exec(String(ref || "")); if (!m) throw Object.assign(new Error("Imagen no encontrada"), { code: 400 });
   const p = decodeURIComponent(m[1]); if (!/^[\w-]+\/[\w.-]+$/.test(p)) throw Object.assign(new Error("Imagen no válida"), { code: 400 });
+  if (/^(papelera|_vituma)\//i.test(p)) throw Object.assign(new Error("Imagen no encontrada"), { code: 404 });
   const tipo = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" }[p.split(".").pop()] || "image/png";
   if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"); if (!fs.existsSync(path.join(process.env.VT_BLOB_DIR, p))) await restaurarSiSeUsa(null, p, "Se usó en la IA y algún registro lo usa"); return { buf: fs.readFileSync(path.join(process.env.VT_BLOB_DIR, p)), tipo }; }
   await blobOK();
   const { get } = await blob(), acceso = (await r1("GET", "vt:cfg:blob")) || "private"; let r = await get(p, { access: acceso, ...BLOB_OP });
-  if ((!r || r.statusCode !== 200) && await restaurarSiSeUsa(null, p, "Se usó en la IA y algún registro lo usa")) r = await get(p, { access: acceso, ...BLOB_OP });
+  if (!r || r.statusCode !== 200){ const out = {}; if (await restaurarSiSeUsa(null, p, "Se usó en la IA y algún registro lo usa", out) && out.buf) return { buf: out.buf, tipo }; }
   if (!r || r.statusCode !== 200) throw Object.assign(new Error("Imagen no encontrada"), { code: 404 });
   return { buf: Buffer.from(await new Response(r.stream).arrayBuffer()), tipo: r.blob.contentType || tipo };
 }
@@ -345,35 +346,35 @@ async function estadoLimpieza(){
   return { filas, resumen, registros: ref.registros, faltanEnEspera, faltanEnPapelera, generado: new Date(ahora).toISOString(), plazos: PLAZO.texto, rapida: LIMP_RAPIDA, _ref: ref };
 }
 /* mueve un archivo dentro del almacenamiento (copia, comprueba la copia y después borra el de origen) */
-async function moverArchivo(desde, hacia){
+async function moverArchivo(desde, hacia, out){
   if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"), a = path.join(process.env.VT_BLOB_DIR, desde), b = path.join(process.env.VT_BLOB_DIR, hacia);
-    fs.mkdirSync(path.dirname(b), { recursive: true }); fs.copyFileSync(a, b); if (fs.statSync(a).size !== fs.statSync(b).size) throw new Error("la copia no coincide"); fs.unlinkSync(a); return fs.statSync(b).size; }
+    fs.mkdirSync(path.dirname(b), { recursive: true }); fs.copyFileSync(a, b); if (fs.statSync(a).size !== fs.statSync(b).size) throw new Error("la copia no coincide"); if (out){ out.buf = fs.readFileSync(b); } fs.unlinkSync(a); return fs.statSync(b).size; }
   await blobOK(); const { get, put, head, del } = await blob(), acceso = (await r1("GET", "vt:cfg:blob")) || "private";
   const r = await get(desde, { access: acceso, ...BLOB_OP }); if (!r || r.statusCode !== 200) throw new Error("no existe " + desde);
   const buf = Buffer.from(await new Response(r.stream).arrayBuffer());
   await put(hacia, buf, { access: acceso, contentType: r.blob.contentType || "application/octet-stream", addRandomSuffix: false, allowOverwrite: true, ...BLOB_OP });
   const h = await head(hacia, BLOB_OP); if (!h || +h.size !== buf.length) throw new Error("la copia no coincide");
-  await del([desde], BLOB_OP); return buf.length;
+  await del([desde], BLOB_OP); if (out){ out.buf = buf; out.tipo = r.blob.contentType; } return buf.length;
 }
 const limpLog = o => rp([["LPUSH", LIMP_LOG, JSON.stringify({ fecha: new Date().toISOString(), ...o })], ["LTRIM", LIMP_LOG, 0, 4999]]);
 /* saca un archivo de la papelera y lo regresa a su lugar (con candado para que no se haga dos veces a la vez) */
-async function restaurar(p, quien, motivo){
+async function restaurar(p, quien, motivo, out){
   const e = J(await r1("HGET", LIMP_PAP, p)); if (!e) return false;
   if ((await r1("SET", "vt:limp:rest:" + p, "1", "NX", "EX", 120)) !== "OK") return false;
-  try { const b = await moverArchivo(rutaPapelera(p), p);
+  try { const b = await moverArchivo(rutaPapelera(p), p, out);
     await rp([["HDEL", LIMP_PAP, p], ["HDEL", "vt:img", rutaPapelera(p)], ["HSET", "vt:img", p, b], ["HDEL", LIMP_K, p]]);
     await limpLog({ por: quien || "sistema", accion: "recuperado", ruta: p, bytes: b, motivo: motivo || "" }); return true; }
   finally { await r1("DEL", "vt:limp:rest:" + p).catch(() => {}); }
 }
 /* al ABRIR una liga de un archivo que está en la papelera: solo se recupera si algún pedido, cliente, configuración o versión de STUDIO
    lo usa (revisión completa). Si nadie lo usa, NO se recupera y la liga responde 404. Con límite de intentos por equipo. */
-async function restaurarSiSeUsa(req, p, motivo){
+async function restaurarSiSeUsa(req, p, motivo, out){
   try {
     if (!(await r1("HEXISTS", LIMP_PAP, p))) return false;
     if (req && !(await limite(req, "imgpap", 30, 3600))) return false;
     const h = huellaDe(p); if (!h) return false;
     const ref = await mapaDeReferencias(); if (!ref.usos.has(h)) return false;
-    return await restaurar(p, "sistema", motivo);
+    return await restaurar(p, "sistema", motivo, out);
   } catch(e){ console.error("restaurarSiSeUsa", e); return false; }
 }
 /* cada vez que se GUARDA algo (panel, pedido, pago): si usa archivos en espera, salen de la lista; si usa archivos en la papelera, se recuperan */
@@ -739,7 +740,7 @@ const A = {
     if (!puedeStudio(u)) throw errS("Sin permiso", 403);
     const out = []; await blobOK();
     const existe = async q => { if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"); return fs.existsSync(path.join(process.env.VT_BLOB_DIR, q)); }
-      const { head } = await blob(); try { return !!(await head(q, BLOB_OP)); } catch(e){ if (/not.?found|404/i.test(String(e && (e.name + e.message)))) return false; throw e; } };
+      const { head } = await blob(); try { return !!(await head(q, BLOB_OP)); } catch(e){ if ((e && e.constructor && e.constructor.name === "BlobNotFoundError") || /does not exist|not.?found|404/i.test(String(e && (e.name + " " + e.message)))) return false; throw e; } };
     for (const r of [].concat((req.body || {}).refs || []).slice(0, 50)){ const m = /[?&]p=([^&]+)/.exec(String(r)); if (!m) continue; const p = decodeURIComponent(m[1]); if (!p.startsWith("originales/")) continue;
       out.push({ ruta: p, existe: await existe(p), enPapelera: await existe(rutaPapelera(p)), registroPapelera: !!(await r1("HEXISTS", LIMP_PAP, p)) }); }
     return { archivos: out };
@@ -872,6 +873,10 @@ const A = {
     if (p.startsWith("originales/")){ res.setHeader("Cache-Control", "no-store"); res.setHeader("CDN-Cache-Control", "no-store"); res.setHeader("Vercel-CDN-Cache-Control", "no-store"); }   // originales de STUDIO: sin copia en el navegador ni en la red de Vercel (también en 404)
     else res.setHeader("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable");   // demás imágenes: igual que antes
     if (tipo === "image/svg+xml"){ res.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox"); res.setHeader("X-Content-Type-Options", "nosniff"); }
+    if (p.startsWith("originales/") && !(await r1("HEXISTS", "vt:img", p))){   // en la papelera o eliminado: el registro manda (el almacenamiento puede tardar en actualizarse)
+      const out = {}; if (await restaurarSiSeUsa(req, p, "Se abrió una liga y algún registro lo usa", out) && out.buf){ res.setHeader("Content-Type", tipo === "image/svg+xml" ? tipo : out.tipo || tipo); res.end(out.buf); return null; }
+      res.status(404).end(); return null;
+    }
     if (process.env.VT_BLOB_DIR){
       const fs = await import("node:fs"), path = await import("node:path"); const f = path.join(process.env.VT_BLOB_DIR, p);
       if (!fs.existsSync(f) && !(await restaurarSiSeUsa(req, p, "Se abrió una liga y algún registro lo usa"))) { res.status(404).end(); return null; }
@@ -880,7 +885,7 @@ const A = {
     await blobOK();
     const { get } = await blob(), acceso = (await r1("GET", "vt:cfg:blob")) || "private";
     let r = await get(p, { access: acceso, ...BLOB_OP });
-    if ((!r || r.statusCode !== 200) && await restaurarSiSeUsa(req, p, "Se abrió una liga y algún registro lo usa")) r = await get(p, { access: acceso, ...BLOB_OP });   // estaba en la papelera y algo lo usa: regresa
+    if (!r || r.statusCode !== 200){ const out = {}; if (await restaurarSiSeUsa(req, p, "Se abrió una liga y algún registro lo usa", out) && out.buf){ res.setHeader("Content-Type", tipo === "image/svg+xml" ? tipo : out.tipo || tipo); res.end(out.buf); return null; } }   // estaba en la papelera y algo lo usa: se entrega lo recuperado
     if (!r || r.statusCode !== 200) { res.status(404).end(); return null; }
     res.setHeader("Content-Type", tipo === "image/svg+xml" ? tipo : r.blob.contentType || tipo);
     if (p.startsWith("originales/")){ const rd = r.stream.getReader(); for (;;){ const { done, value } = await rd.read(); if (done) break; res.write(Buffer.from(value)); } res.end(); return null; }   // originales grandes: se envían por partes
