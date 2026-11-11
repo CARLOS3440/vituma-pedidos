@@ -2830,9 +2830,56 @@ async function stAutoprueba(){
   await prueba("11. Navegador", async () => { const ua = navigator.userAgent, nav = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : /Firefox\//.test(ua) ? "Firefox" : "Otro";
     if (typeof CompressionStream === "undefined") throw new Error(nav + ": falta CompressionStream (actualiza el navegador)");
     return `${nav} · ${ua.match(/(Chrome|Version|Firefox)\/[\d.]+/) ? ua.match(/(Chrome|Version|Firefox)\/[\d.]+/)[0] : ""} · CompressionStream ✔ · pantalla ×${devicePixelRatio}`; });
-  await prueba("12. Limpieza: borrar los archivos de prueba (sin huérfanos)", async () => {
-    const r = await VT.nube.ia("orig_borrar", { refs: creados }); let vivos = 0; for (const ref of creados){ const x = await fetch(ref, { cache: "no-store" }); if (x.ok) vivos++; }
-    if (vivos) throw new Error(`${vivos} archivo(s) siguen existiendo`); return `${r.borrados} archivos borrados y comprobados (ya no existen)`; });
+  /* ---- papelera y ligas antiguas de originales (12–17) ---- */
+  const abrir = async ref => { const r = await fetch(ref, { cache: "no-store" }); return { s: r.status, cc: r.headers.get("cache-control") || "" }; };
+  const existe = async ref => (await VT.nube.ia("prueba_existe", { refs: [ref] })).archivos[0] || {};
+  let pap = null, refQuitada = false;
+  await prueba("12. Acceso al original antes de enviarlo a la papelera", async () => {
+    pap = await stSubirOriginal(await aArchivo(lienzo(900, 600), "papelera.png"), "AUTOPRUEBA"); creados.push(pap.ref);
+    const a = await abrir(pap.ref); if (a.s !== 200) throw new Error("La liga respondió " + a.s);
+    if (!/no-store/.test(a.cc)) throw new Error("Falta Cache-Control: no-store (" + a.cc + ")");
+    const x = await existe(pap.ref); if (!x.existe) throw new Error("No aparece en el almacenamiento");
+    return `La liga abre (200) · Cache-Control: ${a.cc} · existe en el almacenamiento`; });
+  await prueba("13. Acceso denegado después de enviarlo a la papelera", async () => {
+    if (!pap) throw new Error("Depende de la prueba 12");
+    await VT.nube.ia("prueba_papelera", { ref: pap.ref });
+    const x = await existe(pap.ref); if (x.existe || !x.enPapelera) throw new Error("No quedó en la papelera");
+    const a = await abrir(pap.ref); if (a.s !== 404) throw new Error("La liga antigua respondió " + a.s + " (debía ser 404)");
+    if (!/no-store/.test(a.cc)) throw new Error("El 404 no trae no-store (" + a.cc + ")");
+    const y = await existe(pap.ref); if (y.existe || !y.enPapelera) throw new Error("Abrir la liga lo sacó de la papelera sin que nadie lo usara");
+    return `Liga antigua → 404 (no-store) · sigue en la papelera: abrir la liga NO lo recuperó porque nadie lo usa`; });
+  await prueba("14. La ruta interna de la papelera no se puede abrir", async () => {
+    if (!pap) throw new Error("Depende de la prueba 12");
+    const ruta = decodeURIComponent(/p=([^&]+)/.exec(pap.ref)[1]), dir = "/api/vt?a=img&p=" + encodeURIComponent("papelera/" + ruta.replace("/", "__"));
+    const a = await abrir(dir), b = await abrir("/api/vt?a=img&p=" + encodeURIComponent("_vituma/entorno-pruebas.json"));
+    if (a.s === 200) throw new Error("¡La copia de la papelera se pudo abrir por liga!"); if (b.s === 200) throw new Error("¡_vituma/ se pudo abrir por liga!");
+    return `papelera/… → ${a.s} · _vituma/… → ${b.s} (ninguna se puede abrir)`; });
+  await prueba("15. Recuperación cuando existe una referencia válida", async () => {
+    if (!pap) throw new Error("Depende de la prueba 12");
+    await VT.nube.ia("prueba_referencia", { refs: [pap.ref] });
+    try { const a = await abrir(pap.ref); if (a.s !== 200) throw new Error("Con referencia válida la liga respondió " + a.s);
+      const x = await existe(pap.ref); if (!x.existe || x.enPapelera || x.registroPapelera) throw new Error("No regresó a su lugar");
+      const im = await dspImg(pap.ref + "&v=" + Date.now()); if (im.naturalWidth !== 900) throw new Error("La imagen recuperada no coincide");
+      return `Con una referencia en la base: la liga abre (200), el archivo volvió a su lugar (900×600) y salió de la papelera`; }
+    finally { await VT.nube.ia("prueba_referencia", { quitar: true }); refQuitada = true; } });
+  await prueba("16. Acceso denegado después de la eliminación definitiva", async () => {
+    if (!pap) throw new Error("Depende de la prueba 12");
+    const x0 = await existe(pap.ref); if (!x0.existe) throw new Error("Depende de la prueba 15");
+    await VT.nube.ia("prueba_papelera", { ref: pap.ref }); await VT.nube.ia("prueba_eliminar", { ref: pap.ref });
+    const a = await abrir(pap.ref); if (a.s !== 404) throw new Error("La liga antigua respondió " + a.s + " (debía ser 404)");
+    return `Papelera → eliminación definitiva → liga antigua 404 (no-store)`; });
+  await prueba("17. Comprobación directa en el almacenamiento (Blob)", async () => {
+    if (!pap) throw new Error("Depende de la prueba 12");
+    const x = await existe(pap.ref); if (x.existe || x.enPapelera || x.registroPapelera) throw new Error("Sigue existiendo: " + JSON.stringify(x));
+    return `Vercel Blob confirma: no existe el original, ni su copia en la papelera, ni su registro`; });
+  await prueba("18. Limpieza: borrar los archivos de prueba (sin huérfanos) — antes prueba 12", async () => {
+    if (!refQuitada) await VT.nube.ia("prueba_referencia", { quitar: true });
+    const r = await VT.nube.ia("orig_borrar", { refs: creados });
+    const ex = (await VT.nube.ia("prueba_existe", { refs: creados })).archivos, vivos = ex.filter(x => x.existe || x.enPapelera);
+    if (vivos.length) throw new Error(`${vivos.length} archivo(s) siguen en el almacenamiento`);
+    const ligas = []; for (const ref of creados) ligas.push((await abrir(ref)).s);
+    const abiertas = ligas.filter(s => s !== 404).length; if (abiertas) throw new Error(`${abiertas} liga(s) antiguas todavía responden (${ligas.join(", ")})`);
+    return `${r.borrados} borrados · el almacenamiento confirma que ninguno de los ${creados.length} existe · sus ${creados.length} ligas antiguas responden 404`; });
   const ok = R.filter(r => r.ok).length;
   $("#apEst").innerHTML = `<b>${ok} de ${R.length} pruebas correctas</b> · ${((Date.now() - t0) / 1000).toFixed(0)} s · ${new Date().toLocaleString("es-MX")}`;
   $("#apCopiar").disabled = false; $("#apCopiar").onclick = async () => { const t = `AUTOPRUEBA VITUMA STUDIO · ${new Date().toLocaleString("es-MX")}\n${navigator.userAgent}\n` + R.map(r => `${r.ok ? "✅" : "❌"} ${r.n} — ${r.d} (${(r.ms / 1000).toFixed(1)} s)`).join("\n");
