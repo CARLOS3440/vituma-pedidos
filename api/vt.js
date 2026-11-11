@@ -350,7 +350,7 @@ async function moverArchivo(desde, hacia, out){
   if (process.env.VT_BLOB_DIR){ const fs = await import("node:fs"), path = await import("node:path"), a = path.join(process.env.VT_BLOB_DIR, desde), b = path.join(process.env.VT_BLOB_DIR, hacia);
     fs.mkdirSync(path.dirname(b), { recursive: true }); fs.copyFileSync(a, b); if (fs.statSync(a).size !== fs.statSync(b).size) throw new Error("la copia no coincide"); if (out){ out.buf = fs.readFileSync(b); } fs.unlinkSync(a); return fs.statSync(b).size; }
   await blobOK(); const { get, put, head, del } = await blob(), acceso = (await r1("GET", "vt:cfg:blob")) || "private";
-  const r = await get(desde, { access: acceso, ...BLOB_OP }); if (!r || r.statusCode !== 200) throw new Error("no existe " + desde);
+  const r = await get(desde, { access: acceso, useCache: false, ...BLOB_OP }); if (!r || r.statusCode !== 200) throw new Error("no existe " + desde);   // fresco: el almacenamiento puede tardar en actualizarse
   const buf = Buffer.from(await new Response(r.stream).arrayBuffer());
   await put(hacia, buf, { access: acceso, contentType: r.blob.contentType || "application/octet-stream", addRandomSuffix: false, allowOverwrite: true, ...BLOB_OP });
   const h = await head(hacia, BLOB_OP); if (!h || +h.size !== buf.length) throw new Error("la copia no coincide");
@@ -753,7 +753,7 @@ const A = {
     if (!p || !p.startsWith("originales/")) throw errS("Ruta inválida", 400);
     const reg = J(await r1("GET", "vt:orig:" + p)); if (!reg || reg.folio !== "AUTOPRUEBA" || reg.u !== u.id) throw errS("Solo archivos de la autoprueba", 403);
     await r1("HSET", LIMP_PAP, p, JSON.stringify({ desde: Date.now(), por: u.nombre || u.usuario, motivo: "Autoprueba", tipo: "Autoprueba", bytes: reg.bytes, subido: reg.fecha }));
-    const n = await moverArchivo(p, rutaPapelera(p)); await rp([["HDEL", "vt:img", p], ["HSET", "vt:img", rutaPapelera(p), n], ["HDEL", LIMP_K, p]]);
+    let n; try { n = await moverArchivo(p, rutaPapelera(p)); } catch(e){ await r1("HDEL", LIMP_PAP, p); throw e; } await rp([["HDEL", "vt:img", p], ["HSET", "vt:img", rutaPapelera(p), n], ["HDEL", LIMP_K, p]]);
     return { ok: true };
   },
   /* pone o quita una referencia de prueba (colección "autoprueba") para comprobar la recuperación con referencia válida */
@@ -884,7 +884,7 @@ const A = {
     }
     await blobOK();
     const { get } = await blob(), acceso = (await r1("GET", "vt:cfg:blob")) || "private";
-    let r = await get(p, { access: acceso, ...BLOB_OP });
+    let r = await get(p, { access: acceso, ...(p.startsWith("originales/") ? { useCache: false } : {}), ...BLOB_OP });   // originales: siempre la versión actual
     if (!r || r.statusCode !== 200){ const out = {}; if (await restaurarSiSeUsa(req, p, "Se abrió una liga y algún registro lo usa", out) && out.buf){ res.setHeader("Content-Type", tipo === "image/svg+xml" ? tipo : out.tipo || tipo); res.end(out.buf); return null; } }   // estaba en la papelera y algo lo usa: se entrega lo recuperado
     if (!r || r.statusCode !== 200) { res.status(404).end(); return null; }
     res.setHeader("Content-Type", tipo === "image/svg+xml" ? tipo : r.blob.contentType || tipo);
